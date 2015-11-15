@@ -51,12 +51,24 @@ void MPU9250::writeRegister(uint8_t subAddress, uint8_t data){
 }
 
 uint16_t MPU9250::readRegisters(uint8_t msbAddress, uint8_t lsbAddress){
-  uint8_t msb = readRegister(msbAddress);
-  uint8_t lsb = readRegister(lsbAddress);
+
+  // write to register to be read
+  Wire.beginTransmission(_address);
+  Wire.write(msbAddress);
+  Wire.endTransmission(false);
+  Wire.write(lsbAddress);
+
+  // request 1 byte back
+  Wire.requestFrom(_address,1,false);
+  uint8_t msb = Wire.read();
+  Wire.requestFrom(_address,1);
+  uint8_t lsb = Wire.read();
+
   return (((uint16_t)msb) << 8) | lsb;
 }
 
 void MPU9250::getAccel(double* ax, double* ay, double* az){
+
   *ax = ((int16_t) readRegisters(ACCEL_XOUT_H, ACCEL_XOUT_L)) * G * 4.0/32767.5;
   *ay = ((int16_t) readRegisters(ACCEL_YOUT_H, ACCEL_YOUT_L)) * G * 4.0/32767.5;
   *az = ((int16_t) readRegisters(ACCEL_ZOUT_H, ACCEL_ZOUT_L)) * G * 4.0/32767.5;

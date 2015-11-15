@@ -33,10 +33,11 @@ class MPU9250{
     MPU9250(int address);
     void begin();
     void getAccel(double* ax, double* ay, double* az);
+    uint8_t readRegister(uint8_t registerAddress);
   private:
     int _address;
     void writeRegister(uint8_t subAddress, uint8_t data);
-    uint8_t readRegister(uint8_t registerAddress);
+
     uint16_t readRegisters(uint8_t msbAddress, uint8_t lsbAddress);
 };
 
