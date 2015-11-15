@@ -55,8 +55,7 @@ uint16_t MPU9250::readRegisters(uint8_t msbAddress, uint8_t lsbAddress){
   // write to register to be read
   Wire.beginTransmission(_address);
   Wire.write(msbAddress);
-  Wire.endTransmission(false);
-  Wire.write(lsbAddress);
+  Wire.endTransmission();
 
   // request 1 byte back
   Wire.requestFrom(_address,1,false);
