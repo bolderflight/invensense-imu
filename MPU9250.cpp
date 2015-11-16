@@ -2,7 +2,7 @@
 // title:     MPU9250.cpp
 // author:    Taylor, Brian R.
 // email:     brian.taylor@bolderflight.com
-// date:      2015-11-07 
+// date:      2015-11-15 
 // license: 
 //
 
