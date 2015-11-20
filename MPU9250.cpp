@@ -84,59 +84,46 @@ void MPU9250::readRegisters(uint8_t subAddress, int count, uint8_t* dest){
   }
 }
 
-/* get accelerometer data given pointers to store the three values */
-void MPU9250::getAccel(double* ax, double* ay, double* az){
+/* get accelerometer data given pointers to store the three values, return data as counts */
+void MPU9250::getAccelCounts(uint16_t* ax, uint16_t* ay, uint16_t* az){
   uint8_t buff[6];
-  uint16_t accel[3];
 
   readRegisters(ACCEL_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
 
-  accel[0] = (((uint16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
-  accel[1] = (((uint16_t)buff[2]) << 8) | buff[3];
-  accel[2] = (((uint16_t)buff[4]) << 8) | buff[5];
+  *ax = (((uint16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
+  *ay = (((uint16_t)buff[2]) << 8) | buff[3];
+  *az = (((uint16_t)buff[4]) << 8) | buff[5];
+}
+
+/* get accelerometer data given pointers to store the three values */
+void MPU9250::getAccel(double* ax, double* ay, double* az){
+  uint16_t accel[3];
+
+  getAccelCounts(&accel[0], &accel[1], &accel[2]);
 
   *ax = ((int16_t) accel[0]) * _accelScale; // typecast and scale to values
   *ay = ((int16_t) accel[1]) * _accelScale;
   *az = ((int16_t) accel[2]) * _accelScale;
+}
+
+/* get gyro data given pointers to store the three values, return data as counts */
+void MPU9250::getGyroCounts(uint16_t* gx, uint16_t* gy, uint16_t* gz){
+  uint8_t buff[6];
+
+  readRegisters(GYRO_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
+
+  *gx = (((uint16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
+  *gy = (((uint16_t)buff[2]) << 8) | buff[3];
+  *gz = (((uint16_t)buff[4]) << 8) | buff[5];
 }
 
 /* get gyro data given pointers to store the three values */
 void MPU9250::getGyro(double* gx, double* gy, double* gz){
-  uint8_t buff[6];
   uint16_t gyro[3];
 
-  readRegisters(GYRO_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
-
-  gyro[0] = (((uint16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
-  gyro[1] = (((uint16_t)buff[2]) << 8) | buff[3];
-  gyro[2] = (((uint16_t)buff[4]) << 8) | buff[5];
+  getGyroCounts(&gyro[0], &gyro[1], &gyro[2]);
 
   *gx = ((int16_t) gyro[0]) * _gyroScale; // typecast and scale to values
-  *gy = ((int16_t) gyro[1]) * _gyroScale;
-  *gz = ((int16_t) gyro[2]) * _gyroScale;
-}
-
-/* get accelerometer and gyro data given pointers to store values */
-void MPU9250::getMotion6(double* ax, double* ay, double* az, double* gx, double* gy, double* gz){
-  uint8_t buff[14];
-  uint16_t accel[3];
-  uint16_t gyro[3];
-
-  readRegisters(ACCEL_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
-
-  accel[0] = (((uint16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
-  accel[1] = (((uint16_t)buff[2]) << 8) | buff[3];
-  accel[2] = (((uint16_t)buff[4]) << 8) | buff[5];
-
-  gyro[0] = (((uint16_t)buff[8]) << 8) | buff[9];
-  gyro[1] = (((uint16_t)buff[10]) << 8) | buff[11];
-  gyro[2] = (((uint16_t)buff[12]) << 8) | buff[13];
-
-  *ax = ((int16_t) accel[0]) * _accelScale; // typecast and scale to values
-  *ay = ((int16_t) accel[1]) * _accelScale;
-  *az = ((int16_t) accel[2]) * _accelScale;
-
-  *gx = ((int16_t) gyro[0]) * _gyroScale;
   *gy = ((int16_t) gyro[1]) * _gyroScale;
   *gz = ((int16_t) gyro[2]) * _gyroScale;
 }
@@ -154,5 +141,21 @@ void MPU9250::getMotion6Counts(uint16_t* ax, uint16_t* ay, uint16_t* az, uint16_
   *gx = (((uint16_t)buff[8]) << 8) | buff[9];
   *gy = (((uint16_t)buff[10]) << 8) | buff[11];
   *gz = (((uint16_t)buff[12]) << 8) | buff[13];
+}
+
+/* get accelerometer and gyro data given pointers to store values */
+void MPU9250::getMotion6(double* ax, double* ay, double* az, double* gx, double* gy, double* gz){
+  uint16_t accel[3];
+  uint16_t gyro[3];
+
+  getMotion6Counts(&accel[0], &accel[1], &accel[2], &gyro[0], &gyro[1], &gyro[2]);
+
+  *ax = ((int16_t) accel[0]) * _accelScale; // typecast and scale to values
+  *ay = ((int16_t) accel[1]) * _accelScale;
+  *az = ((int16_t) accel[2]) * _accelScale;
+
+  *gx = ((int16_t) gyro[0]) * _gyroScale;
+  *gy = ((int16_t) gyro[1]) * _gyroScale;
+  *gz = ((int16_t) gyro[2]) * _gyroScale;
 }
 

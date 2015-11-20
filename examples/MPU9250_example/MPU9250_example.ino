@@ -61,7 +61,25 @@ void loop() {
   Serial.println(gz,6);
   delay(500);
 
-  // get both the accel (m/s/s) and gyro (deg/s) data, in counts
+  // get the accelerometer data, in counts
+  IMU.getAccelCounts(&axc, &ayc, &azc);
+  Serial.print(((int16_t) axc) * 4.0 * 9.807/32767.5, 6);
+  Serial.print("\t");
+  Serial.print(((int16_t) ayc) * 4.0 * 9.807/32767.5, 6);
+  Serial.print("\t");
+  Serial.print(((int16_t) azc) * 4.0 * 9.807/32767.5, 6);
+  Serial.print("\t");
+  
+  // get the gyro data, in counts
+  IMU.getGyroCounts(&gxc, &gyc, &gzc);
+  Serial.print(((int16_t) gxc) * 250.0/32767.5, 6);
+  Serial.print("\t");
+  Serial.print(((int16_t) gyc) * 250.0/32767.5, 6);
+  Serial.print("\t");
+  Serial.println(((int16_t) gzc) * 250.0/32767.5, 6);
+  delay(500);
+
+  // get both the accel (m/s/s) and gyro data, in counts
   IMU.getMotion6Counts(&axc, &ayc, &azc, &gxc, &gyc, &gzc);
   Serial.print(((int16_t) axc) * 4.0 * 9.807/32767.5, 6);
   Serial.print("\t");

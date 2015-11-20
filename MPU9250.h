@@ -32,14 +32,14 @@
 #define G			9.807
 #define D2R			180.0/PI						
 
-
-
 class MPU9250{
   public:
     MPU9250(int address);
     void begin(String accelRange, String gyroRange);
     void getAccel(double* ax, double* ay, double* az);
+    void getAccelCounts(uint16_t* ax, uint16_t* ay, uint16_t* az);
     void getGyro(double* gx, double* gy, double* gz);
+    void getGyroCounts(uint16_t* gx, uint16_t* gy, uint16_t* gz);
     //void getMag(double* hx, double* hy, double* hz);
     void getMotion6(double* ax, double* ay, double* az, double* gx, double* gy, double* gz);
     void getMotion6Counts(uint16_t* ax, uint16_t* ay, uint16_t* az, uint16_t* gx, uint16_t* gy, uint16_t* gz);

@@ -1,6 +1,8 @@
 MPU9250	KEYWORD1
 begin	KEYWORD2
 getAccel	KEYWORD2
+getAccelCounts	KEYWORD2
 getGyro	KEYWORD2
+getGyroCounts	KEYWORD2
 getMotion6	KEYWORD2
 getMotion6Counts	KEYWORD2
