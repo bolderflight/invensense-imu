@@ -2,7 +2,7 @@
 // title:     MPU9250.cpp
 // author:    Taylor, Brian R.
 // email:     brian.taylor@bolderflight.com
-// date:      2015-11-15 
+// date:      2015-11-19 
 // license: 
 //
 
@@ -141,5 +141,18 @@ void MPU9250::getMotion6(double* ax, double* ay, double* az, double* gx, double*
   *gz = ((int16_t) gyro[2]) * _gyroScale;
 }
 
+/* get accelerometer and gyro data given pointers to store values, return data as counts */
+void MPU9250::getMotion6Counts(uint16_t* ax, uint16_t* ay, uint16_t* az, uint16_t* gx, uint16_t* gy, uint16_t* gz){
+  uint8_t buff[14];
 
+  readRegisters(ACCEL_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
+
+  *ax = (((uint16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
+  *ay = (((uint16_t)buff[2]) << 8) | buff[3];
+  *az = (((uint16_t)buff[4]) << 8) | buff[5];
+
+  *gx = (((uint16_t)buff[8]) << 8) | buff[9];
+  *gy = (((uint16_t)buff[10]) << 8) | buff[11];
+  *gz = (((uint16_t)buff[12]) << 8) | buff[13];
+}
 

@@ -2,7 +2,7 @@
 // title:     MPU9250_example.ino
 // author:    Taylor, Brian R.
 // email:     brian.taylor@bolderflight.com
-// date:      2015-11-16 
+// date:      2015-11-19 
 // license: 
 //
 
@@ -26,6 +26,7 @@ void setup() {
 
 void loop() {
   double ax, ay, az, gx, gy, gz;
+  uint16_t axc, ayc, azc, gxc, gyc, gzc;
 
   // get the accelerometer data (m/s/s)
   IMU.getAccel(&ax, &ay, &az);
@@ -58,5 +59,20 @@ void loop() {
   Serial.print(gy,6);
   Serial.print("\t");
   Serial.println(gz,6);
+  delay(500);
+
+  // get both the accel (m/s/s) and gyro (deg/s) data, in counts
+  IMU.getMotion6Counts(&axc, &ayc, &azc, &gxc, &gyc, &gzc);
+  Serial.print(((int16_t) axc) * 4.0 * 9.807/32767.5, 6);
+  Serial.print("\t");
+  Serial.print(((int16_t) ayc) * 4.0 * 9.807/32767.5, 6);
+  Serial.print("\t");
+  Serial.print(((int16_t) azc) * 4.0 * 9.807/32767.5, 6);
+  Serial.print("\t");
+  Serial.print(((int16_t) gxc) * 250.0/32767.5, 6);
+  Serial.print("\t");
+  Serial.print(((int16_t) gyc) * 250.0/32767.5, 6);
+  Serial.print("\t");
+  Serial.println(((int16_t) gzc) * 250.0/32767.5, 6);
   delay(500);
 }

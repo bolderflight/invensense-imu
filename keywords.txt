@@ -3,3 +3,4 @@ begin	KEYWORD2
 getAccel	KEYWORD2
 getGyro	KEYWORD2
 getMotion6	KEYWORD2
+getMotion6Counts	KEYWORD2

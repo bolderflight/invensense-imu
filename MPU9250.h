@@ -2,7 +2,7 @@
 // title:     MPU9250.h
 // author:    Taylor, Brian R.
 // email:     brian.taylor@bolderflight.com
-// date:      2015-11-15 
+// date:      2015-11-19 
 // license: 
 //
 
@@ -42,6 +42,7 @@ class MPU9250{
     void getGyro(double* gx, double* gy, double* gz);
     //void getMag(double* hx, double* hy, double* hz);
     void getMotion6(double* ax, double* ay, double* az, double* gx, double* gy, double* gz);
+    void getMotion6Counts(uint16_t* ax, uint16_t* ay, uint16_t* az, uint16_t* gx, uint16_t* gy, uint16_t* gz);
   private:
     int _address;
     double _accelScale;
