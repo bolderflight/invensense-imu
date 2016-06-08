@@ -62,6 +62,49 @@ void MPU9250::begin(String accelRange, String gyroRange){
   }
 }
 
+/* sets the DLPF and interrupt settings */
+void MPU9250::setFilt(String bandwidth, uint8_t frequency){
+  uint16_t ISR = 1000; // with all of the DLPF settings below, the frequency will be 1 kHz
+  uint8_t SRD; // sample rate divider
+
+  if(bandwidth.equals("184HZ")){
+    writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_184); // setting accel bandwidth to 184Hz
+	  writeRegister(CONFIG,GYRO_DLPF_184); // setting gyro bandwidth to 184Hz
+  }
+
+  if(bandwidth.equals("92HZ")){
+    writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_92); // setting accel bandwidth to 92Hz
+	  writeRegister(CONFIG,GYRO_DLPF_92); // setting gyro bandwidth to 92Hz
+  }
+
+  if(bandwidth.equals("41HZ")){
+    writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_41); // setting accel bandwidth to 41Hz
+	  writeRegister(CONFIG,GYRO_DLPF_41); // setting gyro bandwidth to 41Hz
+  }
+
+  if(bandwidth.equals("20HZ")){
+    writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_20); // setting accel bandwidth to 20Hz
+	  writeRegister(CONFIG,GYRO_DLPF_20); // setting gyro bandwidth to 20Hz
+  }
+
+  if(bandwidth.equals("10HZ")){
+    writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_10); // setting accel bandwidth to 10Hz
+	  writeRegister(CONFIG,GYRO_DLPF_10); // setting gyro bandwidth to 10Hz
+  }
+
+  if(bandwidth.equals("5HZ")){
+    writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_5); // setting accel bandwidth to 5Hz
+	  writeRegister(CONFIG,GYRO_DLPF_5); // setting gyro bandwidth to 5Hz
+  }
+
+  SRD = ISR / frequency - 1; // determining the correct sample rate divider to get the desired frequency
+
+  writeRegister(SMPDIV,SRD); // setting the sample rate divider
+
+  writeRegister(INT_PIN_CFG,0x00);	// setup interrupt, 50 us pulse
+  writeRegister(INT_ENABLE,0x01);	// set to data ready
+}
+
 /* writes a register to MPU9250 given a register address and data */
 void MPU9250::writeRegister(uint8_t subAddress, uint8_t data){
   Wire.beginTransmission(_address); // open the device
@@ -158,4 +201,3 @@ void MPU9250::getMotion6(double* ax, double* ay, double* az, double* gx, double*
   *gy = ((int16_t) gyro[1]) * _gyroScale;
   *gz = ((int16_t) gyro[2]) * _gyroScale;
 }
-
