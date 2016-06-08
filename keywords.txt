@@ -1,5 +1,6 @@
 MPU9250	KEYWORD1
 begin	KEYWORD2
+setFilt	KEYWORD2
 getAccel	KEYWORD2
 getAccelCounts	KEYWORD2
 getGyro	KEYWORD2
