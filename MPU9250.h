@@ -61,6 +61,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #define GYRO_DLPF_10 		0x05
 #define GYRO_DLPF_5 		0x06
 
+#define USER_CTRL 			0x6A
+#define I2C_MST_CTRL        0x24
+#define I2C_SLV0_ADDR		0x25
+#define I2C_SLV0_REG		0x26
+#define I2C_SLV0_CTRL       0x27
+#define I2C_SLV0_DO			0x63
+#define I2C_READ_FLAG   	0x80
+#define EXT_SENS_DATA_00    0x49
+
+#define AK8963_I2C_ADDR		0x0C
+#define AK8963_ST1			0x02
+#define AK8963_CNTL1		0x0A
+#define AK8963_CNTL2		0x0B
+#define AK8963_HXL			0x03
+#define AK8963_ASA			0x10
+
 #define SMPDIV				0x19
 
 #define INT_PIN_CFG         0x37
@@ -91,9 +107,17 @@ class MPU9250{
     void getGyroCounts(uint16_t* gx, uint16_t* gy, uint16_t* gz);
     void getTemp(double *t);
     void getTempCounts(uint16_t* t);
+
     //void getMag(double* hx, double* hy, double* hz);
     void getMotion6(double* ax, double* ay, double* az, double* gx, double* gy, double* gz);
     void getMotion6Counts(uint16_t* ax, uint16_t* ay, uint16_t* az, uint16_t* gx, uint16_t* gy, uint16_t* gz);
+
+    void getMotion7(double* ax, double* ay, double* az, double* gx, double* gy, double* gz, double* t);
+    void getMotion7Counts(uint16_t* ax, uint16_t* ay, uint16_t* az, uint16_t* gx, uint16_t* gy, uint16_t* gz, uint16_t* t);
+
+    void initMag();
+    void calMag();
+
     uint8_t whoAmI();
   private:
     int _address;

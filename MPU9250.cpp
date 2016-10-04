@@ -286,6 +286,62 @@ void MPU9250::getMotion6(double* ax, double* ay, double* az, double* gx, double*
   *gz = ((int16_t) gyro[2]) * _gyroScale;
 }
 
+/* get accelerometer, gyro and temperature data given pointers to store values, return data as counts */
+void MPU9250::getMotion7Counts(uint16_t* ax, uint16_t* ay, uint16_t* az, uint16_t* gx, uint16_t* gy, uint16_t* gz, uint16_t* t){
+  uint8_t buff[14];
+
+  readRegisters(ACCEL_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
+
+  *ax = (((uint16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
+  *ay = (((uint16_t)buff[2]) << 8) | buff[3];
+  *az = (((uint16_t)buff[4]) << 8) | buff[5];
+
+  *t = (((uint16_t)buff[6]) << 8) | buff[7];
+
+  *gx = (((uint16_t)buff[8]) << 8) | buff[9];
+  *gy = (((uint16_t)buff[10]) << 8) | buff[11];
+  *gz = (((uint16_t)buff[12]) << 8) | buff[13];
+}
+
+/* get accelerometer, gyro, and temperature data given pointers to store values */
+void MPU9250::getMotion7(double* ax, double* ay, double* az, double* gx, double* gy, double* gz, double* t){
+  uint16_t accel[3];
+  uint16_t gyro[3];
+  uint16_t tempCount;
+  float sens = 333.87f;
+  float offset = 21.0f;
+
+  getMotion7Counts(&accel[0], &accel[1], &accel[2], &gyro[0], &gyro[1], &gyro[2], &tempCount);
+
+  *ax = ((int16_t) accel[0]) * _accelScale; // typecast and scale to values
+  *ay = ((int16_t) accel[1]) * _accelScale;
+  *az = ((int16_t) accel[2]) * _accelScale;
+
+  *gx = ((int16_t) gyro[0]) * _gyroScale;
+  *gy = ((int16_t) gyro[1]) * _gyroScale;
+  *gz = ((int16_t) gyro[2]) * _gyroScale;
+
+  *t = (( ((int16_t) tempCount) - offset )/sens) + 21.0f; 
+}
+
+void MPU9250::initMag(){
+
+	
+	writeRegister(USER_CTRL,0x20); 					// enable I2C master mode
+	writeRegister(I2C_MST_CTRL,0x0D); 				// set the I2C bus speed to 400 kHz
+
+	// reset mag
+
+	// get mag who am i
+
+	// set to 16 bit measurement 100 hz continuous mode
+
+}
+
+void MPU9250::calMag(){
+
+}
+
 /* gets the MPU-9250 WHO_AM_I register value, expected to be 0x71 */
 uint8_t MPU9250::whoAmI(){
 	uint8_t buff[1];
