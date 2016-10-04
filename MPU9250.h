@@ -28,6 +28,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "Arduino.h"
 
 #define ACCEL_OUT			0x3B
+#define TEMP_OUT			0x41
 #define GYRO_OUT			0x43
 
 #define ACCEL_CONFIG		0x1C
@@ -80,12 +81,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 class MPU9250{
   public:
     MPU9250(int address);
+
     int begin(String accelRange, String gyroRange);
     void setFilt(String bandwidth, uint8_t frequency);
+
     void getAccel(double* ax, double* ay, double* az);
     void getAccelCounts(uint16_t* ax, uint16_t* ay, uint16_t* az);
     void getGyro(double* gx, double* gy, double* gz);
     void getGyroCounts(uint16_t* gx, uint16_t* gy, uint16_t* gz);
+    void getTemp(double *t);
+    void getTempCounts(uint16_t* t);
     //void getMag(double* hx, double* hy, double* hz);
     void getMotion6(double* ax, double* ay, double* az, double* gx, double* gy, double* gz);
     void getMotion6Counts(uint16_t* ax, uint16_t* ay, uint16_t* az, uint16_t* gx, uint16_t* gy, uint16_t* gz);

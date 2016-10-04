@@ -235,6 +235,26 @@ void MPU9250::getGyro(double* gx, double* gy, double* gz){
   *gz = ((int16_t) gyro[2]) * _gyroScale;
 }
 
+/* get temperature data given pointers to store the three values, return data as counts */
+void MPU9250::getTempCounts(uint16_t* t){
+	uint8_t buff[2];
+
+	readRegisters(TEMP_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
+
+	*t = (((uint16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit value and return
+}
+
+/* get temperature data given pointers to store the three values */
+void MPU9250::getTemp(double* t){
+	uint16_t tempCount;
+	float sens = 333.87f;
+	float offset = 21.0f;
+
+	getTempCounts(&tempCount);
+
+	*t = (( ((int16_t) tempCount) - offset )/sens) + 21.0f;
+}
+
 /* get accelerometer and gyro data given pointers to store values, return data as counts */
 void MPU9250::getMotion6Counts(uint16_t* ax, uint16_t* ay, uint16_t* az, uint16_t* gx, uint16_t* gy, uint16_t* gz){
   uint8_t buff[14];
