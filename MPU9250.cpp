@@ -37,10 +37,8 @@ int MPU9250::begin(String accelRange, String gyroRange){
 
 	Wire.begin(I2C_MASTER, 0, I2C_PINS_18_19, I2C_PULLUP_EXT, I2C_RATE_400); // starting the I2C
 
-	// check the WHO AM I byte, expected value is 0x71
-	if( whoAmI() != 0x71 ){
-  		return -1;
-	}
+	// reset the device
+	writeRegister(PWR_MGMNT_1,PWR_RESET);
 
 	/* setup the accel and gyro ranges */
 	if(accelRange.equals("2G")){
@@ -83,8 +81,21 @@ int MPU9250::begin(String accelRange, String gyroRange){
     	_gyroScale = 2000.0/32767.5; // setting the gyro scale to 2000DPS
 	}
 
+	// wait for oscillators to stabilize
+	delayMicroseconds(500);
+
 	// select clock source to gyro
 	if( !writeRegister(PWR_MGMNT_1,CLOCK_SEL_PLL) ){
+		return -1;
+	}
+
+	// check the WHO AM I byte, expected value is 0x71
+	if( whoAmI() != 0x71 ){
+  		return -1;
+	}
+
+	// enable accelerometer and gyro
+	if( !writeRegister(PWR_MGMNT_2,SEN_ENABLE) ){
 		return -1;
 	}
 
@@ -255,6 +266,7 @@ void MPU9250::getMotion6(double* ax, double* ay, double* az, double* gx, double*
   *gz = ((int16_t) gyro[2]) * _gyroScale;
 }
 
+/* gets the MPU-9250 WHO_AM_I register value, expected to be 0x71 */
 uint8_t MPU9250::whoAmI(){
 	uint8_t buff[1];
 
