@@ -90,7 +90,7 @@ class MPU9250{
     int _address;
     double _accelScale;
     double _gyroScale;
-    void writeRegister(uint8_t subAddress, uint8_t data);
+    bool writeRegister(uint8_t subAddress, uint8_t data);
     void readRegisters(uint8_t subAddress, int count, uint8_t* dest);
 };
 

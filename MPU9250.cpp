@@ -33,54 +33,70 @@ MPU9250::MPU9250(int address){
 
 /* starts the I2C communication */
 int MPU9250::begin(String accelRange, String gyroRange){
-  Wire.begin(I2C_MASTER, 0, I2C_PINS_18_19, I2C_PULLUP_EXT, I2C_RATE_400); // starting the I2C
+	uint8_t accelSetting, gyroSetting;
 
-  // check the WHO AM I
-  if( whoAmI() != 0x71 ){
-  	return -1;
-  }
+	Wire.begin(I2C_MASTER, 0, I2C_PINS_18_19, I2C_PULLUP_EXT, I2C_RATE_400); // starting the I2C
 
-  writeRegister(PWR_MGMNT_1,CLOCK_SEL_PLL); // select clock source to gyro
+	// check the WHO AM I byte, expected value is 0x71
+	if( whoAmI() != 0x71 ){
+  		return -1;
+	}
 
-  if(accelRange.equals("2G")){
-    writeRegister(ACCEL_CONFIG,ACCEL_FS_SEL_2G); // setting the accel range to 2G
-    _accelScale = G * 2.0/32767.5; // setting the accel scale to 2G
-  }
+	/* setup the accel and gyro ranges */
+	if(accelRange.equals("2G")){
+  		accelSetting = ACCEL_FS_SEL_2G; // setting the accel range to 2G
+    	_accelScale = G * 2.0/32767.5; // setting the accel scale to 2G
+	}
 
-  if(accelRange.equals("4G")){
-    writeRegister(ACCEL_CONFIG,ACCEL_FS_SEL_4G); // setting the accel range to 4G
-    _accelScale = G * 4.0/32767.5; // setting the accel scale to 4G
-  }
+	if(accelRange.equals("4G")){
+  		accelSetting = ACCEL_FS_SEL_4G; // setting the accel range to 4G
+    	_accelScale = G * 4.0/32767.5; // setting the accel scale to 4G
+	}
 
-  if(accelRange.equals("8G")){
-    writeRegister(ACCEL_CONFIG,ACCEL_FS_SEL_8G); // setting the accel range to 8G
-    _accelScale = G * 8.0/32767.5; // setting the accel scale to 8G
-  }
+	if(accelRange.equals("8G")){
+  		accelSetting = ACCEL_FS_SEL_8G; // setting the accel range to 8G
+    	_accelScale = G * 8.0/32767.5; // setting the accel scale to 8G
+	}
 
-  if(accelRange.equals("16G")){
-    writeRegister(ACCEL_CONFIG,ACCEL_FS_SEL_16G); // setting the accel range to 16G
-    _accelScale = G * 16.0/32767.5; // setting the accel scale to 16G
-  }
+	if(accelRange.equals("16G")){
+  		accelSetting = ACCEL_FS_SEL_16G; // setting the accel range to 16G
+    	_accelScale = G * 16.0/32767.5; // setting the accel scale to 16G
+	}
 
-  if(gyroRange.equals("250DPS")){
-    writeRegister(GYRO_CONFIG,GYRO_FS_SEL_250DPS); // setting the gyro range to 250DPS
-    _gyroScale = 250.0/32767.5; // setting the gyro scale to 250DPS
-  }
+	if(gyroRange.equals("250DPS")){
+  		gyroSetting = GYRO_FS_SEL_250DPS; // setting the gyro range to 250DPS
+    	_gyroScale = 250.0/32767.5; // setting the gyro scale to 250DPS
+	}
 
-  if(gyroRange.equals("500DPS")){
-    writeRegister(GYRO_CONFIG,GYRO_FS_SEL_500DPS); // setting the gyro range to 500DPS
-    _gyroScale = 500.0/32767.5; // setting the gyro scale to 500DPS
-  }
+	if(gyroRange.equals("500DPS")){
+  		gyroSetting = GYRO_FS_SEL_500DPS; // setting the gyro range to 500DPS
+    	_gyroScale = 500.0/32767.5; // setting the gyro scale to 500DPS
+	}
 
-  if(gyroRange.equals("1000DPS")){
-    writeRegister(GYRO_CONFIG,GYRO_FS_SEL_1000DPS); // setting the gyro range to 1000DPS
-    _gyroScale = 1000.0/32767.5; // setting the gyro scale to 1000DPS
-  }
+	if(gyroRange.equals("1000DPS")){
+  		gyroSetting = GYRO_FS_SEL_1000DPS; // setting the gyro range to 1000DPS
+    	_gyroScale = 1000.0/32767.5; // setting the gyro scale to 1000DPS
+	}
 
-  if(gyroRange.equals("2000DPS")){
-    writeRegister(GYRO_CONFIG,GYRO_FS_SEL_2000DPS); // setting the gyro range to 2000DPS
-    _gyroScale = 2000.0/32767.5; // setting the gyro scale to 2000DPS
-  }
+	if(gyroRange.equals("2000DPS")){
+  		gyroSetting = GYRO_FS_SEL_2000DPS; // setting the gyro range to 2000DPS
+    	_gyroScale = 2000.0/32767.5; // setting the gyro scale to 2000DPS
+	}
+
+	// select clock source to gyro
+	if( !writeRegister(PWR_MGMNT_1,CLOCK_SEL_PLL) ){
+		return -1;
+	}
+
+	// write the accelerometer settings
+	if( !writeRegister(ACCEL_CONFIG,accelSetting) ){
+		return -1;
+	}
+
+	// write the gyro settings
+	if( !writeRegister(GYRO_CONFIG,gyroSetting) ){
+		return -1;
+	}
 
   return 0;
 }
@@ -129,11 +145,25 @@ void MPU9250::setFilt(String bandwidth, uint8_t frequency){
 }
 
 /* writes a register to MPU9250 given a register address and data */
-void MPU9250::writeRegister(uint8_t subAddress, uint8_t data){
-  Wire.beginTransmission(_address); // open the device
-  Wire.write(subAddress); // write the register address
-  Wire.write(data); // write the data
-  Wire.endTransmission();
+bool MPU9250::writeRegister(uint8_t subAddress, uint8_t data){
+	uint8_t buff[1];
+
+	/* write data to device */
+  	Wire.beginTransmission(_address); // open the device
+  	Wire.write(subAddress); // write the register address
+  	Wire.write(data); // write the data
+  	Wire.endTransmission();
+
+  	/* read back the register */
+  	readRegisters(subAddress,sizeof(buff),&buff[0]);
+
+  	/* check the read back register against the written register */
+  	if(buff[0] == data) {
+  		return true;
+  	}
+  	else{
+  		return false;
+  	}
 }
 
 /* reads registers from MPU9250 given a starting register address, number of bytes, and a pointer to store data */
