@@ -68,13 +68,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #define PWR_MGMNT_1			0x6B
 #define CLOCK_SEL_PLL		0x01
 
+#define WHO_AM_I			0x75
+
 #define G					9.807
 #define D2R					180.0/PI						
 
 class MPU9250{
   public:
     MPU9250(int address);
-    void begin(String accelRange, String gyroRange);
+    int begin(String accelRange, String gyroRange);
     void setFilt(String bandwidth, uint8_t frequency);
     void getAccel(double* ax, double* ay, double* az);
     void getAccelCounts(uint16_t* ax, uint16_t* ay, uint16_t* az);
@@ -83,6 +85,7 @@ class MPU9250{
     //void getMag(double* hx, double* hy, double* hz);
     void getMotion6(double* ax, double* ay, double* az, double* gx, double* gy, double* gz);
     void getMotion6Counts(uint16_t* ax, uint16_t* ay, uint16_t* az, uint16_t* gx, uint16_t* gy, uint16_t* gz);
+    uint8_t whoAmI();
   private:
     int _address;
     double _accelScale;

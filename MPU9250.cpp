@@ -32,8 +32,13 @@ MPU9250::MPU9250(int address){
 }
 
 /* starts the I2C communication */
-void MPU9250::begin(String accelRange, String gyroRange){
+int MPU9250::begin(String accelRange, String gyroRange){
   Wire.begin(I2C_MASTER, 0, I2C_PINS_18_19, I2C_PULLUP_EXT, I2C_RATE_400); // starting the I2C
+
+  // check the WHO AM I
+  if( whoAmI() != 0x71 ){
+  	return -1;
+  }
 
   writeRegister(PWR_MGMNT_1,CLOCK_SEL_PLL); // select clock source to gyro
 
@@ -76,6 +81,8 @@ void MPU9250::begin(String accelRange, String gyroRange){
     writeRegister(GYRO_CONFIG,GYRO_FS_SEL_2000DPS); // setting the gyro range to 2000DPS
     _gyroScale = 2000.0/32767.5; // setting the gyro scale to 2000DPS
   }
+
+  return 0;
 }
 
 /* sets the DLPF and interrupt settings */
@@ -216,4 +223,14 @@ void MPU9250::getMotion6(double* ax, double* ay, double* az, double* gx, double*
   *gx = ((int16_t) gyro[0]) * _gyroScale;
   *gy = ((int16_t) gyro[1]) * _gyroScale;
   *gz = ((int16_t) gyro[2]) * _gyroScale;
+}
+
+uint8_t MPU9250::whoAmI(){
+	uint8_t buff[1];
+
+	// read the WHO AM I register
+	readRegisters(WHO_AM_I,sizeof(buff),&buff[0]);
+
+	// return the register value
+	return buff[0];
 }
