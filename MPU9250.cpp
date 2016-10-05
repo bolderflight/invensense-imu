@@ -31,7 +31,7 @@ MPU9250::MPU9250(int address){
   _address = address; // I2C address
 }
 
-/* starts the I2C communication */
+/* starts communication and sets up the MPU-9250 */
 int MPU9250::begin(String accelRange, String gyroRange){
 	uint8_t accelSetting, gyroSetting;
 
@@ -110,16 +110,54 @@ int MPU9250::begin(String accelRange, String gyroRange){
 	}
 
 	// enable I2C master mode
-	if( !writeRegister(USER_CTRL,0x20) ){
+	if( !writeRegister(USER_CTRL,I2C_MST_EN) ){
 		return -1;
 	}
 
 	// set the I2C bus speed to 400 kHz
-	if( !writeRegister(I2C_MST_CTRL,0x0D) ){
+	if( !writeRegister(I2C_MST_CTRL,I2C_MST_CLK) ){
 		return -1;
-	}			
+	}
+
+	// initialize the magnetometers
+	if( initMag() ){
+		return -1;
+	}
 
   return 0;
+}
+
+/* sets up the AK8963 magnetometers */
+int MPU9250::initMag(){
+	uint8_t buff[3];
+	uint8_t buff2[7];
+
+	// send a reset command to the AK8963
+	writeAK8963Register(AK8963_CNTL2, AK8963_RESET);
+
+	// wait for the magnetometer to power up
+	delayMicroseconds(500);
+
+	// check AK8963 who am i register
+	if( whoAmIAK8963() != 0x48 ){
+  		return -1;
+	}
+
+	// set AK8963 to 16 bit resolution, 100 Hz update rate
+	if( !writeAK8963Register(AK8963_CNTL1,0x16) ){
+		return -1;
+	}	
+
+	// get the magnetometer calibrations
+	readAK8963Registers(AK8963_ASA,sizeof(buff),&buff[0]);
+	_magScaleX = ((((double)buff[0]) - 128.0)/(256.0) + 1.0) * 4912.0 / 32760.0; // micro Tesla
+	_magScaleY = ((((double)buff[1]) - 128.0)/(256.0) + 1.0) * 4912.0 / 32760.0; // micro Tesla
+	_magScaleZ = ((((double)buff[2]) - 128.0)/(256.0) + 1.0) * 4912.0 / 32760.0; // micro Tesla
+
+	// instruct the MPU9250 to get 7 bytes of data from the AK8963 at the sample rate
+	readAK8963Registers(AK8963_HXL,sizeof(buff2),&buff2[0]);
+
+	return 0;
 }
 
 /* sets the DLPF and interrupt settings */
@@ -386,57 +424,110 @@ uint8_t MPU9250::whoAmIAK8963(){
 	return buff[0];
 }
 
-int MPU9250::initMag(uint8_t* _magx,uint8_t* _magy,uint8_t* _magz){
-	uint8_t buff[3];
+void MPU9250::getMotion9(double* ax, double* ay, double* az, double* gx, double* gy, double* gz, double* hx, double* hy, double* hz){
+  uint16_t accel[3];
+  uint16_t gyro[3];
+  uint16_t mag[3];
 
-	// send a reset command to the AK8963
-	writeAK8963Register(AK8963_CNTL2, 0x01);
+  getMotion9Counts(&accel[0], &accel[1], &accel[2], &gyro[0], &gyro[1], &gyro[2], &mag[0], &mag[1], &mag[2]);
 
-	delayMicroseconds(500);
+  *ax = ((int16_t) accel[0]) * _accelScale; // typecast and scale to values
+  *ay = ((int16_t) accel[1]) * _accelScale;
+  *az = ((int16_t) accel[2]) * _accelScale;
 
-	// check AK8963 who am i register
-	if( whoAmIAK8963() != 0x48 ){
-  		return -1;
-	}
+  *gx = ((int16_t) gyro[0]) * _gyroScale;
+  *gy = ((int16_t) gyro[1]) * _gyroScale;
+  *gz = ((int16_t) gyro[2]) * _gyroScale;
 
-	// set AK8963 to 16 bit resolution, 100 Hz update rate
-	if( !writeAK8963Register(AK8963_CNTL1,0x16) ){
-		return -1;
-	}	
-
-	// get the magnetometer calibrations
-	readAK8963Registers(AK8963_ASA,sizeof(buff),&buff[0]);
-	*_magx = buff[0];
-	*_magy = buff[1];
-	*_magz = buff[2];
-
-	return 0;
-
-}
-/*
-void MPU9250::getMotion9(){
+    	*hx = ((int16_t) mag[0]) * _magScaleX; // typecast and scale to values
+	*hy = ((int16_t) mag[1]) * _magScaleY;
+	*hz = ((int16_t) mag[2]) * _magScaleZ;
 
 }
 
-void MPU9250::getMotion9Counts(){
+void MPU9250::getMotion9Counts(uint16_t* ax, uint16_t* ay, uint16_t* az, uint16_t* gx, uint16_t* gy, uint16_t* gz, uint16_t* hx, uint16_t* hy, uint16_t* hz){
+	uint8_t buff[21];
+
+  readRegisters(ACCEL_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
+
+  *ax = (((uint16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
+  *ay = (((uint16_t)buff[2]) << 8) | buff[3];
+  *az = (((uint16_t)buff[4]) << 8) | buff[5];
+
+  *gx = (((uint16_t)buff[8]) << 8) | buff[9];
+  *gy = (((uint16_t)buff[10]) << 8) | buff[11];
+  *gz = (((uint16_t)buff[12]) << 8) | buff[13];
+
+  	*hx = (((uint16_t)buff[15]) << 8) | buff[14];  // combine into 16 bit values
+  	*hy = (((uint16_t)buff[17]) << 8) | buff[16];
+  	*hz = (((uint16_t)buff[19]) << 8) | buff[18];
+}
+
+void MPU9250::getMotion10(double* ax, double* ay, double* az, double* gx, double* gy, double* gz, double* hx, double* hy, double* hz, double* t){
+	  uint16_t accel[3];
+  uint16_t gyro[3];
+  uint16_t mag[3];
+  uint16_t tempCount;
+  float sens = 333.87f;
+  float offset = 21.0f;
+
+  getMotion10Counts(&accel[0], &accel[1], &accel[2], &gyro[0], &gyro[1], &gyro[2], &mag[0], &mag[1], &mag[2], &tempCount);
+
+  *ax = ((int16_t) accel[0]) * _accelScale; // typecast and scale to values
+  *ay = ((int16_t) accel[1]) * _accelScale;
+  *az = ((int16_t) accel[2]) * _accelScale;
+
+  *gx = ((int16_t) gyro[0]) * _gyroScale;
+  *gy = ((int16_t) gyro[1]) * _gyroScale;
+  *gz = ((int16_t) gyro[2]) * _gyroScale;
+
+  	*hx = ((int16_t) mag[0]) * _magScaleX; // typecast and scale to values
+	*hy = ((int16_t) mag[1]) * _magScaleY;
+	*hz = ((int16_t) mag[2]) * _magScaleZ;
+
+  *t = (( ((int16_t) tempCount) - offset )/sens) + 21.0f; 
 
 }
 
-void MPU9250::getMotion10(){
+void MPU9250::getMotion10Counts(uint16_t* ax, uint16_t* ay, uint16_t* az, uint16_t* gx, uint16_t* gy, uint16_t* gz, uint16_t* hx, uint16_t* hy, uint16_t* hz, uint16_t* t){
+
+		uint8_t buff[21];
+
+  readRegisters(ACCEL_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
+
+  *ax = (((uint16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
+  *ay = (((uint16_t)buff[2]) << 8) | buff[3];
+  *az = (((uint16_t)buff[4]) << 8) | buff[5];
+
+  *t = (((uint16_t)buff[6]) << 8) | buff[7];
+
+  *gx = (((uint16_t)buff[8]) << 8) | buff[9];
+  *gy = (((uint16_t)buff[10]) << 8) | buff[11];
+  *gz = (((uint16_t)buff[12]) << 8) | buff[13];
+
+  	*hx = (((uint16_t)buff[15]) << 8) | buff[14];  // combine into 16 bit values
+  	*hy = (((uint16_t)buff[17]) << 8) | buff[16];
+  	*hz = (((uint16_t)buff[19]) << 8) | buff[18];
 
 }
 
-void MPU9250::getMotion10Counts(){
+void MPU9250::getMag(double* hx, double* hy, double* hz){
+	uint16_t mag[3];
 
+	getMagCounts(&mag[0], &mag[1], &mag[2]);
+
+	*hx = ((int16_t) mag[0]) * _magScaleX; // typecast and scale to values
+	*hy = ((int16_t) mag[1]) * _magScaleY;
+	*hz = ((int16_t) mag[2]) * _magScaleZ;
 }
 
-void MPU9250::getMag(){
+void MPU9250::getMagCounts(uint16_t* hx, uint16_t* hy, uint16_t* hz){
+	uint8_t buff[7];
+	
+	// read the magnetometer data off the external sensor buffer
+	readRegisters(EXT_SENS_DATA_00,sizeof(buff),&buff[0]);
 
+	*hx = (((uint16_t)buff[1]) << 8) | buff[0];  // combine into 16 bit values
+  	*hy = (((uint16_t)buff[3]) << 8) | buff[2];
+  	*hz = (((uint16_t)buff[5]) << 8) | buff[4];
 }
-
-void MPU9250::getMagCounts(){
-
-
-
-}
-*/

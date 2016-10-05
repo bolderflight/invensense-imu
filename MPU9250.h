@@ -62,6 +62,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #define GYRO_DLPF_5 		0x06
 
 #define USER_CTRL 			0x6A
+#define I2C_MST_EN			0x20
+#define I2C_MST_CLK			0x0D
 #define I2C_MST_CTRL        0x24
 #define I2C_SLV0_ADDR		0x25
 #define I2C_SLV0_REG		0x26
@@ -78,6 +80,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #define AK8963_HXL			0x03
 #define AK8963_ASA			0x10
 #define AK8963_WHO_AM_I		0x00
+#define AK8963_RESET		0x01
 
 #define SMPDIV				0x19
 
@@ -107,31 +110,32 @@ class MPU9250{
     void getAccelCounts(uint16_t* ax, uint16_t* ay, uint16_t* az);
     void getGyro(double* gx, double* gy, double* gz);
     void getGyroCounts(uint16_t* gx, uint16_t* gy, uint16_t* gz);
+    void getMag(double* hx, double* hy, double* hz);
+    void getMagCounts(uint16_t* hx, uint16_t* hy, uint16_t* hz);
     void getTemp(double *t);
     void getTempCounts(uint16_t* t);
-
-    //void getMag(double* hx, double* hy, double* hz);
+    
     void getMotion6(double* ax, double* ay, double* az, double* gx, double* gy, double* gz);
     void getMotion6Counts(uint16_t* ax, uint16_t* ay, uint16_t* az, uint16_t* gx, uint16_t* gy, uint16_t* gz);
-
     void getMotion7(double* ax, double* ay, double* az, double* gx, double* gy, double* gz, double* t);
     void getMotion7Counts(uint16_t* ax, uint16_t* ay, uint16_t* az, uint16_t* gx, uint16_t* gy, uint16_t* gz, uint16_t* t);
-
-    uint8_t whoAmI();
-    uint8_t whoAmIAK8963();
-
-    void readAK8963Registers(uint8_t subAddress, int count, uint8_t* dest);
-    bool writeAK8963Register(uint8_t subAddress, uint8_t data);
-
-    int initMag(uint8_t* _magx,uint8_t* _magy,uint8_t* _magz);
+    void getMotion9(double* ax, double* ay, double* az, double* gx, double* gy, double* gz, double* hx, double* hy, double* hz);
+    void getMotion9Counts(uint16_t* ax, uint16_t* ay, uint16_t* az, uint16_t* gx, uint16_t* gy, uint16_t* gz, uint16_t* hx, uint16_t* hy, uint16_t* hz);
+    void getMotion10(double* ax, double* ay, double* az, double* gx, double* gy, double* gz, double* hx, double* hy, double* hz, double* t);
+    void getMotion10Counts(uint16_t* ax, uint16_t* ay, uint16_t* az, uint16_t* gx, uint16_t* gy, uint16_t* gz, uint16_t* hx, uint16_t* hy, uint16_t* hz, uint16_t* t);
 
   private:
     int _address;
     double _accelScale;
     double _gyroScale;
+    double _magScaleX, _magScaleY, _magScaleZ;
     bool writeRegister(uint8_t subAddress, uint8_t data);
     void readRegisters(uint8_t subAddress, int count, uint8_t* dest);
-
+    bool writeAK8963Register(uint8_t subAddress, uint8_t data);
+    void readAK8963Registers(uint8_t subAddress, int count, uint8_t* dest);
+    int initMag();
+	uint8_t whoAmI();
+    uint8_t whoAmIAK8963();
 };
 
 #endif
