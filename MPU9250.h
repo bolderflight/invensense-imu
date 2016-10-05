@@ -2,7 +2,7 @@
 MPU9250.h
 Brian R Taylor
 brian.taylor@bolderflight.com
-2016-06-08
+2016-10-04
 
 Copyright (c) 2016 Bolder Flight Systems
 
@@ -66,6 +66,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #define I2C_SLV0_ADDR		0x25
 #define I2C_SLV0_REG		0x26
 #define I2C_SLV0_CTRL       0x27
+#define I2C_SLV0_EN			0x80
 #define I2C_SLV0_DO			0x63
 #define I2C_READ_FLAG   	0x80
 #define EXT_SENS_DATA_00    0x49
@@ -76,6 +77,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #define AK8963_CNTL2		0x0B
 #define AK8963_HXL			0x03
 #define AK8963_ASA			0x10
+#define AK8963_WHO_AM_I		0x00
 
 #define SMPDIV				0x19
 
@@ -115,16 +117,21 @@ class MPU9250{
     void getMotion7(double* ax, double* ay, double* az, double* gx, double* gy, double* gz, double* t);
     void getMotion7Counts(uint16_t* ax, uint16_t* ay, uint16_t* az, uint16_t* gx, uint16_t* gy, uint16_t* gz, uint16_t* t);
 
-    void initMag();
-    void calMag();
-
     uint8_t whoAmI();
+    uint8_t whoAmIAK8963();
+
+    void readAK8963Registers(uint8_t subAddress, int count, uint8_t* dest);
+    bool writeAK8963Register(uint8_t subAddress, uint8_t data);
+
+    int initMag(uint8_t* _magx,uint8_t* _magy,uint8_t* _magz);
+
   private:
     int _address;
     double _accelScale;
     double _gyroScale;
     bool writeRegister(uint8_t subAddress, uint8_t data);
     void readRegisters(uint8_t subAddress, int count, uint8_t* dest);
+
 };
 
 #endif

@@ -2,7 +2,7 @@
 MPU9250.cpp
 Brian R Taylor
 brian.taylor@bolderflight.com
-2016-06-08
+2016-10-04
 
 Copyright (c) 2016 Bolder Flight Systems
 
@@ -109,6 +109,16 @@ int MPU9250::begin(String accelRange, String gyroRange){
 		return -1;
 	}
 
+	// enable I2C master mode
+	if( !writeRegister(USER_CTRL,0x20) ){
+		return -1;
+	}
+
+	// set the I2C bus speed to 400 kHz
+	if( !writeRegister(I2C_MST_CTRL,0x0D) ){
+		return -1;
+	}			
+
   return 0;
 }
 
@@ -175,6 +185,37 @@ bool MPU9250::writeRegister(uint8_t subAddress, uint8_t data){
   	else{
   		return false;
   	}
+}
+
+/* writes a register to the AK8963 given a register address and data */
+bool MPU9250::writeAK8963Register(uint8_t subAddress, uint8_t data){
+	uint8_t count = 1;
+	uint8_t buff[1];
+
+	writeRegister(I2C_SLV0_ADDR,AK8963_I2C_ADDR); // set slave 0 to the AK8963 and set for write
+	writeRegister(I2C_SLV0_REG,subAddress); // set the register to the desired AK8963 sub address
+	writeRegister(I2C_SLV0_DO,data); // store the data for write
+	writeRegister(I2C_SLV0_CTRL,I2C_SLV0_EN | count); // enable I2C and send 1 byte
+
+	// read the register and confirm
+	readAK8963Registers(subAddress, sizeof(buff), &buff[0]);
+
+	if(buff[0] == data) {
+  		return true;
+  	}
+  	else{
+  		return false;
+  	}
+}
+
+/* reads registers from the AK8963 */
+void MPU9250::readAK8963Registers(uint8_t subAddress, int count, uint8_t* dest){
+
+	writeRegister(I2C_SLV0_ADDR,AK8963_I2C_ADDR | I2C_READ_FLAG); // set slave 0 to the AK8963 and set for read
+	writeRegister(I2C_SLV0_REG,subAddress); // set the register to the desired AK8963 sub address
+	writeRegister(I2C_SLV0_CTRL,I2C_SLV0_EN | count); // enable I2C and request the bytes
+	delayMicroseconds(100); // takes some time for these registers to fill
+	readRegisters(EXT_SENS_DATA_00,count,dest); // read the bytes off the MPU9250 EXT_SENS_DATA registers
 }
 
 /* reads registers from MPU9250 given a starting register address, number of bytes, and a pointer to store data */
@@ -324,24 +365,6 @@ void MPU9250::getMotion7(double* ax, double* ay, double* az, double* gx, double*
   *t = (( ((int16_t) tempCount) - offset )/sens) + 21.0f; 
 }
 
-void MPU9250::initMag(){
-
-	
-	writeRegister(USER_CTRL,0x20); 					// enable I2C master mode
-	writeRegister(I2C_MST_CTRL,0x0D); 				// set the I2C bus speed to 400 kHz
-
-	// reset mag
-
-	// get mag who am i
-
-	// set to 16 bit measurement 100 hz continuous mode
-
-}
-
-void MPU9250::calMag(){
-
-}
-
 /* gets the MPU-9250 WHO_AM_I register value, expected to be 0x71 */
 uint8_t MPU9250::whoAmI(){
 	uint8_t buff[1];
@@ -352,3 +375,68 @@ uint8_t MPU9250::whoAmI(){
 	// return the register value
 	return buff[0];
 }
+
+uint8_t MPU9250::whoAmIAK8963(){
+	uint8_t buff[1];
+
+	// read the WHO AM I register
+	readAK8963Registers(AK8963_WHO_AM_I,sizeof(buff),&buff[0]);
+
+	// return the register value
+	return buff[0];
+}
+
+int MPU9250::initMag(uint8_t* _magx,uint8_t* _magy,uint8_t* _magz){
+	uint8_t buff[3];
+
+	// send a reset command to the AK8963
+	writeAK8963Register(AK8963_CNTL2, 0x01);
+
+	delayMicroseconds(500);
+
+	// check AK8963 who am i register
+	if( whoAmIAK8963() != 0x48 ){
+  		return -1;
+	}
+
+	// set AK8963 to 16 bit resolution, 100 Hz update rate
+	if( !writeAK8963Register(AK8963_CNTL1,0x16) ){
+		return -1;
+	}	
+
+	// get the magnetometer calibrations
+	readAK8963Registers(AK8963_ASA,sizeof(buff),&buff[0]);
+	*_magx = buff[0];
+	*_magy = buff[1];
+	*_magz = buff[2];
+
+	return 0;
+
+}
+/*
+void MPU9250::getMotion9(){
+
+}
+
+void MPU9250::getMotion9Counts(){
+
+}
+
+void MPU9250::getMotion10(){
+
+}
+
+void MPU9250::getMotion10Counts(){
+
+}
+
+void MPU9250::getMag(){
+
+}
+
+void MPU9250::getMagCounts(){
+
+
+
+}
+*/
