@@ -2,8 +2,11 @@ MPU9250	KEYWORD1
 begin	KEYWORD2
 setFilt	KEYWORD2
 getAccel	KEYWORD2
-getAccelCounts	KEYWORD2
 getGyro	KEYWORD2
-getGyroCounts	KEYWORD2
+getMag	KEYWORD2
+getTemp	KEYWORD2
 getMotion6	KEYWORD2
-getMotion6Counts	KEYWORD2
+getMotion7	KEYWORD2
+getMotion9	KEYWORD2
+getMotion10	KEYWORD2
+
