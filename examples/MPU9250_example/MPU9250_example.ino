@@ -2,7 +2,7 @@
 MPU9250_example.ino
 Brian R Taylor
 brian.taylor@bolderflight.com
-2015-11-19 
+2016-10-07 
 
 Copyright (c) 2016 Bolder Flight Systems
 
@@ -23,90 +23,146 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 */
 
 #include "MPU9250.h"
-#include <i2c_t3.h> // I2C library
 
 // an MPU9250 object with its I2C address 
-// of 0x68 (ADDR to GRND)
-MPU9250 IMU(0x68);
+// of 0x68 (ADDR to GRND) and on Teensy bus 0
+MPU9250 IMU(0x68, 0);
+
+float ax, ay, az, gx, gy, gz, hx, hy, hz, t;
+int beginStatus;
 
 void setup() {
   // serial to display data
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   // start communication with IMU and 
   // set the accelerometer and gyro ranges.
   // ACCELEROMETER 2G 4G 8G 16G
   // GYRO 250DPS 500DPS 1000DPS 2000DPS
-  IMU.begin("4G","250DPS");
+  beginStatus = IMU.begin("4G","250DPS");
 }
 
 void loop() {
-  double ax, ay, az, gx, gy, gz;
-  uint16_t axc, ayc, azc, gxc, gyc, gzc;
-
-  // get the accelerometer data (m/s/s)
-  IMU.getAccel(&ax, &ay, &az);
-  Serial.print(ax,6);
-  Serial.print("\t");
-  Serial.print(ay,6);
-  Serial.print("\t");
-  Serial.print(az,6);
-  Serial.print("\t");
-
-  // get the gyro data (deg/s)
-  IMU.getGyro(&gx, &gy, &gz);
-  Serial.print(gx,6);
-  Serial.print("\t");
-  Serial.print(gy,6);
-  Serial.print("\t");
-  Serial.println(gz,6);
-  delay(500);
-
-  // get both the accel (m/s/s) and gyro (deg/s) data
-  IMU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-  Serial.print(ax,6);
-  Serial.print("\t");
-  Serial.print(ay,6);
-  Serial.print("\t");
-  Serial.print(az,6);
-  Serial.print("\t");
-  Serial.print(gx,6);
-  Serial.print("\t");
-  Serial.print(gy,6);
-  Serial.print("\t");
-  Serial.println(gz,6);
-  delay(500);
-
-  // get the accelerometer data, in counts
-  IMU.getAccelCounts(&axc, &ayc, &azc);
-  Serial.print(((int16_t) axc) * 4.0 * 9.807/32767.5, 6);
-  Serial.print("\t");
-  Serial.print(((int16_t) ayc) * 4.0 * 9.807/32767.5, 6);
-  Serial.print("\t");
-  Serial.print(((int16_t) azc) * 4.0 * 9.807/32767.5, 6);
-  Serial.print("\t");
+  if(beginStatus < 0) {
+    delay(1000);
+    Serial.println("IMU initialization unsuccessful");
+    Serial.println("Check IMU wiring or try cycling power");
+    delay(10000);
+  }
+  else{
+    /* get the individual data sources */
+    /* This approach is only recommended if you only
+     *  would like the specified data source (i.e. only
+     *  want accel data) since multiple data sources
+     *  would have a time skew between them.
+     */
+    // get the accelerometer data (m/s/s)
+    IMU.getAccel(&ax, &ay, &az);
   
-  // get the gyro data, in counts
-  IMU.getGyroCounts(&gxc, &gyc, &gzc);
-  Serial.print(((int16_t) gxc) * 250.0/32767.5, 6);
-  Serial.print("\t");
-  Serial.print(((int16_t) gyc) * 250.0/32767.5, 6);
-  Serial.print("\t");
-  Serial.println(((int16_t) gzc) * 250.0/32767.5, 6);
-  delay(500);
-
-  // get both the accel (m/s/s) and gyro data, in counts
-  IMU.getMotion6Counts(&axc, &ayc, &azc, &gxc, &gyc, &gzc);
-  Serial.print(((int16_t) axc) * 4.0 * 9.807/32767.5, 6);
-  Serial.print("\t");
-  Serial.print(((int16_t) ayc) * 4.0 * 9.807/32767.5, 6);
-  Serial.print("\t");
-  Serial.print(((int16_t) azc) * 4.0 * 9.807/32767.5, 6);
-  Serial.print("\t");
-  Serial.print(((int16_t) gxc) * 250.0/32767.5, 6);
-  Serial.print("\t");
-  Serial.print(((int16_t) gyc) * 250.0/32767.5, 6);
-  Serial.print("\t");
-  Serial.println(((int16_t) gzc) * 250.0/32767.5, 6);
-  delay(500);
+    // get the gyro data (deg/s)
+    IMU.getGyro(&gx, &gy, &gz);
+  
+    // get the magnetometer data (uT)
+    IMU.getMag(&hx, &hy, &hz);
+  
+    // get the temperature data (C)
+    IMU.getTemp(&t);
+  
+    // print the data
+    printData();
+  
+    // delay a frame
+    delay(50);
+  
+    /* get multiple data sources */
+    /* In this approach we get data from multiple data
+     *  sources (i.e. both gyro and accel). This is 
+     *  the recommended approach since there is no time
+     *  skew between sources - they are all synced.
+     *  Demonstrated are:
+     *  1. getMotion6: accel + gyro
+     *  2. getMotion7: accel + gyro + temp
+     *  3. getMotion9: accel + gyro + mag
+     *  4. getMotion10: accel + gyro + mag + temp
+     */
+  
+     /* getMotion6 */
+    // get both the accel (m/s/s) and gyro (deg/s) data
+    IMU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+  
+    // get the magnetometer data (uT)
+    IMU.getMag(&hx, &hy, &hz);
+  
+    // get the temperature data (C)
+    IMU.getTemp(&t);
+  
+    // print the data
+    printData();
+  
+    // delay a frame
+    delay(50);
+  
+    /* getMotion7 */
+    // get the accel (m/s/s), gyro (deg/s), and temperature (C) data
+    IMU.getMotion7(&ax, &ay, &az, &gx, &gy, &gz, &t);
+    
+    // get the magnetometer data (uT)
+    IMU.getMag(&hx, &hy, &hz);
+  
+    // print the data
+    printData();
+  
+    // delay a frame
+    delay(50);
+  
+    /* getMotion9 */
+    // get the accel (m/s/s), gyro (deg/s), and magnetometer (uT) data
+    IMU.getMotion9(&ax, &ay, &az, &gx, &gy, &gz, &hx, &hy, &hz);
+  
+    // get the temperature data (C)
+    IMU.getTemp(&t);
+  
+    // print the data
+    printData();
+  
+    // delay a frame
+    delay(50);
+  
+    // get the accel (m/s/s), gyro (deg/s), and magnetometer (uT), and temperature (C) data
+    IMU.getMotion10(&ax, &ay, &az, &gx, &gy, &gz, &hx, &hy, &hz, &t);
+  
+    // print the data
+    printData();
+  
+    // delay a frame
+    delay(50);
+  }
 }
+
+void printData(){
+
+  // print the data
+  Serial.print(ax,6);
+  Serial.print("\t");
+  Serial.print(ay,6);
+  Serial.print("\t");
+  Serial.print(az,6);
+  Serial.print("\t");
+
+  Serial.print(gx,6);
+  Serial.print("\t");
+  Serial.print(gy,6);
+  Serial.print("\t");
+  Serial.print(gz,6);
+  Serial.print("\t");
+
+  Serial.print(hx,6);
+  Serial.print("\t");
+  Serial.print(hy,6);
+  Serial.print("\t");
+  Serial.print(hz,6);
+  Serial.print("\t");
+
+  Serial.println(t,6);
+}
+
