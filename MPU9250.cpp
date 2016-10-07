@@ -2,7 +2,7 @@
 MPU9250.cpp
 Brian R Taylor
 brian.taylor@bolderflight.com
-2016-10-04
+2016-10-07
 
 Copyright (c) 2016 Bolder Flight Systems
 
@@ -22,91 +22,172 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+// Teensy 3.0 || Teensy 3.1/3.2 || Teensy 3.5 || Teensy 3.6 || Teensy LC 
+#if defined(__MK20DX128__) || defined(__MK20DX256__) || defined(__MK64FX512__) || \
+	defined(__MK66FX1M0__) || defined(__MKL26Z64__)
+
 #include "Arduino.h"
 #include "MPU9250.h"
-#include <i2c_t3.h>  // I2C library
+#include "i2c_t3.h"  // I2C library
 
-/* MPU9250 object, input the I2C address */
-MPU9250::MPU9250(int address){
-  _address = address; // I2C address
+/* MPU9250 object, input the I2C address and I2C bus */
+MPU9250::MPU9250(uint8_t address, uint8_t bus){
+    _address = address; // I2C address
+    _bus = bus; // I2C bus
 }
 
-/* starts communication and sets up the MPU-9250 */
+/* starts I2C communication and sets up the MPU-9250 */
 int MPU9250::begin(String accelRange, String gyroRange){
-	uint8_t accelSetting, gyroSetting;
+    uint8_t buff[3];
+    uint8_t data[7];
+    i2c_pins pins;
 
-	Wire.begin(I2C_MASTER, 0, I2C_PINS_18_19, I2C_PULLUP_EXT, I2C_RATE_400); // starting the I2C
+    /* setting the I2C pins and protecting against _bus out of range */
+    #if defined(__MK20DX128__) // Teensy 3.0
+        pins = I2C_PINS_18_19;
+        _bus = 0;
+    #endif
 
-	// reset the device
+    #if defined(__MK20DX256__) // Teensy 3.1/3.2
+        if(_bus == 1) {
+            pins = I2C_PINS_29_30;
+        }
+        else{
+            pins = I2C_PINS_18_19;
+            _bus = 0;
+        }
+
+    #endif
+
+    #if defined(__MK64FX512__) // Teensy 3.5
+        if(_bus == 2) {
+            pins = I2C_PINS_3_4;
+        }
+        else if(_bus == 1) {
+            pins = I2C_PINS_37_38;
+        }
+        else{
+            pins = I2C_PINS_18_19;
+            _bus = 0;
+        }
+
+    #endif
+
+    #if defined(__MK66FX1M0__) // Teensy 3.6
+        if(_bus == 3) {
+            pins = I2C_PINS_56_57;
+        }
+        else if(_bus == 2) {
+            pins = I2C_PINS_3_4;
+        }
+        else if(_bus == 1) {
+            pins = I2C_PINS_37_38;
+        }
+        else{
+            pins = I2C_PINS_18_19;
+            _bus = 0;
+        }
+
+    #endif
+
+    #if defined(__MKL26Z64__) // Teensy LC
+        if(_bus == 1) {
+            pins = I2C_PINS_22_23;
+        }
+        else{
+            pins = I2C_PINS_18_19;
+            _bus = 0;
+        }
+
+    #endif
+
+    // starting the I2C bus
+    i2c_t3(_bus).begin(I2C_MASTER, 0, pins, I2C_PULLUP_EXT, _i2cRate);
+
+	// reset the MPU9250
 	writeRegister(PWR_MGMNT_1,PWR_RESET);
+
+    // wait for oscillators to stabilize
+    delay(200);
+
+    // select clock source to gyro
+    if( !writeRegister(PWR_MGMNT_1,CLOCK_SEL_PLL) ){
+        return -1;
+    }
+
+    // check the WHO AM I byte, expected value is 0x71 (decimal 113)
+    if( whoAmI() != 113 ){
+        return -1;
+    }
+
+    // enable accelerometer and gyro
+    if( !writeRegister(PWR_MGMNT_2,SEN_ENABLE) ){
+        return -1;
+    }
 
 	/* setup the accel and gyro ranges */
 	if(accelRange.equals("2G")){
-  		accelSetting = ACCEL_FS_SEL_2G; // setting the accel range to 2G
-    	_accelScale = G * 2.0/32767.5; // setting the accel scale to 2G
+        // setting the accel range to 2G
+        if( !writeRegister(ACCEL_CONFIG,ACCEL_FS_SEL_2G) ){
+            return -1;
+        }
+    	_accelScale = G * 2.0f/32767.5f; // setting the accel scale to 2G
 	}
 
 	if(accelRange.equals("4G")){
-  		accelSetting = ACCEL_FS_SEL_4G; // setting the accel range to 4G
-    	_accelScale = G * 4.0/32767.5; // setting the accel scale to 4G
+        // setting the accel range to 4G
+        if( !writeRegister(ACCEL_CONFIG,ACCEL_FS_SEL_4G) ){
+            return -1;
+        }
+    	_accelScale = G * 4.0f/32767.5f; // setting the accel scale to 4G
 	}
 
 	if(accelRange.equals("8G")){
-  		accelSetting = ACCEL_FS_SEL_8G; // setting the accel range to 8G
-    	_accelScale = G * 8.0/32767.5; // setting the accel scale to 8G
+        // setting the accel range to 8G
+        if( !writeRegister(ACCEL_CONFIG,ACCEL_FS_SEL_8G) ){
+            return -1;
+        }
+    	_accelScale = G * 8.0f/32767.5f; // setting the accel scale to 8G
 	}
 
 	if(accelRange.equals("16G")){
-  		accelSetting = ACCEL_FS_SEL_16G; // setting the accel range to 16G
-    	_accelScale = G * 16.0/32767.5; // setting the accel scale to 16G
+        // setting the accel range to 16G
+        if( !writeRegister(ACCEL_CONFIG,ACCEL_FS_SEL_16G) ){
+            return -1;
+        }
+    	_accelScale = G * 16.0f/32767.5f; // setting the accel scale to 16G
 	}
 
 	if(gyroRange.equals("250DPS")){
-  		gyroSetting = GYRO_FS_SEL_250DPS; // setting the gyro range to 250DPS
-    	_gyroScale = 250.0/32767.5; // setting the gyro scale to 250DPS
+        // setting the gyro range to 250DPS
+        if( !writeRegister(GYRO_CONFIG,GYRO_FS_SEL_250DPS) ){
+            return -1;
+        }
+    	_gyroScale = 250.0f/32767.5f; // setting the gyro scale to 250DPS
 	}
 
 	if(gyroRange.equals("500DPS")){
-  		gyroSetting = GYRO_FS_SEL_500DPS; // setting the gyro range to 500DPS
-    	_gyroScale = 500.0/32767.5; // setting the gyro scale to 500DPS
+        // setting the gyro range to 500DPS
+        if( !writeRegister(GYRO_CONFIG,GYRO_FS_SEL_500DPS) ){
+            return -1;
+        }
+    	_gyroScale = 500.0f/32767.5f; // setting the gyro scale to 500DPS
 	}
 
 	if(gyroRange.equals("1000DPS")){
-  		gyroSetting = GYRO_FS_SEL_1000DPS; // setting the gyro range to 1000DPS
-    	_gyroScale = 1000.0/32767.5; // setting the gyro scale to 1000DPS
+        // setting the gyro range to 1000DPS
+        if( !writeRegister(GYRO_CONFIG,GYRO_FS_SEL_1000DPS) ){
+            return -1;
+        }
+    	_gyroScale = 1000.0f/32767.5f; // setting the gyro scale to 1000DPS
 	}
 
 	if(gyroRange.equals("2000DPS")){
-  		gyroSetting = GYRO_FS_SEL_2000DPS; // setting the gyro range to 2000DPS
-    	_gyroScale = 2000.0/32767.5; // setting the gyro scale to 2000DPS
-	}
-
-	// wait for oscillators to stabilize
-	delayMicroseconds(500);
-
-	// select clock source to gyro
-	if( !writeRegister(PWR_MGMNT_1,CLOCK_SEL_PLL) ){
-		return -1;
-	}
-
-	// check the WHO AM I byte, expected value is 0x71
-	if( whoAmI() != 0x71 ){
-  		return -1;
-	}
-
-	// enable accelerometer and gyro
-	if( !writeRegister(PWR_MGMNT_2,SEN_ENABLE) ){
-		return -1;
-	}
-
-	// write the accelerometer settings
-	if( !writeRegister(ACCEL_CONFIG,accelSetting) ){
-		return -1;
-	}
-
-	// write the gyro settings
-	if( !writeRegister(GYRO_CONFIG,gyroSetting) ){
-		return -1;
+        // setting the gyro range to 2000DPS
+        if( !writeRegister(GYRO_CONFIG,GYRO_FS_SEL_2000DPS) ){
+            return -1;
+        }
+    	_gyroScale = 2000.0f/32767.5f; // setting the gyro scale to 2000DPS
 	}
 
 	// enable I2C master mode
@@ -119,99 +200,440 @@ int MPU9250::begin(String accelRange, String gyroRange){
 		return -1;
 	}
 
-	// initialize the magnetometers
-	if( initMag() ){
-		return -1;
+	// check AK8963 WHO AM I register, expected value is 0x48 (decimal 72)
+	if( whoAmIAK8963() != 72 ){
+        return -1;
 	}
 
-  return 0;
+    /* get the magnetometer calibration */
+
+    // set AK8963 to Power Down
+    if( !writeAK8963Register(AK8963_CNTL1,AK8963_PWR_DOWN) ){
+        return -1;
+    }
+    delay(100); // long wait between AK8963 mode changes
+
+    // set AK8963 to FUSE ROM access
+    if( !writeAK8963Register(AK8963_CNTL1,AK8963_FUSE_ROM) ){
+        return -1;
+    }
+    delay(100); // long wait between AK8963 mode changes
+
+    // read the AK8963 ASA registers and compute magnetometer scale factors
+    readAK8963Registers(AK8963_ASA,sizeof(buff),&buff[0]);
+    _magScaleX = ((((float)buff[0]) - 128.0f)/(256.0f) + 1.0f) * 4912.0f / 32760.0f; // micro Tesla
+    _magScaleY = ((((float)buff[1]) - 128.0f)/(256.0f) + 1.0f) * 4912.0f / 32760.0f; // micro Tesla
+    _magScaleZ = ((((float)buff[2]) - 128.0f)/(256.0f) + 1.0f) * 4912.0f / 32760.0f; // micro Tesla 
+
+    // set AK8963 to Power Down
+    if( !writeAK8963Register(AK8963_CNTL1,AK8963_PWR_DOWN) ){
+        return -1;
+    }
+    delay(100); // long wait between AK8963 mode changes  
+
+    // set AK8963 to 16 bit resolution, 100 Hz update rate
+    if( !writeAK8963Register(AK8963_CNTL1,AK8963_CNT_MEAS2) ){
+        return -1;
+    }
+    delay(100); // long wait between AK8963 mode changes     
+
+    // instruct the MPU9250 to get 7 bytes of data from the AK8963 at the sample rate
+    readAK8963Registers(AK8963_HXL,sizeof(data),&data[0]);
+
+    // successful init, return 0
+    return 0;
 }
 
-/* sets up the AK8963 magnetometers */
-int MPU9250::initMag(){
-	uint8_t buff[3];
-	uint8_t buff2[7];
-
-	// send a reset command to the AK8963
-	writeAK8963Register(AK8963_CNTL2, AK8963_RESET);
-
-	// wait for the magnetometer to power up
-	delayMicroseconds(500);
-
-	// check AK8963 who am i register
-	if( whoAmIAK8963() != 0x48 ){
-  		return -1;
-	}
-
-	// set AK8963 to 16 bit resolution, 100 Hz update rate
-	if( !writeAK8963Register(AK8963_CNTL1,0x16) ){
-		return -1;
-	}	
-
-	// get the magnetometer calibrations
-	readAK8963Registers(AK8963_ASA,sizeof(buff),&buff[0]);
-	_magScaleX = ((((double)buff[0]) - 128.0)/(256.0) + 1.0) * 4912.0 / 32760.0; // micro Tesla
-	_magScaleY = ((((double)buff[1]) - 128.0)/(256.0) + 1.0) * 4912.0 / 32760.0; // micro Tesla
-	_magScaleZ = ((((double)buff[2]) - 128.0)/(256.0) + 1.0) * 4912.0 / 32760.0; // micro Tesla
-
-	// instruct the MPU9250 to get 7 bytes of data from the AK8963 at the sample rate
-	readAK8963Registers(AK8963_HXL,sizeof(buff2),&buff2[0]);
-
-	return 0;
-}
 
 /* sets the DLPF and interrupt settings */
-void MPU9250::setFilt(String bandwidth, uint8_t frequency){
-  uint16_t ISR = 1000; // with all of the DLPF settings below, the frequency will be 1 kHz
-  uint8_t SRD; // sample rate divider
+int MPU9250::setFilt(String bandwidth, uint8_t frequency){
 
-  if(bandwidth.equals("184HZ")){
-    writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_184); // setting accel bandwidth to 184Hz
-	  writeRegister(CONFIG,GYRO_DLPF_184); // setting gyro bandwidth to 184Hz
-  }
+    uint16_t ISR = 1000; // with all of the DLPF settings below, the frequency will be 1 kHz
+    uint8_t MSR = 100; // desired magnetometer sample rate
+    uint8_t SRD; // sample rate divider
+    uint8_t MRD; // magnetometer rate divider
 
-  if(bandwidth.equals("92HZ")){
-    writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_92); // setting accel bandwidth to 92Hz
-	  writeRegister(CONFIG,GYRO_DLPF_92); // setting gyro bandwidth to 92Hz
-  }
+    if(bandwidth.equals("184HZ")){
+        if( !writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_184) ){ // setting accel bandwidth to 184Hz
+            return -1;
+        } 
+        if( !writeRegister(CONFIG,GYRO_DLPF_184) ){ // setting gyro bandwidth to 184Hz
+            return -1;
+        } 
+    }
 
-  if(bandwidth.equals("41HZ")){
-    writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_41); // setting accel bandwidth to 41Hz
-	  writeRegister(CONFIG,GYRO_DLPF_41); // setting gyro bandwidth to 41Hz
-  }
+    if(bandwidth.equals("92HZ")){
+        if( !writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_92) ){ // setting accel bandwidth to 92Hz
+            return -1;
+        } 
+        if( !writeRegister(CONFIG,GYRO_DLPF_92) ){ // setting gyro bandwidth to 92Hz
+            return -1;
+        } 
+    }
 
-  if(bandwidth.equals("20HZ")){
-    writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_20); // setting accel bandwidth to 20Hz
-	  writeRegister(CONFIG,GYRO_DLPF_20); // setting gyro bandwidth to 20Hz
-  }
+    if(bandwidth.equals("41HZ")){
+        if( !writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_41) ){ // setting accel bandwidth to 41Hz
+            return -1;
+        } 
+        if( !writeRegister(CONFIG,GYRO_DLPF_41) ){ // setting gyro bandwidth to 41Hz
+            return -1;
+        } 
+    }
 
-  if(bandwidth.equals("10HZ")){
-    writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_10); // setting accel bandwidth to 10Hz
-	  writeRegister(CONFIG,GYRO_DLPF_10); // setting gyro bandwidth to 10Hz
-  }
+    if(bandwidth.equals("20HZ")){
+        if( !writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_20) ){ // setting accel bandwidth to 20Hz
+            return -1;
+        } 
+        if( !writeRegister(CONFIG,GYRO_DLPF_20) ){ // setting gyro bandwidth to 20Hz
+            return -1;
+        } 
+    }
 
-  if(bandwidth.equals("5HZ")){
-    writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_5); // setting accel bandwidth to 5Hz
-	  writeRegister(CONFIG,GYRO_DLPF_5); // setting gyro bandwidth to 5Hz
-  }
+    if(bandwidth.equals("10HZ")){
+        if( !writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_10) ){ // setting accel bandwidth to 10Hz
+            return -1;
+        } 
+        if( !writeRegister(CONFIG,GYRO_DLPF_10) ){ // setting gyro bandwidth to 10Hz
+            return -1;
+        } 
+    }
 
-  SRD = ISR / frequency - 1; // determining the correct sample rate divider to get the desired frequency
+    if(bandwidth.equals("5HZ")){
+        if( !writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_5) ){ // setting accel bandwidth to 5Hz
+            return -1;
+        } 
+        if( !writeRegister(CONFIG,GYRO_DLPF_5) ){ // setting gyro bandwidth to 5Hz
+            return -1;
+        } 
+    }
 
-  writeRegister(SMPDIV,SRD); // setting the sample rate divider
+    /* setting the sample rate divider */
+    SRD = ISR / frequency - 1; // determining the correct sample rate divider to get the desired frequency
+    if( !writeRegister(SMPDIV,SRD) ){ // setting the sample rate divider
+        return -1;
+    } 
 
-  writeRegister(INT_PIN_CFG,0x00);	// setup interrupt, 50 us pulse
-  writeRegister(INT_ENABLE,0x01);	// set to data ready
+    /* setting the magnetometer rate divider, magnetometers should only be read at 100 Hz */
+    MRD = frequency / MSR - 1; // determining the correct divider to keep magnetometers at 100 Hz
+    if( !writeRegister(I2C_SLV4_CTRL,MRD) ){ // setting the sample rate divider
+        return -1;
+    } 
+    if( !writeRegister(I2C_MST_DELAY_CTRL,I2C_SLV0_DLY_EN) ){ // enabling the sample rate divider
+        return -1;
+    } 
+
+    /* setting the interrupt */
+    if( !writeRegister(INT_PIN_CFG,INT_PULSE_50US) ){ // setup interrupt, 50 us pulse
+        return -1;
+    }  
+    if( !writeRegister(INT_ENABLE,INT_RAW_RDY_EN) ){ // set to data ready
+        return -1;
+    }  
+
+    // successful filter setup, return 0
+    return 0; 
 }
 
-/* writes a register to MPU9250 given a register address and data */
+/* get accelerometer data given pointers to store the three values, return data as counts */
+void MPU9250::getAccelCounts(int16_t* ax, int16_t* ay, int16_t* az){
+    uint8_t buff[6];
+
+    readRegisters(ACCEL_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
+
+    *ax = (((int16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
+    *ay = (((int16_t)buff[2]) << 8) | buff[3];
+    *az = (((int16_t)buff[4]) << 8) | buff[5];
+}
+
+/* get accelerometer data given pointers to store the three values */
+void MPU9250::getAccel(float* ax, float* ay, float* az){
+    int16_t accel[3];
+    float axx, ayy, azz;
+
+    getAccelCounts(&accel[0], &accel[1], &accel[2]);
+
+    axx = ((float) accel[0]) * _accelScale; // typecast and scale to values
+    ayy = ((float) accel[1]) * _accelScale;
+    azz = ((float) accel[2]) * _accelScale;
+
+    *ax = tX[0]*axx + tX[1]*ayy + tX[2]*azz; // transform axes
+    *ay = tY[0]*axx + tY[1]*ayy + tY[2]*azz;
+    *az = tZ[0]*axx + tZ[1]*ayy + tZ[2]*azz;
+}
+
+/* get gyro data given pointers to store the three values, return data as counts */
+void MPU9250::getGyroCounts(int16_t* gx, int16_t* gy, int16_t* gz){
+    uint8_t buff[6];
+
+    readRegisters(GYRO_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
+
+    *gx = (((int16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
+    *gy = (((int16_t)buff[2]) << 8) | buff[3];
+    *gz = (((int16_t)buff[4]) << 8) | buff[5];
+}
+
+/* get gyro data given pointers to store the three values */
+void MPU9250::getGyro(float* gx, float* gy, float* gz){
+    int16_t gyro[3];
+    float gxx, gyy, gzz;
+
+    getGyroCounts(&gyro[0], &gyro[1], &gyro[2]);
+
+    gxx = ((float) gyro[0]) * _gyroScale; // typecast and scale to values
+    gyy = ((float) gyro[1]) * _gyroScale;
+    gzz = ((float) gyro[2]) * _gyroScale;
+
+    *gx = tX[0]*gxx + tX[1]*gyy + tX[2]*gzz; // transform axes
+    *gy = tY[0]*gxx + tY[1]*gyy + tY[2]*gzz;
+    *gz = tZ[0]*gxx + tZ[1]*gyy + tZ[2]*gzz;
+}
+
+/* get magnetometer data given pointers to store the three values, return data as counts */
+void MPU9250::getMagCounts(int16_t* hx, int16_t* hy, int16_t* hz){
+    uint8_t buff[7];
+
+    // read the magnetometer data off the external sensor buffer
+    readRegisters(EXT_SENS_DATA_00,sizeof(buff),&buff[0]);
+
+    if( buff[6] == 0x10 ) { // check for overflow
+        *hx = (((int16_t)buff[1]) << 8) | buff[0];  // combine into 16 bit values
+        *hy = (((int16_t)buff[3]) << 8) | buff[2];
+        *hz = (((int16_t)buff[5]) << 8) | buff[4];
+    }
+    else{
+        *hx = 0;  
+        *hy = 0;
+        *hz = 0;
+    }
+}
+
+/* get magnetometer data given pointers to store the three values */
+void MPU9250::getMag(float* hx, float* hy, float* hz){
+    int16_t mag[3];
+
+    getMagCounts(&mag[0], &mag[1], &mag[2]);
+
+    *hx = ((float) mag[0]) * _magScaleX; // typecast and scale to values
+    *hy = ((float) mag[1]) * _magScaleY;
+    *hz = ((float) mag[2]) * _magScaleZ;
+}
+
+/* get temperature data given pointer to store the value, return data as counts */
+void MPU9250::getTempCounts(int16_t* t){
+    uint8_t buff[2];
+
+    readRegisters(TEMP_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
+
+    *t = (((int16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit value and return
+}
+
+/* get temperature data given pointer to store the values */
+void MPU9250::getTemp(float* t){
+    int16_t tempCount;
+
+    getTempCounts(&tempCount);
+
+    *t = (( ((float) tempCount) - _tempOffset )/_tempScale) + _tempOffset;
+}
+
+/* get accelerometer and gyro data given pointers to store values, return data as counts */
+void MPU9250::getMotion6Counts(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz){
+    uint8_t buff[14];
+
+    readRegisters(ACCEL_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
+
+    *ax = (((int16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
+    *ay = (((int16_t)buff[2]) << 8) | buff[3];
+    *az = (((int16_t)buff[4]) << 8) | buff[5];
+
+    *gx = (((int16_t)buff[8]) << 8) | buff[9];
+    *gy = (((int16_t)buff[10]) << 8) | buff[11];
+    *gz = (((int16_t)buff[12]) << 8) | buff[13];
+}
+
+/* get accelerometer and gyro data given pointers to store values */
+void MPU9250::getMotion6(float* ax, float* ay, float* az, float* gx, float* gy, float* gz){
+    int16_t accel[3];
+    int16_t gyro[3];
+    float axx, ayy, azz, gxx, gyy, gzz;
+
+    getMotion6Counts(&accel[0], &accel[1], &accel[2], &gyro[0], &gyro[1], &gyro[2]);
+
+    axx = ((float) accel[0]) * _accelScale; // typecast and scale to values
+    ayy = ((float) accel[1]) * _accelScale;
+    azz = ((float) accel[2]) * _accelScale;
+
+    gxx = ((float) gyro[0]) * _gyroScale;
+    gyy = ((float) gyro[1]) * _gyroScale;
+    gzz = ((float) gyro[2]) * _gyroScale;
+
+    *ax = tX[0]*axx + tX[1]*ayy + tX[2]*azz; // transform axes
+    *ay = tY[0]*axx + tY[1]*ayy + tY[2]*azz;
+    *az = tZ[0]*axx + tZ[1]*ayy + tZ[2]*azz;
+
+    *gx = tX[0]*gxx + tX[1]*gyy + tX[2]*gzz;
+    *gy = tY[0]*gxx + tY[1]*gyy + tY[2]*gzz;
+    *gz = tZ[0]*gxx + tZ[1]*gyy + tZ[2]*gzz;
+}
+
+/* get accelerometer, gyro and temperature data given pointers to store values, return data as counts */
+void MPU9250::getMotion7Counts(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz, int16_t* t){
+    uint8_t buff[14];
+
+    readRegisters(ACCEL_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
+
+    *ax = (((int16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
+    *ay = (((int16_t)buff[2]) << 8) | buff[3];
+    *az = (((int16_t)buff[4]) << 8) | buff[5];
+
+    *t = (((int16_t)buff[6]) << 8) | buff[7];
+
+    *gx = (((int16_t)buff[8]) << 8) | buff[9];
+    *gy = (((int16_t)buff[10]) << 8) | buff[11];
+    *gz = (((int16_t)buff[12]) << 8) | buff[13];
+}
+
+/* get accelerometer, gyro, and temperature data given pointers to store values */
+void MPU9250::getMotion7(float* ax, float* ay, float* az, float* gx, float* gy, float* gz, float* t){
+    int16_t accel[3];
+    int16_t gyro[3];
+    int16_t tempCount;
+    float axx, ayy, azz, gxx, gyy, gzz;
+
+    getMotion7Counts(&accel[0], &accel[1], &accel[2], &gyro[0], &gyro[1], &gyro[2], &tempCount);
+
+    axx = ((float) accel[0]) * _accelScale; // typecast and scale to values
+    ayy = ((float) accel[1]) * _accelScale;
+    azz = ((float) accel[2]) * _accelScale;
+
+    gxx = ((float) gyro[0]) * _gyroScale;
+    gyy = ((float) gyro[1]) * _gyroScale;
+    gzz = ((float) gyro[2]) * _gyroScale;
+
+    *ax = tX[0]*axx + tX[1]*ayy + tX[2]*azz; // transform axes
+    *ay = tY[0]*axx + tY[1]*ayy + tY[2]*azz;
+    *az = tZ[0]*axx + tZ[1]*ayy + tZ[2]*azz;
+
+    *gx = tX[0]*gxx + tX[1]*gyy + tX[2]*gzz;
+    *gy = tY[0]*gxx + tY[1]*gyy + tY[2]*gzz;
+    *gz = tZ[0]*gxx + tZ[1]*gyy + tZ[2]*gzz;
+
+    *t = (( ((float) tempCount) - _tempOffset )/_tempScale) + _tempOffset; 
+}
+
+/* get accelerometer, gyro and magnetometer data given pointers to store values, return data as counts */
+void MPU9250::getMotion9Counts(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz, int16_t* hx, int16_t* hy, int16_t* hz){
+    uint8_t buff[21];
+
+    readRegisters(ACCEL_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
+
+    *ax = (((int16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
+    *ay = (((int16_t)buff[2]) << 8) | buff[3];
+    *az = (((int16_t)buff[4]) << 8) | buff[5];
+
+    *gx = (((int16_t)buff[8]) << 8) | buff[9];
+    *gy = (((int16_t)buff[10]) << 8) | buff[11];
+    *gz = (((int16_t)buff[12]) << 8) | buff[13];
+
+    *hx = (((int16_t)buff[15]) << 8) | buff[14];  
+    *hy = (((int16_t)buff[17]) << 8) | buff[16];
+    *hz = (((int16_t)buff[19]) << 8) | buff[18];
+}
+
+/* get accelerometer, gyro, and magnetometer data given pointers to store values */
+void MPU9250::getMotion9(float* ax, float* ay, float* az, float* gx, float* gy, float* gz, float* hx, float* hy, float* hz){
+    int16_t accel[3];
+    int16_t gyro[3];
+    int16_t mag[3];
+    float axx, ayy, azz, gxx, gyy, gzz;
+
+    getMotion9Counts(&accel[0], &accel[1], &accel[2], &gyro[0], &gyro[1], &gyro[2], &mag[0], &mag[1], &mag[2]);
+
+    axx = ((float) accel[0]) * _accelScale; // typecast and scale to values
+    ayy = ((float) accel[1]) * _accelScale;
+    azz = ((float) accel[2]) * _accelScale;
+
+    gxx = ((float) gyro[0]) * _gyroScale;
+    gyy = ((float) gyro[1]) * _gyroScale;
+    gzz = ((float) gyro[2]) * _gyroScale;
+
+    *hx = ((float) mag[0]) * _magScaleX;
+    *hy = ((float) mag[1]) * _magScaleY;
+    *hz = ((float) mag[2]) * _magScaleZ;
+
+    *ax = tX[0]*axx + tX[1]*ayy + tX[2]*azz; // transform axes
+    *ay = tY[0]*axx + tY[1]*ayy + tY[2]*azz;
+    *az = tZ[0]*axx + tZ[1]*ayy + tZ[2]*azz;
+
+    *gx = tX[0]*gxx + tX[1]*gyy + tX[2]*gzz;
+    *gy = tY[0]*gxx + tY[1]*gyy + tY[2]*gzz;
+    *gz = tZ[0]*gxx + tZ[1]*gyy + tZ[2]*gzz;
+
+
+}
+
+/* get accelerometer, magnetometer, and temperature data given pointers to store values, return data as counts */
+void MPU9250::getMotion10Counts(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz, int16_t* hx, int16_t* hy, int16_t* hz, int16_t* t){
+    uint8_t buff[21];
+
+    readRegisters(ACCEL_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
+
+    *ax = (((int16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
+    *ay = (((int16_t)buff[2]) << 8) | buff[3];
+    *az = (((int16_t)buff[4]) << 8) | buff[5];
+
+    *t = (((int16_t)buff[6]) << 8) | buff[7];
+
+    *gx = (((int16_t)buff[8]) << 8) | buff[9];
+    *gy = (((int16_t)buff[10]) << 8) | buff[11];
+    *gz = (((int16_t)buff[12]) << 8) | buff[13];
+
+    *hx = (((int16_t)buff[15]) << 8) | buff[14];
+    *hy = (((int16_t)buff[17]) << 8) | buff[16];
+    *hz = (((int16_t)buff[19]) << 8) | buff[18];
+}
+
+void MPU9250::getMotion10(float* ax, float* ay, float* az, float* gx, float* gy, float* gz, float* hx, float* hy, float* hz, float* t){
+    int16_t accel[3];
+    int16_t gyro[3];
+    int16_t mag[3];
+    int16_t tempCount;
+    float axx, ayy, azz, gxx, gyy, gzz;
+
+    getMotion10Counts(&accel[0], &accel[1], &accel[2], &gyro[0], &gyro[1], &gyro[2], &mag[0], &mag[1], &mag[2], &tempCount);
+
+    axx = ((float) accel[0]) * _accelScale; // typecast and scale to values
+    ayy = ((float) accel[1]) * _accelScale;
+    azz = ((float) accel[2]) * _accelScale;
+
+    gxx = ((float) gyro[0]) * _gyroScale;
+    gyy = ((float) gyro[1]) * _gyroScale;
+    gzz = ((float) gyro[2]) * _gyroScale;
+
+    *hx = ((float) mag[0]) * _magScaleX;
+    *hy = ((float) mag[1]) * _magScaleY;
+    *hz = ((float) mag[2]) * _magScaleZ;
+
+    *ax = tX[0]*axx + tX[1]*ayy + tX[2]*azz; // transform axes
+    *ay = tY[0]*axx + tY[1]*ayy + tY[2]*azz;
+    *az = tZ[0]*axx + tZ[1]*ayy + tZ[2]*azz;
+
+    *gx = tX[0]*gxx + tX[1]*gyy + tX[2]*gzz;
+    *gy = tY[0]*gxx + tY[1]*gyy + tY[2]*gzz;
+    *gz = tZ[0]*gxx + tZ[1]*gyy + tZ[2]*gzz;
+
+    *t = (( ((float) tempCount) - _tempOffset )/_tempScale) + _tempOffset; 
+}
+
+/* writes a byte to MPU9250 register given a register address and data */
 bool MPU9250::writeRegister(uint8_t subAddress, uint8_t data){
-	uint8_t buff[1];
+    uint8_t buff[1];
 
 	/* write data to device */
-  	Wire.beginTransmission(_address); // open the device
-  	Wire.write(subAddress); // write the register address
-  	Wire.write(data); // write the data
-  	Wire.endTransmission();
+  	i2c_t3(_bus).beginTransmission(_address); // open the device
+  	i2c_t3(_bus).write(subAddress); // write the register address
+  	i2c_t3(_bus).write(data); // write the data
+  	i2c_t3(_bus).endTransmission();
 
   	/* read back the register */
   	readRegisters(subAddress,sizeof(buff),&buff[0]);
@@ -223,6 +645,20 @@ bool MPU9250::writeRegister(uint8_t subAddress, uint8_t data){
   	else{
   		return false;
   	}
+}
+
+/* reads registers from MPU9250 given a starting register address, number of bytes, and a pointer to store data */
+void MPU9250::readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest){
+    i2c_t3(_bus).beginTransmission(_address); // open the device
+    i2c_t3(_bus).write(subAddress); // specify the starting register address
+    i2c_t3(_bus).endTransmission(false);
+
+    i2c_t3(_bus).requestFrom(_address, count); // specify the number of bytes to receive
+
+    uint8_t i = 0; // read the data into the buffer
+    while( i2c_t3(_bus).available() ){
+        dest[i++] = i2c_t3(_bus).readByte();
+    }
 }
 
 /* writes a register to the AK8963 given a register address and data */
@@ -247,7 +683,7 @@ bool MPU9250::writeAK8963Register(uint8_t subAddress, uint8_t data){
 }
 
 /* reads registers from the AK8963 */
-void MPU9250::readAK8963Registers(uint8_t subAddress, int count, uint8_t* dest){
+void MPU9250::readAK8963Registers(uint8_t subAddress, uint8_t count, uint8_t* dest){
 
 	writeRegister(I2C_SLV0_ADDR,AK8963_I2C_ADDR | I2C_READ_FLAG); // set slave 0 to the AK8963 and set for read
 	writeRegister(I2C_SLV0_REG,subAddress); // set the register to the desired AK8963 sub address
@@ -256,278 +692,26 @@ void MPU9250::readAK8963Registers(uint8_t subAddress, int count, uint8_t* dest){
 	readRegisters(EXT_SENS_DATA_00,count,dest); // read the bytes off the MPU9250 EXT_SENS_DATA registers
 }
 
-/* reads registers from MPU9250 given a starting register address, number of bytes, and a pointer to store data */
-void MPU9250::readRegisters(uint8_t subAddress, int count, uint8_t* dest){
-  Wire.beginTransmission(_address); // open the device
-  Wire.write(subAddress); // specify the starting register address
-  Wire.endTransmission(false);
-
-  Wire.requestFrom(_address, count); // specify the number of bytes to receive
-
-  uint8_t i = 0; // read the data into the buffer
-  while(Wire.available()){
-    dest[i++] = Wire.read();
-  }
-}
-
-/* get accelerometer data given pointers to store the three values, return data as counts */
-void MPU9250::getAccelCounts(uint16_t* ax, uint16_t* ay, uint16_t* az){
-  uint8_t buff[6];
-
-  readRegisters(ACCEL_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
-
-  *ax = (((uint16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
-  *ay = (((uint16_t)buff[2]) << 8) | buff[3];
-  *az = (((uint16_t)buff[4]) << 8) | buff[5];
-}
-
-/* get accelerometer data given pointers to store the three values */
-void MPU9250::getAccel(double* ax, double* ay, double* az){
-  uint16_t accel[3];
-
-  getAccelCounts(&accel[0], &accel[1], &accel[2]);
-
-  *ax = ((int16_t) accel[0]) * _accelScale; // typecast and scale to values
-  *ay = ((int16_t) accel[1]) * _accelScale;
-  *az = ((int16_t) accel[2]) * _accelScale;
-}
-
-/* get gyro data given pointers to store the three values, return data as counts */
-void MPU9250::getGyroCounts(uint16_t* gx, uint16_t* gy, uint16_t* gz){
-  uint8_t buff[6];
-
-  readRegisters(GYRO_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
-
-  *gx = (((uint16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
-  *gy = (((uint16_t)buff[2]) << 8) | buff[3];
-  *gz = (((uint16_t)buff[4]) << 8) | buff[5];
-}
-
-/* get gyro data given pointers to store the three values */
-void MPU9250::getGyro(double* gx, double* gy, double* gz){
-  uint16_t gyro[3];
-
-  getGyroCounts(&gyro[0], &gyro[1], &gyro[2]);
-
-  *gx = ((int16_t) gyro[0]) * _gyroScale; // typecast and scale to values
-  *gy = ((int16_t) gyro[1]) * _gyroScale;
-  *gz = ((int16_t) gyro[2]) * _gyroScale;
-}
-
-/* get temperature data given pointers to store the three values, return data as counts */
-void MPU9250::getTempCounts(uint16_t* t){
-	uint8_t buff[2];
-
-	readRegisters(TEMP_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
-
-	*t = (((uint16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit value and return
-}
-
-/* get temperature data given pointers to store the three values */
-void MPU9250::getTemp(double* t){
-	uint16_t tempCount;
-	float sens = 333.87f;
-	float offset = 21.0f;
-
-	getTempCounts(&tempCount);
-
-	*t = (( ((int16_t) tempCount) - offset )/sens) + 21.0f;
-}
-
-/* get accelerometer and gyro data given pointers to store values, return data as counts */
-void MPU9250::getMotion6Counts(uint16_t* ax, uint16_t* ay, uint16_t* az, uint16_t* gx, uint16_t* gy, uint16_t* gz){
-  uint8_t buff[14];
-
-  readRegisters(ACCEL_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
-
-  *ax = (((uint16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
-  *ay = (((uint16_t)buff[2]) << 8) | buff[3];
-  *az = (((uint16_t)buff[4]) << 8) | buff[5];
-
-  *gx = (((uint16_t)buff[8]) << 8) | buff[9];
-  *gy = (((uint16_t)buff[10]) << 8) | buff[11];
-  *gz = (((uint16_t)buff[12]) << 8) | buff[13];
-}
-
-/* get accelerometer and gyro data given pointers to store values */
-void MPU9250::getMotion6(double* ax, double* ay, double* az, double* gx, double* gy, double* gz){
-  uint16_t accel[3];
-  uint16_t gyro[3];
-
-  getMotion6Counts(&accel[0], &accel[1], &accel[2], &gyro[0], &gyro[1], &gyro[2]);
-
-  *ax = ((int16_t) accel[0]) * _accelScale; // typecast and scale to values
-  *ay = ((int16_t) accel[1]) * _accelScale;
-  *az = ((int16_t) accel[2]) * _accelScale;
-
-  *gx = ((int16_t) gyro[0]) * _gyroScale;
-  *gy = ((int16_t) gyro[1]) * _gyroScale;
-  *gz = ((int16_t) gyro[2]) * _gyroScale;
-}
-
-/* get accelerometer, gyro and temperature data given pointers to store values, return data as counts */
-void MPU9250::getMotion7Counts(uint16_t* ax, uint16_t* ay, uint16_t* az, uint16_t* gx, uint16_t* gy, uint16_t* gz, uint16_t* t){
-  uint8_t buff[14];
-
-  readRegisters(ACCEL_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
-
-  *ax = (((uint16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
-  *ay = (((uint16_t)buff[2]) << 8) | buff[3];
-  *az = (((uint16_t)buff[4]) << 8) | buff[5];
-
-  *t = (((uint16_t)buff[6]) << 8) | buff[7];
-
-  *gx = (((uint16_t)buff[8]) << 8) | buff[9];
-  *gy = (((uint16_t)buff[10]) << 8) | buff[11];
-  *gz = (((uint16_t)buff[12]) << 8) | buff[13];
-}
-
-/* get accelerometer, gyro, and temperature data given pointers to store values */
-void MPU9250::getMotion7(double* ax, double* ay, double* az, double* gx, double* gy, double* gz, double* t){
-  uint16_t accel[3];
-  uint16_t gyro[3];
-  uint16_t tempCount;
-  float sens = 333.87f;
-  float offset = 21.0f;
-
-  getMotion7Counts(&accel[0], &accel[1], &accel[2], &gyro[0], &gyro[1], &gyro[2], &tempCount);
-
-  *ax = ((int16_t) accel[0]) * _accelScale; // typecast and scale to values
-  *ay = ((int16_t) accel[1]) * _accelScale;
-  *az = ((int16_t) accel[2]) * _accelScale;
-
-  *gx = ((int16_t) gyro[0]) * _gyroScale;
-  *gy = ((int16_t) gyro[1]) * _gyroScale;
-  *gz = ((int16_t) gyro[2]) * _gyroScale;
-
-  *t = (( ((int16_t) tempCount) - offset )/sens) + 21.0f; 
-}
-
-/* gets the MPU-9250 WHO_AM_I register value, expected to be 0x71 */
+/* gets the MPU9250 WHO_AM_I register value, expected to be 0x71 */
 uint8_t MPU9250::whoAmI(){
-	uint8_t buff[1];
+    uint8_t buff[1];
 
-	// read the WHO AM I register
-	readRegisters(WHO_AM_I,sizeof(buff),&buff[0]);
+    // read the WHO AM I register
+    readRegisters(WHO_AM_I,sizeof(buff),&buff[0]);
 
-	// return the register value
-	return buff[0];
+    // return the register value
+    return buff[0];
 }
 
+/* gets the AK8963 WHO_AM_I register value, expected to be 0x48 */
 uint8_t MPU9250::whoAmIAK8963(){
-	uint8_t buff[1];
+    uint8_t buff[1];
 
-	// read the WHO AM I register
-	readAK8963Registers(AK8963_WHO_AM_I,sizeof(buff),&buff[0]);
+    // read the WHO AM I register
+    readAK8963Registers(AK8963_WHO_AM_I,sizeof(buff),&buff[0]);
 
-	// return the register value
-	return buff[0];
+    // return the register value
+    return buff[0];
 }
 
-void MPU9250::getMotion9(double* ax, double* ay, double* az, double* gx, double* gy, double* gz, double* hx, double* hy, double* hz){
-  uint16_t accel[3];
-  uint16_t gyro[3];
-  uint16_t mag[3];
-
-  getMotion9Counts(&accel[0], &accel[1], &accel[2], &gyro[0], &gyro[1], &gyro[2], &mag[0], &mag[1], &mag[2]);
-
-  *ax = ((int16_t) accel[0]) * _accelScale; // typecast and scale to values
-  *ay = ((int16_t) accel[1]) * _accelScale;
-  *az = ((int16_t) accel[2]) * _accelScale;
-
-  *gx = ((int16_t) gyro[0]) * _gyroScale;
-  *gy = ((int16_t) gyro[1]) * _gyroScale;
-  *gz = ((int16_t) gyro[2]) * _gyroScale;
-
-    	*hx = ((int16_t) mag[0]) * _magScaleX; // typecast and scale to values
-	*hy = ((int16_t) mag[1]) * _magScaleY;
-	*hz = ((int16_t) mag[2]) * _magScaleZ;
-
-}
-
-void MPU9250::getMotion9Counts(uint16_t* ax, uint16_t* ay, uint16_t* az, uint16_t* gx, uint16_t* gy, uint16_t* gz, uint16_t* hx, uint16_t* hy, uint16_t* hz){
-	uint8_t buff[21];
-
-  readRegisters(ACCEL_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
-
-  *ax = (((uint16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
-  *ay = (((uint16_t)buff[2]) << 8) | buff[3];
-  *az = (((uint16_t)buff[4]) << 8) | buff[5];
-
-  *gx = (((uint16_t)buff[8]) << 8) | buff[9];
-  *gy = (((uint16_t)buff[10]) << 8) | buff[11];
-  *gz = (((uint16_t)buff[12]) << 8) | buff[13];
-
-  	*hx = (((uint16_t)buff[15]) << 8) | buff[14];  // combine into 16 bit values
-  	*hy = (((uint16_t)buff[17]) << 8) | buff[16];
-  	*hz = (((uint16_t)buff[19]) << 8) | buff[18];
-}
-
-void MPU9250::getMotion10(double* ax, double* ay, double* az, double* gx, double* gy, double* gz, double* hx, double* hy, double* hz, double* t){
-	  uint16_t accel[3];
-  uint16_t gyro[3];
-  uint16_t mag[3];
-  uint16_t tempCount;
-  float sens = 333.87f;
-  float offset = 21.0f;
-
-  getMotion10Counts(&accel[0], &accel[1], &accel[2], &gyro[0], &gyro[1], &gyro[2], &mag[0], &mag[1], &mag[2], &tempCount);
-
-  *ax = ((int16_t) accel[0]) * _accelScale; // typecast and scale to values
-  *ay = ((int16_t) accel[1]) * _accelScale;
-  *az = ((int16_t) accel[2]) * _accelScale;
-
-  *gx = ((int16_t) gyro[0]) * _gyroScale;
-  *gy = ((int16_t) gyro[1]) * _gyroScale;
-  *gz = ((int16_t) gyro[2]) * _gyroScale;
-
-  	*hx = ((int16_t) mag[0]) * _magScaleX; // typecast and scale to values
-	*hy = ((int16_t) mag[1]) * _magScaleY;
-	*hz = ((int16_t) mag[2]) * _magScaleZ;
-
-  *t = (( ((int16_t) tempCount) - offset )/sens) + 21.0f; 
-
-}
-
-void MPU9250::getMotion10Counts(uint16_t* ax, uint16_t* ay, uint16_t* az, uint16_t* gx, uint16_t* gy, uint16_t* gz, uint16_t* hx, uint16_t* hy, uint16_t* hz, uint16_t* t){
-
-		uint8_t buff[21];
-
-  readRegisters(ACCEL_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
-
-  *ax = (((uint16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
-  *ay = (((uint16_t)buff[2]) << 8) | buff[3];
-  *az = (((uint16_t)buff[4]) << 8) | buff[5];
-
-  *t = (((uint16_t)buff[6]) << 8) | buff[7];
-
-  *gx = (((uint16_t)buff[8]) << 8) | buff[9];
-  *gy = (((uint16_t)buff[10]) << 8) | buff[11];
-  *gz = (((uint16_t)buff[12]) << 8) | buff[13];
-
-  	*hx = (((uint16_t)buff[15]) << 8) | buff[14];  // combine into 16 bit values
-  	*hy = (((uint16_t)buff[17]) << 8) | buff[16];
-  	*hz = (((uint16_t)buff[19]) << 8) | buff[18];
-
-}
-
-void MPU9250::getMag(double* hx, double* hy, double* hz){
-	uint16_t mag[3];
-
-	getMagCounts(&mag[0], &mag[1], &mag[2]);
-
-	*hx = ((int16_t) mag[0]) * _magScaleX; // typecast and scale to values
-	*hy = ((int16_t) mag[1]) * _magScaleY;
-	*hz = ((int16_t) mag[2]) * _magScaleZ;
-}
-
-void MPU9250::getMagCounts(uint16_t* hx, uint16_t* hy, uint16_t* hz){
-	uint8_t buff[7];
-	
-	// read the magnetometer data off the external sensor buffer
-	readRegisters(EXT_SENS_DATA_00,sizeof(buff),&buff[0]);
-
-	*hx = (((uint16_t)buff[1]) << 8) | buff[0];  // combine into 16 bit values
-  	*hy = (((uint16_t)buff[3]) << 8) | buff[2];
-  	*hz = (((uint16_t)buff[5]) << 8) | buff[4];
-}
+#endif
