@@ -30,6 +30,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 class MPU9250{
     public:
         MPU9250(uint8_t address, uint8_t bus);
+        MPU9250(uint8_t csPin);
         int begin(String accelRange, String gyroRange);
         int setFilt(String bandwidth, uint8_t frequency);
         void getAccel(float* ax, float* ay, float* az);
@@ -43,11 +44,19 @@ class MPU9250{
     private:
         uint8_t _address;
         uint8_t _bus;
+        uint8_t _csPin;
+        bool _useSPI;
+        bool _useSPIHS;
         float _accelScale;
         float _gyroScale;
         float _magScaleX, _magScaleY, _magScaleZ;
         const float _tempScale = 333.87f;
         const float _tempOffset = 21.0f;
+
+        // SPI constants
+        const uint8_t SPI_READ = 0x80;
+        const uint32_t SPI_LS_CLOCK = 1000000; // 1 MHz
+        const uint32_t SPI_HS_CLOCK = 20000000; // 20 MHz
 
         // i2c bus frequency
         const uint32_t _i2cRate = 400000;
@@ -116,6 +125,7 @@ class MPU9250{
         const uint8_t I2C_SLV4_CTRL = 0x34;
         const uint8_t I2C_MST_DELAY_CTRL = 0x67;
         const uint8_t I2C_SLV0_DLY_EN = 0x01;
+        const uint8_t I2C_IF_DIS = 0x10;
 
         const uint8_t WHO_AM_I = 0x75;
 
