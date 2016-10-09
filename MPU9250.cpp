@@ -271,6 +271,7 @@ int MPU9250::begin(String accelRange, String gyroRange){
 
 /* sets the DLPF and interrupt settings */
 int MPU9250::setFilt(String bandwidth, uint8_t SRD){
+    uint8_t data[7];
 
     if(bandwidth.equals("184HZ")){
         if( !writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_184) ){ // setting accel bandwidth to 184Hz
