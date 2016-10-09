@@ -40,8 +40,8 @@ An MPU9250 object should be declared, specifying the Teensy chip select pin used
 MPU9250 IMU(10);
 ```
 
-### Common Setup
-The following two functions are used to setup the MPU-9250 sensor. These should be called once before data collection, typically this is done in the Arduino *void setup()* function. The *begin* function should always be used. Optionally, the *setFilt* function can be used, following *begin*, to set the programmable Digital Low Pass Filter (DLPF) bandwidth, data collection frequency, and interrupt.
+### Common Setup Functions
+The following two functions are used to setup the MPU-9250 sensor. These should be called once before data collection, typically this is done in the Arduino *void setup()* function. The *begin* function should always be used. Optionally, the *setFilt* function can be used, following *begin*, to set the programmable Digital Low Pass Filter (DLPF) bandwidth, data output rate, and interrupt.
 
 **int begin(String accelRange, String gyroRange)**
 This should be called in your setup function, specifying the accelerometer and gyro ranges. It initializes communication with the MPU-9250 and sets up the sensor for reading data. This function returns 0 on a successful initialization and returns -1 on an unsuccesful initialization. If unsuccessful, please check your wiring or try resetting power to the sensor. The following is an example of setting up the MPU-9250, selecting an accelerometer full scale range of +/- 8g and a gyroscope full scale range of +/- 250 degrees per second.
@@ -73,7 +73,7 @@ This function enables setting the programmable Digital Low Pass Filter (DLPF) ba
 
 The data output rate is set by a sample rate divider, *uint8_t SRD*. The data output rate is then given by:
 
-Data Output Rate = 1000 / (1 + SRD)
+*Data Output Rate = 1000 / (1 + SRD)*
 
 This allows the data output rate for the gyroscopes, accelerometers, and temperature sensor to be set between 3.9 Hz and 1000 Hz. Note that data should be read at or above the selected rate. In order to prevent aliasing, the data should be sampled at twice the frequency of the bandwidth or higher. For example, this means for a DLPF bandwidth set to 41 Hz, the data output rate and data collection should be at frequencies of 82 Hz or higher.
 
@@ -83,7 +83,7 @@ The magnetometer is fixed to an output rate of:
 
 When the data is read above the selected output rate, the read data will be stagnant. For example, when the output rate is selected to 1000 Hz, the magnetometer data will be the same for 10 sequential frames. 
 
-An interrupt is tied to the data output rate. The MPU-9250 *INT* pin will issue a 50us pulse when data is ready. This is extremely useful for using interrupts to clock data collection that should occur at a regular interval. Please see the Interrupt_I2C and Interrupt_SPI examples.
+An interrupt is tied to the data output rate. The MPU-9250 *INT* pin will issue a 50us pulse when data is ready. This is extremely useful for using interrupts to clock data collection that should occur at a regular interval. Please see the *Interrupt_I2C* and *Interrupt_SPI examples*.
 
 Below is an example of selecting a 41 Hz DLPF bandwidth and a data output rate of 100 Hz. This function returns 0 on success and -1 on failure.
 
@@ -92,8 +92,8 @@ int setFiltStatus;
 setFiltStatus = IMU.setFilt("41HZ",9);
 ```
 
-### Common Data Collection
-The functions below are used to collect data from the MPU-9250 sensor. Data is returned scaled to engineering units and transformed to a [common axis system](#sensor-orientation). Accelerometer data is returned in units of m/s/s, gyroscope data in units of radians per second, magnetometer data in units of microtesla and temperature data in degrees Celsius. All of the data returned by the function were collected from the MPU-9250 at the same time, so it is preferable to use the function which returns all of the desired data rather than two separate function calls in order to eliminate potential time skew in your data. For example, it would be preferable to use *getMotion6* to get both gyroscope and accelerometer data rather than call *getAccel* followed by *getGyro*. This preference is because the gyroscope and accelerometer data returned by *getMotion6* were all sampled simultaneously whereas using *getAccel* followed by *getGyro* could possibly introduce a time skew between the accelerometer and gyroscope data.
+### Common Data Collection Functions
+The functions below are used to collect data from the MPU-9250 sensor. Data is returned scaled to engineering units and transformed to a [common axis system](#sensor-orientation). Accelerometer data is returned in units of meters per second per second (m/s/s), gyroscope data in units of radians per second (rad/s), magnetometer data in units of microtesla (uT) and temperature data in degrees Celsius (C). All of the data returned by the function were collected from the MPU-9250 at the same time, so it is preferable to use the function which returns all of the desired data rather than two separate function calls in order to eliminate potential time skews in your results. For example, it would be preferable to use *getMotion6* to get both gyroscope and accelerometer data rather than call *getAccel* followed by *getGyro*. This preference is because the gyroscope and accelerometer data returned by *getMotion6* were all sampled simultaneously whereas using *getAccel* followed by *getGyro* could possibly introduce a time skew between the accelerometer and gyroscope data.
 
 **void getAccel(float* ax, float* ay, float* az)**
 *getAccel(float&ast; ax, float&ast; ay, float&ast; az)* samples the MPU-9250 sensor and returns the three-axis accelerometer data as floats in m/s/s.
@@ -160,7 +160,7 @@ IMU.getMotion10(&ax, &ay, &az, &gx, &gy, &gz, &hx, &hy, &hz, &t);
 ```
 
 ##<a name="sensor-orientation"></a>Sensor Orientation
-Data returned from this library is transformed to a common axis system, which is shown below. This is a right handed coordinate system with the z-axis positive down, common in aircraft dynamics.
+This library transforms all data to a common axis system before it is returned. This axis system is shown below. It is a right handed coordinate system with the z-axis positive down, common in aircraft dynamics.
 
 <img src="https://github.com/bolderflight/MPU9250/blob/master/docs/MPU-9250-AXIS.png" alt="Common Axis System" width="250">
 
@@ -173,7 +173,7 @@ Data returned from this library is transformed to a common axis system, which is
 
 # Wiring and Pullups 
 
-Please refer to the [MPU-9250 datasheet](https://github.com/bolderflight/MPU9250/blob/master/docs/MPU-9250-Datasheet.pdf) and the [Teensy pinout diagrams](https://www.pjrc.com/teensy/pinout.html). This library was developed using the [Embedded Masters breakout board](https://store.invensense.com/Controls/www.embeddedmasters.com/ProductDetail/EMSENSRMPU9250-Embedded-Masters/552444/) v1.1 for the MPU-9250. The data sheet for this breakout board is located [here](https://github.com/bolderflight/MPU9250/blob/master/docs/Embedded-Masters-MPU-9250-Breakout.pdf).
+Please refer to the [MPU-9250 datasheet](https://github.com/bolderflight/MPU9250/blob/master/docs/MPU-9250-Datasheet.pdf) and the [Teensy pinout diagrams](https://www.pjrc.com/teensy/pinout.html). This library was developed using the [Embedded Masters breakout board](https://store.invensense.com/Controls/www.embeddedmasters.com/ProductDetail/EMSENSRMPU9250-Embedded-Masters/552444/) v1.1 for the MPU-9250. The data sheet for this breakout board is located [here](https://github.com/bolderflight/MPU9250/blob/master/docs/Embedded-Masters-MPU-9250-Breakout.pdf). This library should work well for other breakout boards or embedded sensors, please refer to your vendor's pinout diagram.
 
 ## I2C
 
