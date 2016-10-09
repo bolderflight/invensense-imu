@@ -2,7 +2,7 @@
 MPU9250.h
 Brian R Taylor
 brian.taylor@bolderflight.com
-2016-10-07
+2016-10-08
 
 Copyright (c) 2016 Bolder Flight Systems
 
@@ -32,7 +32,7 @@ class MPU9250{
         MPU9250(uint8_t address, uint8_t bus);
         MPU9250(uint8_t csPin);
         int begin(String accelRange, String gyroRange);
-        int setFilt(String bandwidth, uint8_t frequency);
+        int setFilt(String bandwidth, uint8_t SRD);
         void getAccel(float* ax, float* ay, float* az);
         void getGyro(float* gx, float* gy, float* gz);
         void getMag(float* hx, float* hy, float* hz);
@@ -50,6 +50,7 @@ class MPU9250{
         float _accelScale;
         float _gyroScale;
         float _magScaleX, _magScaleY, _magScaleZ;
+        const float _d2r = 3.14159265359f/180.0f;
         const float _tempScale = 333.87f;
         const float _tempOffset = 21.0f;
 
@@ -122,10 +123,6 @@ class MPU9250{
         const uint8_t I2C_SLV0_CTRL = 0x27;
         const uint8_t I2C_SLV0_EN = 0x80;
         const uint8_t I2C_READ_FLAG = 0x80;
-        const uint8_t I2C_SLV4_CTRL = 0x34;
-        const uint8_t I2C_MST_DELAY_CTRL = 0x67;
-        const uint8_t I2C_SLV0_DLY_EN = 0x01;
-        const uint8_t I2C_IF_DIS = 0x10;
 
         const uint8_t WHO_AM_I = 0x75;
 
@@ -136,6 +133,7 @@ class MPU9250{
 
         const uint8_t AK8963_CNTL1 = 0x0A;
         const uint8_t AK8963_PWR_DOWN = 0x00;
+        const uint8_t AK8963_CNT_MEAS1 = 0x12;
         const uint8_t AK8963_CNT_MEAS2 = 0x16;
         const uint8_t AK8963_FUSE_ROM = 0x0F;
 

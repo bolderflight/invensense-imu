@@ -2,7 +2,7 @@
 MPU9250.cpp
 Brian R Taylor
 brian.taylor@bolderflight.com
-2016-10-07
+2016-10-08
 
 Copyright (c) 2016 Bolder Flight Systems
 
@@ -187,7 +187,7 @@ int MPU9250::begin(String accelRange, String gyroRange){
         if( !writeRegister(GYRO_CONFIG,GYRO_FS_SEL_250DPS) ){
             return -1;
         }
-    	_gyroScale = 250.0f/32767.5f; // setting the gyro scale to 250DPS
+    	_gyroScale = 250.0f/32767.5f * _d2r; // setting the gyro scale to 250DPS
 	}
 
 	if(gyroRange.equals("500DPS")){
@@ -195,7 +195,7 @@ int MPU9250::begin(String accelRange, String gyroRange){
         if( !writeRegister(GYRO_CONFIG,GYRO_FS_SEL_500DPS) ){
             return -1;
         }
-    	_gyroScale = 500.0f/32767.5f; // setting the gyro scale to 500DPS
+    	_gyroScale = 500.0f/32767.5f * _d2r; // setting the gyro scale to 500DPS
 	}
 
 	if(gyroRange.equals("1000DPS")){
@@ -203,7 +203,7 @@ int MPU9250::begin(String accelRange, String gyroRange){
         if( !writeRegister(GYRO_CONFIG,GYRO_FS_SEL_1000DPS) ){
             return -1;
         }
-    	_gyroScale = 1000.0f/32767.5f; // setting the gyro scale to 1000DPS
+    	_gyroScale = 1000.0f/32767.5f * _d2r; // setting the gyro scale to 1000DPS
 	}
 
 	if(gyroRange.equals("2000DPS")){
@@ -211,7 +211,7 @@ int MPU9250::begin(String accelRange, String gyroRange){
         if( !writeRegister(GYRO_CONFIG,GYRO_FS_SEL_2000DPS) ){
             return -1;
         }
-    	_gyroScale = 2000.0f/32767.5f; // setting the gyro scale to 2000DPS
+    	_gyroScale = 2000.0f/32767.5f * _d2r; // setting the gyro scale to 2000DPS
 	}
 
     // enable I2C master mode
@@ -270,12 +270,7 @@ int MPU9250::begin(String accelRange, String gyroRange){
 
 
 /* sets the DLPF and interrupt settings */
-int MPU9250::setFilt(String bandwidth, uint8_t frequency){
-
-    uint16_t ISR = 1000; // with all of the DLPF settings below, the frequency will be 1 kHz
-    uint8_t MSR = 100; // desired magnetometer sample rate
-    uint8_t SRD; // sample rate divider
-    uint8_t MRD; // magnetometer rate divider
+int MPU9250::setFilt(String bandwidth, uint8_t SRD){
 
     if(bandwidth.equals("184HZ")){
         if( !writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_184) ){ // setting accel bandwidth to 184Hz
@@ -332,19 +327,27 @@ int MPU9250::setFilt(String bandwidth, uint8_t frequency){
     }
 
     /* setting the sample rate divider */
-    SRD = ISR / frequency - 1; // determining the correct sample rate divider to get the desired frequency
     if( !writeRegister(SMPDIV,SRD) ){ // setting the sample rate divider
         return -1;
     } 
 
-    /* setting the magnetometer rate divider, magnetometers should only be read at 100 Hz */
-    MRD = frequency / MSR - 1; // determining the correct divider to keep magnetometers at 100 Hz
-    if( !writeRegister(I2C_SLV4_CTRL,MRD) ){ // setting the sample rate divider
-        return -1;
-    } 
-    if( !writeRegister(I2C_MST_DELAY_CTRL,I2C_SLV0_DLY_EN) ){ // enabling the sample rate divider
-        return -1;
-    } 
+    if(SRD > 9){
+
+        // set AK8963 to Power Down
+        if( !writeAK8963Register(AK8963_CNTL1,AK8963_PWR_DOWN) ){
+            return -1;
+        }
+        delay(100); // long wait between AK8963 mode changes  
+
+        // set AK8963 to 16 bit resolution, 8 Hz update rate
+        if( !writeAK8963Register(AK8963_CNTL1,AK8963_CNT_MEAS1) ){
+            return -1;
+        }
+        delay(100); // long wait between AK8963 mode changes     
+
+        // instruct the MPU9250 to get 7 bytes of data from the AK8963 at the sample rate
+        readAK8963Registers(AK8963_HXL,sizeof(data),&data[0]);
+    }
 
     /* setting the interrupt */
     if( !writeRegister(INT_PIN_CFG,INT_PULSE_50US) ){ // setup interrupt, 50 us pulse
