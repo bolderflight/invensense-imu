@@ -164,6 +164,8 @@ This library transforms all data to a common axis system before it is returned. 
 
 <img src="https://github.com/bolderflight/MPU9250/blob/master/docs/MPU-9250-AXIS.png" alt="Common Axis System" width="250">
 
+**Caution!** This axis system is shown relative to the MPU-9250 sensor. The sensor may be rotated relative to the breakout board. 
+
 ## Example List
 
 * **Basic_I2C**: demonstrates declaring an *MPU9250* object, initializing the sensor, and collecting data. I2C is used to communicate with the MPU-9250 sensor.
@@ -226,3 +228,14 @@ The MPU-9250 pins should be connected as:
    * nCS: connect to Teensy chip select pin. Pin 10 was used in the code snippets in this document and the included examples, but any Teensy digital I/O pin can be used. 
    * AUXDA: not used.
    * AUXCL: not used.
+
+Some breakout boards, including the Embedded Masters breakout board, require slight modification to enable SPI. Please refer to your vendor's documentation.
+
+   # Performance
+Timing data was collected for the *getMotion10* function on all supported Teensy devices using I2C and SPI. Interrupts, setup with the *setFilt* library function, were used to call the function on *data ready*. This way, timing was considered just to: communicate with the MPU-9250 sensor, collect the data off its registers, parse and scale the data to engineering units, and transform to the common axis system. This test gives some indication of performance for the various communication protocols and Teensy devices.
+
+|             | Teensy 3.0 | Teensy 3.1/3.2 | Teensy 3.5 | Teensy 3.6 | Teensy LC |
+| ----------- | ---------- | -------------- | ---------- | ---------- | --------- |
+| CPU setting | 96 MHz     | 96 MHz         | 120 MHz    | 180 MHz    | 48 MHz    |
+| I2C         | 765 us     | 682 us         | 667 us     | 638 us     | 980 us    |
+| SPI         | 96 us      | 52 us          | 22 us      | 19 us      | 205 us    |
