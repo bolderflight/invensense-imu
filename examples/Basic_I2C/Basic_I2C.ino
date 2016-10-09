@@ -1,8 +1,8 @@
 /*
-MPU9250_example.ino
+Basic_I2C.ino
 Brian R Taylor
 brian.taylor@bolderflight.com
-2016-10-07 
+2016-10-08 
 
 Copyright (c) 2016 Bolder Flight Systems
 
@@ -59,7 +59,7 @@ void loop() {
     // get the accelerometer data (m/s/s)
     IMU.getAccel(&ax, &ay, &az);
   
-    // get the gyro data (deg/s)
+    // get the gyro data (rad/s)
     IMU.getGyro(&gx, &gy, &gz);
   
     // get the magnetometer data (uT)
@@ -87,7 +87,7 @@ void loop() {
      */
   
      /* getMotion6 */
-    // get both the accel (m/s/s) and gyro (deg/s) data
+    // get both the accel (m/s/s) and gyro (rad/s) data
     IMU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
   
     // get the magnetometer data (uT)
@@ -103,7 +103,7 @@ void loop() {
     delay(50);
   
     /* getMotion7 */
-    // get the accel (m/s/s), gyro (deg/s), and temperature (C) data
+    // get the accel (m/s/s), gyro (rad/s), and temperature (C) data
     IMU.getMotion7(&ax, &ay, &az, &gx, &gy, &gz, &t);
     
     // get the magnetometer data (uT)
@@ -116,7 +116,7 @@ void loop() {
     delay(50);
   
     /* getMotion9 */
-    // get the accel (m/s/s), gyro (deg/s), and magnetometer (uT) data
+    // get the accel (m/s/s), gyro (rad/s), and magnetometer (uT) data
     IMU.getMotion9(&ax, &ay, &az, &gx, &gy, &gz, &hx, &hy, &hz);
   
     // get the temperature data (C)
@@ -128,7 +128,7 @@ void loop() {
     // delay a frame
     delay(50);
   
-    // get the accel (m/s/s), gyro (deg/s), and magnetometer (uT), and temperature (C) data
+    // get the accel (m/s/s), gyro (rad/s), and magnetometer (uT), and temperature (C) data
     IMU.getMotion10(&ax, &ay, &az, &gx, &gy, &gz, &hx, &hy, &hz, &t);
   
     // print the data
