@@ -231,7 +231,7 @@ The MPU-9250 pins should be connected as:
 
 Some breakout boards, including the Embedded Masters breakout board, require slight modification to enable SPI. Please refer to your vendor's documentation.
 
-   # Performance
+# Performance
 Timing data was collected for the *getMotion10* function on all supported Teensy devices using I2C and SPI. Interrupts, setup with the *setFilt* library function, were used to call the function on *data ready*. This way, timing was considered just to: communicate with the MPU-9250 sensor, collect the data off its registers, parse and scale the data to engineering units, and transform to the common axis system. This test gives some indication of performance for the various communication protocols and Teensy devices.
 
 |             | Teensy 3.0 | Teensy 3.1/3.2 | Teensy 3.5 | Teensy 3.6 | Teensy LC |
