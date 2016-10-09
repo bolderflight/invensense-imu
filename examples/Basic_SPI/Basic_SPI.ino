@@ -24,8 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 #include "MPU9250.h"
 
-// an MPU9250 object with its I2C address 
-// of 0x68 (ADDR to GRND) and on Teensy bus 0
+// an MPU9250 object with the MPU-9250 sensor on Teensy Chip Select pin 10
 MPU9250 IMU(10);
 
 float ax, ay, az, gx, gy, gz, hx, hy, hz, t;

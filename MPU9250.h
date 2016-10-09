@@ -50,7 +50,6 @@ class MPU9250{
         float _accelScale;
         float _gyroScale;
         float _magScaleX, _magScaleY, _magScaleZ;
-        const float _d2r = 3.14159265359f/180.0f;
         const float _tempScale = 333.87f;
         const float _tempOffset = 21.0f;
 
@@ -64,6 +63,7 @@ class MPU9250{
 
         // constants
         const float G = 9.807f;
+        const float _d2r = 3.14159265359f/180.0f;
 
         // MPU9250 registers
         const uint8_t ACCEL_OUT = 0x3B;

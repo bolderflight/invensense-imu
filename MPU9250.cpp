@@ -680,7 +680,7 @@ bool MPU9250::writeRegister(uint8_t subAddress, uint8_t data){
       	i2c_t3(_bus).write(data); // write the data
       	i2c_t3(_bus).endTransmission();
     }
-    delay(2); // need to slow down how fast I write to MPU9250
+    delay(10); // need to slow down how fast I write to MPU9250
 
   	/* read back the register */
   	readRegisters(subAddress,sizeof(buff),&buff[0]);
