@@ -2,7 +2,7 @@
 MPU9250.h
 Brian R Taylor
 brian.taylor@bolderflight.com
-2016-10-08
+2016-10-10
 
 Copyright (c) 2016 Bolder Flight Systems
 
@@ -26,10 +26,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #define MPU9250_h
 
 #include "Arduino.h"
+#include "i2c_t3.h"  // I2C library
 
 class MPU9250{
     public:
         MPU9250(uint8_t address, uint8_t bus);
+        MPU9250(uint8_t address, uint8_t bus, i2c_pins pins);
+        MPU9250(uint8_t address, uint8_t bus, i2c_pins pins, i2c_pullup pullups);
         MPU9250(uint8_t csPin);
         int begin(String accelRange, String gyroRange);
         int setFilt(String bandwidth, uint8_t SRD);
@@ -44,6 +47,9 @@ class MPU9250{
     private:
         uint8_t _address;
         uint8_t _bus;
+        i2c_pins _pins;
+        i2c_pullup _pullups;
+        bool _userDefI2C;
         uint8_t _csPin;
         bool _useSPI;
         bool _useSPIHS;

@@ -2,7 +2,7 @@
 MPU9250.cpp
 Brian R Taylor
 brian.taylor@bolderflight.com
-2016-10-08
+2016-10-10
 
 Copyright (c) 2016 Bolder Flight Systems
 
@@ -35,6 +35,27 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 MPU9250::MPU9250(uint8_t address, uint8_t bus){
     _address = address; // I2C address
     _bus = bus; // I2C bus
+    _userDefI2C = false; // automatic I2C setup
+    _useSPI = false; // set to use I2C instead of SPI
+}
+
+/* MPU9250 object, input the I2C address, I2C bus, and I2C pins */
+MPU9250::MPU9250(uint8_t address, uint8_t bus, i2c_pins pins){
+    _address = address; // I2C address
+    _bus = bus; // I2C bus
+    _pins = pins; // I2C pins
+    _pullups = I2C_PULLUP_EXT; // I2C pullups
+    _userDefI2C = true; // user defined I2C
+    _useSPI = false; // set to use I2C instead of SPI
+}
+
+/* MPU9250 object, input the I2C address, I2C bus, I2C pins, and I2C pullups */
+MPU9250::MPU9250(uint8_t address, uint8_t bus, i2c_pins pins, i2c_pullup pullups){
+    _address = address; // I2C address
+    _bus = bus; // I2C bus
+    _pins = pins; // I2C pins
+    _pullups = pullups; // I2C pullups
+    _userDefI2C = true; // user defined I2C
     _useSPI = false; // set to use I2C instead of SPI
 }
 
@@ -63,69 +84,71 @@ int MPU9250::begin(String accelRange, String gyroRange){
     }
     else{ // using I2C for communication
 
-        i2c_pins pins;
+        if( !_userDefI2C ) { // setup the I2C pins and pullups based on bus number if not defined by user
+            /* setting the I2C pins, pullups, and protecting against _bus out of range */
+            _pullups = I2C_PULLUP_EXT; // default to external pullups
 
-        /* setting the I2C pins and protecting against _bus out of range */
-        #if defined(__MK20DX128__) // Teensy 3.0
-            pins = I2C_PINS_18_19;
-            _bus = 0;
-        #endif
-
-        #if defined(__MK20DX256__) // Teensy 3.1/3.2
-            if(_bus == 1) {
-                pins = I2C_PINS_29_30;
-            }
-            else{
-                pins = I2C_PINS_18_19;
+            #if defined(__MK20DX128__) // Teensy 3.0
+                _pins = I2C_PINS_18_19;
                 _bus = 0;
-            }
+            #endif
 
-        #endif
+            #if defined(__MK20DX256__) // Teensy 3.1/3.2
+                if(_bus == 1) {
+                    _pins = I2C_PINS_29_30;
+                }
+                else{
+                    _pins = I2C_PINS_18_19;
+                    _bus = 0;
+                }
 
-        #if defined(__MK64FX512__) // Teensy 3.5
-            if(_bus == 2) {
-                pins = I2C_PINS_3_4;
-            }
-            else if(_bus == 1) {
-                pins = I2C_PINS_37_38;
-            }
-            else{
-                pins = I2C_PINS_18_19;
-                _bus = 0;
-            }
+            #endif
 
-        #endif
+            #if defined(__MK64FX512__) // Teensy 3.5
+                if(_bus == 2) {
+                    _pins = I2C_PINS_3_4;
+                }
+                else if(_bus == 1) {
+                    _pins = I2C_PINS_37_38;
+                }
+                else{
+                    _pins = I2C_PINS_18_19;
+                    _bus = 0;
+                }
 
-        #if defined(__MK66FX1M0__) // Teensy 3.6
-            if(_bus == 3) {
-                pins = I2C_PINS_56_57;
-            }
-            else if(_bus == 2) {
-                pins = I2C_PINS_3_4;
-            }
-            else if(_bus == 1) {
-                pins = I2C_PINS_37_38;
-            }
-            else{
-                pins = I2C_PINS_18_19;
-                _bus = 0;
-            }
+            #endif
 
-        #endif
+            #if defined(__MK66FX1M0__) // Teensy 3.6
+                if(_bus == 3) {
+                    _pins = I2C_PINS_56_57;
+                }
+                else if(_bus == 2) {
+                    _pins = I2C_PINS_3_4;
+                }
+                else if(_bus == 1) {
+                    _pins = I2C_PINS_37_38;
+                }
+                else{
+                    _pins = I2C_PINS_18_19;
+                    _bus = 0;
+                }
 
-        #if defined(__MKL26Z64__) // Teensy LC
-            if(_bus == 1) {
-                pins = I2C_PINS_22_23;
-            }
-            else{
-                pins = I2C_PINS_18_19;
-                _bus = 0;
-            }
+            #endif
 
-        #endif
+            #if defined(__MKL26Z64__) // Teensy LC
+                if(_bus == 1) {
+                    _pins = I2C_PINS_22_23;
+                }
+                else{
+                    _pins = I2C_PINS_18_19;
+                    _bus = 0;
+                }
+
+            #endif
+        }
 
         // starting the I2C bus
-        i2c_t3(_bus).begin(I2C_MASTER, 0, pins, I2C_PULLUP_EXT, _i2cRate);
+        i2c_t3(_bus).begin(I2C_MASTER, 0, _pins, _pullups, _i2cRate);
     }
 
 	// reset the MPU9250
