@@ -183,6 +183,8 @@ This library transforms all data to a common axis system before it is returned. 
 ## Example List
 
 * **Basic_I2C**: demonstrates declaring an *MPU9250* object, initializing the sensor, and collecting data. I2C is used to communicate with the MPU-9250 sensor.
+* **Basic_I2C_Pins**: demonstrates declaring an *MPU9250* object, initializing the sensor, and collecting data. I2C is used to communicate with the MPU-9250 sensor and the I2C pins are specified. In this example, I2C bus 0 alternate pins 16 and 17 are demonstrated.
+* **Basic_I2C_Pullups**: demonstrates declaring an *MPU9250* object, initializing the sensor, and collecting data. I2C is used to communicate with the MPU-9250 sensor and the I2C pins and pullups are specified. In this example, I2C bus 0 alternate pins 16 and 17 are demonstrated with internal pullups.
 * **Basic_SPI**: demonstrates declaring an *MPU9250* object, initializing the sensor, and collecting data. SPI is used to communicate with the MPU-9250 sensor.
 * **Interrupt_I2C**: demonstrates a more advanced setup. In this case an *MPU9250* object is declared, the sensor is initialized and the filter and interrupt are setup. The MPU-9250 sensor creates an interrupt pulse when data is ready, which is used to drive data collection at the specified rate. I2C is used to communicate with the MPU-9250 sensor.
 * **Interrupt_SPI**: demonstrates a more advanced setup. In this case an *MPU9250* object is declared, the sensor is initialized and the filter and interrupt are setup. The MPU-9250 sensor creates an interrupt pulse when data is ready, which is used to drive data collection at the specified rate. SPI is used to communicate with the MPU-9250 sensor.
