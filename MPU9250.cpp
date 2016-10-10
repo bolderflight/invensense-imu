@@ -395,57 +395,57 @@ int MPU9250::setFilt(mpu9250_dlpf_bandwidth bandwidth, uint8_t SRD){
 /* get accelerometer data given pointers to store the three values, return data as counts */
 void MPU9250::getAccelCounts(int16_t* ax, int16_t* ay, int16_t* az){
     uint8_t buff[6];
+    int16_t axx, ayy, azz;
     _useSPIHS = true; // use the high speed SPI for data readout
 
     readRegisters(ACCEL_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
 
-    *ax = (((int16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
-    *ay = (((int16_t)buff[2]) << 8) | buff[3];
-    *az = (((int16_t)buff[4]) << 8) | buff[5];
-}
-
-/* get accelerometer data given pointers to store the three values */
-void MPU9250::getAccel(float* ax, float* ay, float* az){
-    int16_t accel[3];
-    float axx, ayy, azz;
-
-    getAccelCounts(&accel[0], &accel[1], &accel[2]);
-
-    axx = ((float) accel[0]) * _accelScale; // typecast and scale to values
-    ayy = ((float) accel[1]) * _accelScale;
-    azz = ((float) accel[2]) * _accelScale;
+    axx = (((int16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
+    ayy = (((int16_t)buff[2]) << 8) | buff[3];
+    azz = (((int16_t)buff[4]) << 8) | buff[5];
 
     *ax = tX[0]*axx + tX[1]*ayy + tX[2]*azz; // transform axes
     *ay = tY[0]*axx + tY[1]*ayy + tY[2]*azz;
     *az = tZ[0]*axx + tZ[1]*ayy + tZ[2]*azz;
 }
 
+/* get accelerometer data given pointers to store the three values */
+void MPU9250::getAccel(float* ax, float* ay, float* az){
+    int16_t accel[3];
+
+    getAccelCounts(&accel[0], &accel[1], &accel[2]);
+
+    *ax = ((float) accel[0]) * _accelScale; // typecast and scale to values
+    *ay = ((float) accel[1]) * _accelScale;
+    *az = ((float) accel[2]) * _accelScale;
+}
+
 /* get gyro data given pointers to store the three values, return data as counts */
 void MPU9250::getGyroCounts(int16_t* gx, int16_t* gy, int16_t* gz){
     uint8_t buff[6];
+    int16_t gxx, gyy, gzz;
     _useSPIHS = true; // use the high speed SPI for data readout
 
     readRegisters(GYRO_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
 
-    *gx = (((int16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
-    *gy = (((int16_t)buff[2]) << 8) | buff[3];
-    *gz = (((int16_t)buff[4]) << 8) | buff[5];
+    gxx = (((int16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
+    gyy = (((int16_t)buff[2]) << 8) | buff[3];
+    gzz = (((int16_t)buff[4]) << 8) | buff[5];
+
+    *gx = tX[0]*gxx + tX[1]*gyy + tX[2]*gzz; // transform axes
+    *gy = tY[0]*gxx + tY[1]*gyy + tY[2]*gzz;
+    *gz = tZ[0]*gxx + tZ[1]*gyy + tZ[2]*gzz;
 }
 
 /* get gyro data given pointers to store the three values */
 void MPU9250::getGyro(float* gx, float* gy, float* gz){
     int16_t gyro[3];
-    float gxx, gyy, gzz;
 
     getGyroCounts(&gyro[0], &gyro[1], &gyro[2]);
 
-    gxx = ((float) gyro[0]) * _gyroScale; // typecast and scale to values
-    gyy = ((float) gyro[1]) * _gyroScale;
-    gzz = ((float) gyro[2]) * _gyroScale;
-
-    *gx = tX[0]*gxx + tX[1]*gyy + tX[2]*gzz; // transform axes
-    *gy = tY[0]*gxx + tY[1]*gyy + tY[2]*gzz;
-    *gz = tZ[0]*gxx + tZ[1]*gyy + tZ[2]*gzz;
+    *gx = ((float) gyro[0]) * _gyroScale; // typecast and scale to values
+    *gy = ((float) gyro[1]) * _gyroScale;
+    *gz = ((float) gyro[2]) * _gyroScale;
 }
 
 /* get magnetometer data given pointers to store the three values, return data as counts */
@@ -501,34 +501,18 @@ void MPU9250::getTemp(float* t){
 /* get accelerometer and gyro data given pointers to store values, return data as counts */
 void MPU9250::getMotion6Counts(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz){
     uint8_t buff[14];
+    int16_t axx, ayy, azz, gxx, gyy, gzz;
     _useSPIHS = true; // use the high speed SPI for data readout
 
     readRegisters(ACCEL_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
 
-    *ax = (((int16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
-    *ay = (((int16_t)buff[2]) << 8) | buff[3];
-    *az = (((int16_t)buff[4]) << 8) | buff[5];
+    axx = (((int16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
+    ayy = (((int16_t)buff[2]) << 8) | buff[3];
+    azz = (((int16_t)buff[4]) << 8) | buff[5];
 
-    *gx = (((int16_t)buff[8]) << 8) | buff[9];
-    *gy = (((int16_t)buff[10]) << 8) | buff[11];
-    *gz = (((int16_t)buff[12]) << 8) | buff[13];
-}
-
-/* get accelerometer and gyro data given pointers to store values */
-void MPU9250::getMotion6(float* ax, float* ay, float* az, float* gx, float* gy, float* gz){
-    int16_t accel[3];
-    int16_t gyro[3];
-    float axx, ayy, azz, gxx, gyy, gzz;
-
-    getMotion6Counts(&accel[0], &accel[1], &accel[2], &gyro[0], &gyro[1], &gyro[2]);
-
-    axx = ((float) accel[0]) * _accelScale; // typecast and scale to values
-    ayy = ((float) accel[1]) * _accelScale;
-    azz = ((float) accel[2]) * _accelScale;
-
-    gxx = ((float) gyro[0]) * _gyroScale;
-    gyy = ((float) gyro[1]) * _gyroScale;
-    gzz = ((float) gyro[2]) * _gyroScale;
+    gxx = (((int16_t)buff[8]) << 8) | buff[9];
+    gyy = (((int16_t)buff[10]) << 8) | buff[11];
+    gzz = (((int16_t)buff[12]) << 8) | buff[13];
 
     *ax = tX[0]*axx + tX[1]*ayy + tX[2]*azz; // transform axes
     *ay = tY[0]*axx + tY[1]*ayy + tY[2]*azz;
@@ -539,22 +523,47 @@ void MPU9250::getMotion6(float* ax, float* ay, float* az, float* gx, float* gy, 
     *gz = tZ[0]*gxx + tZ[1]*gyy + tZ[2]*gzz;
 }
 
+/* get accelerometer and gyro data given pointers to store values */
+void MPU9250::getMotion6(float* ax, float* ay, float* az, float* gx, float* gy, float* gz){
+    int16_t accel[3];
+    int16_t gyro[3];
+
+    getMotion6Counts(&accel[0], &accel[1], &accel[2], &gyro[0], &gyro[1], &gyro[2]);
+
+    *ax = ((float) accel[0]) * _accelScale; // typecast and scale to values
+    *ay = ((float) accel[1]) * _accelScale;
+    *az = ((float) accel[2]) * _accelScale;
+
+    *gx = ((float) gyro[0]) * _gyroScale;
+    *gy = ((float) gyro[1]) * _gyroScale;
+    *gz = ((float) gyro[2]) * _gyroScale;
+}
+
 /* get accelerometer, gyro and temperature data given pointers to store values, return data as counts */
 void MPU9250::getMotion7Counts(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz, int16_t* t){
     uint8_t buff[14];
+    int16_t axx, ayy, azz, gxx, gyy, gzz;
     _useSPIHS = true; // use the high speed SPI for data readout
 
     readRegisters(ACCEL_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
 
-    *ax = (((int16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
-    *ay = (((int16_t)buff[2]) << 8) | buff[3];
-    *az = (((int16_t)buff[4]) << 8) | buff[5];
+    axx = (((int16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
+    ayy = (((int16_t)buff[2]) << 8) | buff[3];
+    azz = (((int16_t)buff[4]) << 8) | buff[5];
 
     *t = (((int16_t)buff[6]) << 8) | buff[7];
 
-    *gx = (((int16_t)buff[8]) << 8) | buff[9];
-    *gy = (((int16_t)buff[10]) << 8) | buff[11];
-    *gz = (((int16_t)buff[12]) << 8) | buff[13];
+    gxx = (((int16_t)buff[8]) << 8) | buff[9];
+    gyy = (((int16_t)buff[10]) << 8) | buff[11];
+    gzz = (((int16_t)buff[12]) << 8) | buff[13];
+
+    *ax = tX[0]*axx + tX[1]*ayy + tX[2]*azz; // transform axes
+    *ay = tY[0]*axx + tY[1]*ayy + tY[2]*azz;
+    *az = tZ[0]*axx + tZ[1]*ayy + tZ[2]*azz;
+
+    *gx = tX[0]*gxx + tX[1]*gyy + tX[2]*gzz;
+    *gy = tY[0]*gxx + tY[1]*gyy + tY[2]*gzz;
+    *gz = tZ[0]*gxx + tZ[1]*gyy + tZ[2]*gzz;
 }
 
 /* get accelerometer, gyro, and temperature data given pointers to store values */
@@ -562,25 +571,16 @@ void MPU9250::getMotion7(float* ax, float* ay, float* az, float* gx, float* gy, 
     int16_t accel[3];
     int16_t gyro[3];
     int16_t tempCount;
-    float axx, ayy, azz, gxx, gyy, gzz;
 
     getMotion7Counts(&accel[0], &accel[1], &accel[2], &gyro[0], &gyro[1], &gyro[2], &tempCount);
 
-    axx = ((float) accel[0]) * _accelScale; // typecast and scale to values
-    ayy = ((float) accel[1]) * _accelScale;
-    azz = ((float) accel[2]) * _accelScale;
+    *ax = ((float) accel[0]) * _accelScale; // typecast and scale to values
+    *ay = ((float) accel[1]) * _accelScale;
+    *az = ((float) accel[2]) * _accelScale;
 
-    gxx = ((float) gyro[0]) * _gyroScale;
-    gyy = ((float) gyro[1]) * _gyroScale;
-    gzz = ((float) gyro[2]) * _gyroScale;
-
-    *ax = tX[0]*axx + tX[1]*ayy + tX[2]*azz; // transform axes
-    *ay = tY[0]*axx + tY[1]*ayy + tY[2]*azz;
-    *az = tZ[0]*axx + tZ[1]*ayy + tZ[2]*azz;
-
-    *gx = tX[0]*gxx + tX[1]*gyy + tX[2]*gzz;
-    *gy = tY[0]*gxx + tY[1]*gyy + tY[2]*gzz;
-    *gz = tZ[0]*gxx + tZ[1]*gyy + tZ[2]*gzz;
+    *gx = ((float) gyro[0]) * _gyroScale;
+    *gy = ((float) gyro[1]) * _gyroScale;
+    *gz = ((float) gyro[2]) * _gyroScale;
 
     *t = (( ((float) tempCount) - _tempOffset )/_tempScale) + _tempOffset; 
 }
@@ -588,21 +588,30 @@ void MPU9250::getMotion7(float* ax, float* ay, float* az, float* gx, float* gy, 
 /* get accelerometer, gyro and magnetometer data given pointers to store values, return data as counts */
 void MPU9250::getMotion9Counts(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz, int16_t* hx, int16_t* hy, int16_t* hz){
     uint8_t buff[21];
+    int16_t axx, ayy, azz, gxx, gyy, gzz;
     _useSPIHS = true; // use the high speed SPI for data readout
 
     readRegisters(ACCEL_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
 
-    *ax = (((int16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
-    *ay = (((int16_t)buff[2]) << 8) | buff[3];
-    *az = (((int16_t)buff[4]) << 8) | buff[5];
+    axx = (((int16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
+    ayy = (((int16_t)buff[2]) << 8) | buff[3];
+    azz = (((int16_t)buff[4]) << 8) | buff[5];
 
-    *gx = (((int16_t)buff[8]) << 8) | buff[9];
-    *gy = (((int16_t)buff[10]) << 8) | buff[11];
-    *gz = (((int16_t)buff[12]) << 8) | buff[13];
+    gxx = (((int16_t)buff[8]) << 8) | buff[9];
+    gyy = (((int16_t)buff[10]) << 8) | buff[11];
+    gzz = (((int16_t)buff[12]) << 8) | buff[13];
 
     *hx = (((int16_t)buff[15]) << 8) | buff[14];  
     *hy = (((int16_t)buff[17]) << 8) | buff[16];
     *hz = (((int16_t)buff[19]) << 8) | buff[18];
+
+    *ax = tX[0]*axx + tX[1]*ayy + tX[2]*azz; // transform axes
+    *ay = tY[0]*axx + tY[1]*ayy + tY[2]*azz;
+    *az = tZ[0]*axx + tZ[1]*ayy + tZ[2]*azz;
+
+    *gx = tX[0]*gxx + tX[1]*gyy + tX[2]*gzz;
+    *gy = tY[0]*gxx + tY[1]*gyy + tY[2]*gzz;
+    *gz = tZ[0]*gxx + tZ[1]*gyy + tZ[2]*gzz;
 }
 
 /* get accelerometer, gyro, and magnetometer data given pointers to store values */
@@ -610,21 +619,43 @@ void MPU9250::getMotion9(float* ax, float* ay, float* az, float* gx, float* gy, 
     int16_t accel[3];
     int16_t gyro[3];
     int16_t mag[3];
-    float axx, ayy, azz, gxx, gyy, gzz;
 
     getMotion9Counts(&accel[0], &accel[1], &accel[2], &gyro[0], &gyro[1], &gyro[2], &mag[0], &mag[1], &mag[2]);
 
-    axx = ((float) accel[0]) * _accelScale; // typecast and scale to values
-    ayy = ((float) accel[1]) * _accelScale;
-    azz = ((float) accel[2]) * _accelScale;
+    *ax = ((float) accel[0]) * _accelScale; // typecast and scale to values
+    *ay = ((float) accel[1]) * _accelScale;
+    *az = ((float) accel[2]) * _accelScale;
 
-    gxx = ((float) gyro[0]) * _gyroScale;
-    gyy = ((float) gyro[1]) * _gyroScale;
-    gzz = ((float) gyro[2]) * _gyroScale;
+    *gx = ((float) gyro[0]) * _gyroScale;
+    *gy = ((float) gyro[1]) * _gyroScale;
+    *gz = ((float) gyro[2]) * _gyroScale;
 
     *hx = ((float) mag[0]) * _magScaleX;
     *hy = ((float) mag[1]) * _magScaleY;
     *hz = ((float) mag[2]) * _magScaleZ;
+}
+
+/* get accelerometer, magnetometer, and temperature data given pointers to store values, return data as counts */
+void MPU9250::getMotion10Counts(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz, int16_t* hx, int16_t* hy, int16_t* hz, int16_t* t){
+    uint8_t buff[21];
+    int16_t axx, ayy, azz, gxx, gyy, gzz;
+    _useSPIHS = true; // use the high speed SPI for data readout
+
+    readRegisters(ACCEL_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
+
+    axx = (((int16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
+    ayy = (((int16_t)buff[2]) << 8) | buff[3];
+    azz = (((int16_t)buff[4]) << 8) | buff[5];
+
+    *t = (((int16_t)buff[6]) << 8) | buff[7];
+
+    gxx = (((int16_t)buff[8]) << 8) | buff[9];
+    gyy = (((int16_t)buff[10]) << 8) | buff[11];
+    gzz = (((int16_t)buff[12]) << 8) | buff[13];
+
+    *hx = (((int16_t)buff[15]) << 8) | buff[14];
+    *hy = (((int16_t)buff[17]) << 8) | buff[16];
+    *hz = (((int16_t)buff[19]) << 8) | buff[18];
 
     *ax = tX[0]*axx + tX[1]*ayy + tX[2]*azz; // transform axes
     *ay = tY[0]*axx + tY[1]*ayy + tY[2]*azz;
@@ -633,30 +664,6 @@ void MPU9250::getMotion9(float* ax, float* ay, float* az, float* gx, float* gy, 
     *gx = tX[0]*gxx + tX[1]*gyy + tX[2]*gzz;
     *gy = tY[0]*gxx + tY[1]*gyy + tY[2]*gzz;
     *gz = tZ[0]*gxx + tZ[1]*gyy + tZ[2]*gzz;
-
-
-}
-
-/* get accelerometer, magnetometer, and temperature data given pointers to store values, return data as counts */
-void MPU9250::getMotion10Counts(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz, int16_t* hx, int16_t* hy, int16_t* hz, int16_t* t){
-    uint8_t buff[21];
-    _useSPIHS = true; // use the high speed SPI for data readout
-
-    readRegisters(ACCEL_OUT, sizeof(buff), &buff[0]); // grab the data from the MPU9250
-
-    *ax = (((int16_t)buff[0]) << 8) | buff[1];  // combine into 16 bit values
-    *ay = (((int16_t)buff[2]) << 8) | buff[3];
-    *az = (((int16_t)buff[4]) << 8) | buff[5];
-
-    *t = (((int16_t)buff[6]) << 8) | buff[7];
-
-    *gx = (((int16_t)buff[8]) << 8) | buff[9];
-    *gy = (((int16_t)buff[10]) << 8) | buff[11];
-    *gz = (((int16_t)buff[12]) << 8) | buff[13];
-
-    *hx = (((int16_t)buff[15]) << 8) | buff[14];
-    *hy = (((int16_t)buff[17]) << 8) | buff[16];
-    *hz = (((int16_t)buff[19]) << 8) | buff[18];
 }
 
 void MPU9250::getMotion10(float* ax, float* ay, float* az, float* gx, float* gy, float* gz, float* hx, float* hy, float* hz, float* t){
@@ -664,29 +671,20 @@ void MPU9250::getMotion10(float* ax, float* ay, float* az, float* gx, float* gy,
     int16_t gyro[3];
     int16_t mag[3];
     int16_t tempCount;
-    float axx, ayy, azz, gxx, gyy, gzz;
 
     getMotion10Counts(&accel[0], &accel[1], &accel[2], &gyro[0], &gyro[1], &gyro[2], &mag[0], &mag[1], &mag[2], &tempCount);
 
-    axx = ((float) accel[0]) * _accelScale; // typecast and scale to values
-    ayy = ((float) accel[1]) * _accelScale;
-    azz = ((float) accel[2]) * _accelScale;
+    *ax = ((float) accel[0]) * _accelScale; // typecast and scale to values
+    *ay = ((float) accel[1]) * _accelScale;
+    *az = ((float) accel[2]) * _accelScale;
 
-    gxx = ((float) gyro[0]) * _gyroScale;
-    gyy = ((float) gyro[1]) * _gyroScale;
-    gzz = ((float) gyro[2]) * _gyroScale;
+    *gx = ((float) gyro[0]) * _gyroScale;
+    *gy = ((float) gyro[1]) * _gyroScale;
+    *gz = ((float) gyro[2]) * _gyroScale;
 
     *hx = ((float) mag[0]) * _magScaleX;
     *hy = ((float) mag[1]) * _magScaleY;
     *hz = ((float) mag[2]) * _magScaleZ;
-
-    *ax = tX[0]*axx + tX[1]*ayy + tX[2]*azz; // transform axes
-    *ay = tY[0]*axx + tY[1]*ayy + tY[2]*azz;
-    *az = tZ[0]*axx + tZ[1]*ayy + tZ[2]*azz;
-
-    *gx = tX[0]*gxx + tX[1]*gyy + tX[2]*gzz;
-    *gy = tY[0]*gxx + tY[1]*gyy + tY[2]*gzz;
-    *gz = tZ[0]*gxx + tZ[1]*gyy + tZ[2]*gzz;
 
     *t = (( ((float) tempCount) - _tempOffset )/_tempScale) + _tempOffset; 
 }

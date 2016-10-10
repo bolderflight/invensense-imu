@@ -70,6 +70,15 @@ class MPU9250{
         void getMotion7(float* ax, float* ay, float* az, float* gx, float* gy, float* gz, float* t);
         void getMotion9(float* ax, float* ay, float* az, float* gx, float* gy, float* gz, float* hx, float* hy, float* hz);
         void getMotion10(float* ax, float* ay, float* az, float* gx, float* gy, float* gz, float* hx, float* hy, float* hz, float* t);
+
+        void getAccelCounts(int16_t* ax, int16_t* ay, int16_t* az);
+        void getGyroCounts(int16_t* gx, int16_t* gy, int16_t* gz);
+        void getMagCounts(int16_t* hx, int16_t* hy, int16_t* hz);
+        void getTempCounts(int16_t* t);
+        void getMotion6Counts(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz);
+        void getMotion7Counts(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz, int16_t* t);
+        void getMotion9Counts(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz, int16_t* hx, int16_t* hy, int16_t* hz);
+        void getMotion10Counts(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz, int16_t* hx, int16_t* hy, int16_t* hz, int16_t* t);
     private:
         uint8_t _address;
         uint8_t _bus;
@@ -178,18 +187,10 @@ class MPU9250{
 
         // transformation matrix
         /* transform the accel and gyro axes to match the magnetometer axes */
-        const float tX[3] = {0,  1,  0}; 
-        const float tY[3] = {1,  0,  0};
-        const float tZ[3] = {0,  0, -1};
+        const int16_t tX[3] = {0,  1,  0}; 
+        const int16_t tY[3] = {1,  0,  0};
+        const int16_t tZ[3] = {0,  0, -1};
 
-        void getAccelCounts(int16_t* ax, int16_t* ay, int16_t* az);
-        void getGyroCounts(int16_t* gx, int16_t* gy, int16_t* gz);
-        void getMagCounts(int16_t* hx, int16_t* hy, int16_t* hz);
-        void getTempCounts(int16_t* t);
-        void getMotion6Counts(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz);
-        void getMotion7Counts(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz, int16_t* t);
-        void getMotion9Counts(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz, int16_t* hx, int16_t* hy, int16_t* hz);
-        void getMotion10Counts(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz, int16_t* hx, int16_t* hy, int16_t* hz, int16_t* t);
         bool writeRegister(uint8_t subAddress, uint8_t data);
         void readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest);
         bool writeAK8963Register(uint8_t subAddress, uint8_t data);
