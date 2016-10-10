@@ -57,15 +57,23 @@ MPU9250 IMU(10);
 ### Common Setup Functions
 The following two functions are used to setup the MPU-9250 sensor. These should be called once before data collection, typically this is done in the Arduino *void setup()* function. The *begin* function should always be used. Optionally, the *setFilt* function can be used, following *begin*, to set the programmable Digital Low Pass Filter (DLPF) bandwidth, data output rate, and interrupt.
 
-**int begin(String accelRange, String gyroRange)**
+**int begin(mpu9250_accel_range accelRange, mpu9250_gyro_range gyroRange)**
 This should be called in your setup function, specifying the accelerometer and gyro ranges. It initializes communication with the MPU-9250 and sets up the sensor for reading data. This function returns 0 on a successful initialization and returns -1 on an unsuccesful initialization. If unsuccessful, please check your wiring or try resetting power to the sensor. The following is an example of setting up the MPU-9250, selecting an accelerometer full scale range of +/- 8g and a gyroscope full scale range of +/- 250 degrees per second.
 
 ```C++
 int beginStatus;
-beginStatus = IMU.begin("8G","250DPS");
+beginStatus = IMU.begin(ACCEL_RANGE_8G,GYRO_RANGE_250DPS);
 ```
 
-**(optional) int setFilt(String bandwidth, uint8_t SRD)**
+The enumerated accelerometer and gyroscope ranges are:
+| Accelerometer Name | Accelerometer Full Scale Range | Gyroscope Name     | Gyroscope Full Scale Range |
+| ------------------ | ------------------------------ | ------------------ | -------------------------- |
+| ACCEL_RANGE_2G     | +/- 2 (g)                      | GYRO_RANGE_250DPS  | +/- 250 (deg/s)            |
+| ACCEL_RANGE_4G     | +/- 4 (g)                      | GYRO_RANGE_500DPS  | +/- 500 (deg/s)            |
+| ACCEL_RANGE_8G     | +/- 8 (g)                      | GYRO_RANGE_1000DPS | +/- 1000 (deg/s)           |
+| ACCEL_RANGE_16G    | +/- 16 (g)                     | GYRO_RANGE_2000DPS | +/- 2000 (deg/s)           |
+
+**(optional) int setFilt(mpu9250_dlpf_bandwidth bandwidth, uint8_t SRD)**
 This is an optional function to set the programmable Digital Low Pass Filter (DLPF) bandwidth, data output rate, and interrupt. 
 
 By default, if this function is not called:
@@ -76,14 +84,14 @@ By default, if this function is not called:
 
 This function enables setting the programmable Digital Low Pass Filter (DLPF) bandwidth, data output rate, and interrupt. The following DLPF bandwidths are supported:
 
-| String bandwidth | DLPF Bandwidth | Gyroscope Delay | Accelerometer Delay | Temperature Bandwidth | Temperature Delay |
+| Bandwidth Name | DLPF Bandwidth | Gyroscope Delay | Accelerometer Delay | Temperature Bandwidth | Temperature Delay |
 | --- | --- | --- | --- | --- | --- |
-| "184HZ" | 184 Hz | 2.9 ms   | 5.8 ms   | 188 Hz | 1.9 ms  |
-| "92HZ"  | 92 Hz  | 3.9 ms   | 7.8 ms   | 98 Hz  | 2.8 ms  |
-| "41HZ"  | 41 Hz  | 5.9 ms   | 11.8 ms  | 42 Hz  | 4.8 ms  |
-| "20HZ"  | 20 Hz  | 9.9 ms   | 19.8 ms  | 20 Hz  | 8.3 ms  |
-| "10HZ"  | 10 Hz  | 17.85 ms | 35.7 ms  | 10 Hz  | 13.4 ms |
-| "5HZ"   | 5 Hz   | 33.48 ms | 66.96 ms | 5 Hz   | 18.6 ms |
+| DLPF_BANDWIDTH_184HZ | 184 Hz | 2.9 ms   | 5.8 ms   | 188 Hz | 1.9 ms  |
+| DLPF_BANDWIDTH_92HZ  | 92 Hz  | 3.9 ms   | 7.8 ms   | 98 Hz  | 2.8 ms  |
+| DLPF_BANDWIDTH_41HZ  | 41 Hz  | 5.9 ms   | 11.8 ms  | 42 Hz  | 4.8 ms  |
+| DLPF_BANDWIDTH_20HZ  | 20 Hz  | 9.9 ms   | 19.8 ms  | 20 Hz  | 8.3 ms  |
+| DLPF_BANDWIDTH_10HZ  | 10 Hz  | 17.85 ms | 35.7 ms  | 10 Hz  | 13.4 ms |
+| DLPF_BANDWIDTH_5HZ   | 5 Hz   | 33.48 ms | 66.96 ms | 5 Hz   | 18.6 ms |
 
 The data output rate is set by a sample rate divider, *uint8_t SRD*. The data output rate is then given by:
 
