@@ -118,6 +118,13 @@ setFiltStatus = IMU.setFilt("41HZ",9);
 ### Common Data Collection Functions
 The functions below are used to collect data from the MPU-9250 sensor. Data is returned scaled to engineering units and transformed to a [common axis system](#sensor-orientation). Accelerometer data is returned in units of meters per second per second (m/s/s), gyroscope data in units of radians per second (rad/s), magnetometer data in units of microtesla (uT) and temperature data in degrees Celsius (C). All of the data returned by the function were collected from the MPU-9250 at the same time, so it is preferable to use the function which returns all of the desired data rather than two separate function calls in order to eliminate potential time skews in your results. For example, it would be preferable to use *getMotion6* to get both gyroscope and accelerometer data rather than call *getAccel* followed by *getGyro*. This preference is because the gyroscope and accelerometer data returned by *getMotion6* were all sampled simultaneously whereas using *getAccel* followed by *getGyro* could possibly introduce a time skew between the accelerometer and gyroscope data.
 
+In addition to the functions below, any of the functions followed by *Counts* will return the data as int16_t counts rather than floats scaled to engineering units. These counts are still transformed to the [common axis system](#sensor-orientation). For example, the following returns the accelerometer data as int16_t counts, transformed to the common axis system:
+
+ ```C++
+int16_t ax, ay, az;
+IMU.getAccelCounts(&ax, &ay, &az);
+```
+
 **void getAccel(float* ax, float* ay, float* az)**
 *getAccel(float&ast; ax, float&ast; ay, float&ast; az)* samples the MPU-9250 sensor and returns the three-axis accelerometer data as floats in m/s/s.
 
