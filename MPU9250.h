@@ -28,14 +28,40 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "Arduino.h"
 #include "i2c_t3.h"  // I2C library
 
+enum mpu9250_gyro_range
+{
+    GYRO_RANGE_250DPS,
+    GYRO_RANGE_500DPS,
+    GYRO_RANGE_1000DPS,
+    GYRO_RANGE_2000DPS
+};
+
+enum mpu9250_accel_range
+{
+    ACCEL_RANGE_2G,
+    ACCEL_RANGE_4G,
+    ACCEL_RANGE_8G,
+    ACCEL_RANGE_16G    
+};
+
+enum mpu9250_dlpf_bandwidth
+{
+    DLPF_BANDWIDTH_184HZ,
+    DLPF_BANDWIDTH_92HZ,
+    DLPF_BANDWIDTH_41HZ,
+    DLPF_BANDWIDTH_20HZ,
+    DLPF_BANDWIDTH_10HZ,
+    DLPF_BANDWIDTH_5HZ
+};
+
 class MPU9250{
     public:
         MPU9250(uint8_t address, uint8_t bus);
         MPU9250(uint8_t address, uint8_t bus, i2c_pins pins);
         MPU9250(uint8_t address, uint8_t bus, i2c_pins pins, i2c_pullup pullups);
         MPU9250(uint8_t csPin);
-        int begin(String accelRange, String gyroRange);
-        int setFilt(String bandwidth, uint8_t SRD);
+        int begin(mpu9250_accel_range accelRange, mpu9250_gyro_range gyroRange);
+        int setFilt(mpu9250_dlpf_bandwidth bandwidth, uint8_t SRD);
         void getAccel(float* ax, float* ay, float* az);
         void getGyro(float* gx, float* gy, float* gz);
         void getMag(float* hx, float* hy, float* hz);

@@ -67,7 +67,7 @@ MPU9250::MPU9250(uint8_t csPin){
 }
 
 /* starts I2C communication and sets up the MPU-9250 */
-int MPU9250::begin(String accelRange, String gyroRange){
+int MPU9250::begin(mpu9250_accel_range accelRange, mpu9250_gyro_range gyroRange){
     uint8_t buff[3];
     uint8_t data[7];
 
@@ -172,70 +172,75 @@ int MPU9250::begin(String accelRange, String gyroRange){
         return -1;
     }
 
-	/* setup the accel and gyro ranges */
-	if(accelRange.equals("2G")){
-        // setting the accel range to 2G
-        if( !writeRegister(ACCEL_CONFIG,ACCEL_FS_SEL_2G) ){
-            return -1;
-        }
-    	_accelScale = G * 2.0f/32767.5f; // setting the accel scale to 2G
-	}
+    /* setup the accel and gyro ranges */
+    switch(accelRange) {
 
-	if(accelRange.equals("4G")){
-        // setting the accel range to 4G
-        if( !writeRegister(ACCEL_CONFIG,ACCEL_FS_SEL_4G) ){
-            return -1;
-        }
-    	_accelScale = G * 4.0f/32767.5f; // setting the accel scale to 4G
-	}
+        case ACCEL_RANGE_2G:
+            // setting the accel range to 2G
+            if( !writeRegister(ACCEL_CONFIG,ACCEL_FS_SEL_2G) ){
+                return -1;
+            }
+            _accelScale = G * 2.0f/32767.5f; // setting the accel scale to 2G
+            break;
 
-	if(accelRange.equals("8G")){
-        // setting the accel range to 8G
-        if( !writeRegister(ACCEL_CONFIG,ACCEL_FS_SEL_8G) ){
-            return -1;
-        }
-    	_accelScale = G * 8.0f/32767.5f; // setting the accel scale to 8G
-	}
+        case ACCEL_RANGE_4G:
+            // setting the accel range to 4G
+            if( !writeRegister(ACCEL_CONFIG,ACCEL_FS_SEL_4G) ){
+                return -1;
+            }
+            _accelScale = G * 4.0f/32767.5f; // setting the accel scale to 4G
+            break;
 
-	if(accelRange.equals("16G")){
-        // setting the accel range to 16G
-        if( !writeRegister(ACCEL_CONFIG,ACCEL_FS_SEL_16G) ){
-            return -1;
-        }
-    	_accelScale = G * 16.0f/32767.5f; // setting the accel scale to 16G
-	}
+        case ACCEL_RANGE_8G:
+            // setting the accel range to 8G
+            if( !writeRegister(ACCEL_CONFIG,ACCEL_FS_SEL_8G) ){
+                return -1;
+            }
+            _accelScale = G * 8.0f/32767.5f; // setting the accel scale to 8G
+            break;
 
-	if(gyroRange.equals("250DPS")){
-        // setting the gyro range to 250DPS
-        if( !writeRegister(GYRO_CONFIG,GYRO_FS_SEL_250DPS) ){
-            return -1;
-        }
-    	_gyroScale = 250.0f/32767.5f * _d2r; // setting the gyro scale to 250DPS
-	}
+        case ACCEL_RANGE_16G:
+            // setting the accel range to 16G
+            if( !writeRegister(ACCEL_CONFIG,ACCEL_FS_SEL_16G) ){
+                return -1;
+            }
+            _accelScale = G * 16.0f/32767.5f; // setting the accel scale to 16G
+            break;
+    }
 
-	if(gyroRange.equals("500DPS")){
-        // setting the gyro range to 500DPS
-        if( !writeRegister(GYRO_CONFIG,GYRO_FS_SEL_500DPS) ){
-            return -1;
-        }
-    	_gyroScale = 500.0f/32767.5f * _d2r; // setting the gyro scale to 500DPS
-	}
+    switch(gyroRange) {
+        case GYRO_RANGE_250DPS:
+            // setting the gyro range to 250DPS
+            if( !writeRegister(GYRO_CONFIG,GYRO_FS_SEL_250DPS) ){
+                return -1;
+            }
+            _gyroScale = 250.0f/32767.5f * _d2r; // setting the gyro scale to 250DPS
+            break;
 
-	if(gyroRange.equals("1000DPS")){
-        // setting the gyro range to 1000DPS
-        if( !writeRegister(GYRO_CONFIG,GYRO_FS_SEL_1000DPS) ){
-            return -1;
-        }
-    	_gyroScale = 1000.0f/32767.5f * _d2r; // setting the gyro scale to 1000DPS
-	}
+        case GYRO_RANGE_500DPS:
+            // setting the gyro range to 500DPS
+            if( !writeRegister(GYRO_CONFIG,GYRO_FS_SEL_500DPS) ){
+                return -1;
+            }
+            _gyroScale = 500.0f/32767.5f * _d2r; // setting the gyro scale to 500DPS
+            break;
 
-	if(gyroRange.equals("2000DPS")){
-        // setting the gyro range to 2000DPS
-        if( !writeRegister(GYRO_CONFIG,GYRO_FS_SEL_2000DPS) ){
-            return -1;
-        }
-    	_gyroScale = 2000.0f/32767.5f * _d2r; // setting the gyro scale to 2000DPS
-	}
+        case GYRO_RANGE_1000DPS:
+            // setting the gyro range to 1000DPS
+            if( !writeRegister(GYRO_CONFIG,GYRO_FS_SEL_1000DPS) ){
+                return -1;
+            }
+            _gyroScale = 1000.0f/32767.5f * _d2r; // setting the gyro scale to 1000DPS
+            break;
+
+        case GYRO_RANGE_2000DPS:
+            // setting the gyro range to 2000DPS
+            if( !writeRegister(GYRO_CONFIG,GYRO_FS_SEL_2000DPS) ){
+                return -1;
+            }
+            _gyroScale = 2000.0f/32767.5f * _d2r; // setting the gyro scale to 2000DPS
+            break;
+    }
 
     // enable I2C master mode
     if( !writeRegister(USER_CTRL,I2C_MST_EN) ){
@@ -293,61 +298,63 @@ int MPU9250::begin(String accelRange, String gyroRange){
 
 
 /* sets the DLPF and interrupt settings */
-int MPU9250::setFilt(String bandwidth, uint8_t SRD){
+int MPU9250::setFilt(mpu9250_dlpf_bandwidth bandwidth, uint8_t SRD){
     uint8_t data[7];
 
-    if(bandwidth.equals("184HZ")){
-        if( !writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_184) ){ // setting accel bandwidth to 184Hz
-            return -1;
-        } 
-        if( !writeRegister(CONFIG,GYRO_DLPF_184) ){ // setting gyro bandwidth to 184Hz
-            return -1;
-        } 
-    }
+    switch(bandwidth) {
+        case DLPF_BANDWIDTH_184HZ:
+            if( !writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_184) ){ // setting accel bandwidth to 184Hz
+                return -1;
+            } 
+            if( !writeRegister(CONFIG,GYRO_DLPF_184) ){ // setting gyro bandwidth to 184Hz
+                return -1;
+            }
+            break;
 
-    if(bandwidth.equals("92HZ")){
-        if( !writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_92) ){ // setting accel bandwidth to 92Hz
-            return -1;
-        } 
-        if( !writeRegister(CONFIG,GYRO_DLPF_92) ){ // setting gyro bandwidth to 92Hz
-            return -1;
-        } 
-    }
+        case DLPF_BANDWIDTH_92HZ:
+            if( !writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_92) ){ // setting accel bandwidth to 92Hz
+                return -1;
+            } 
+            if( !writeRegister(CONFIG,GYRO_DLPF_92) ){ // setting gyro bandwidth to 92Hz
+                return -1;
+            }
+            break; 
 
-    if(bandwidth.equals("41HZ")){
-        if( !writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_41) ){ // setting accel bandwidth to 41Hz
-            return -1;
-        } 
-        if( !writeRegister(CONFIG,GYRO_DLPF_41) ){ // setting gyro bandwidth to 41Hz
-            return -1;
-        } 
-    }
+        case DLPF_BANDWIDTH_41HZ:
+            if( !writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_41) ){ // setting accel bandwidth to 41Hz
+                return -1;
+            } 
+            if( !writeRegister(CONFIG,GYRO_DLPF_41) ){ // setting gyro bandwidth to 41Hz
+                return -1;
+            } 
+            break;
 
-    if(bandwidth.equals("20HZ")){
-        if( !writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_20) ){ // setting accel bandwidth to 20Hz
-            return -1;
-        } 
-        if( !writeRegister(CONFIG,GYRO_DLPF_20) ){ // setting gyro bandwidth to 20Hz
-            return -1;
-        } 
-    }
+        case DLPF_BANDWIDTH_20HZ:
+            if( !writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_20) ){ // setting accel bandwidth to 20Hz
+                return -1;
+            } 
+            if( !writeRegister(CONFIG,GYRO_DLPF_20) ){ // setting gyro bandwidth to 20Hz
+                return -1;
+            }
+            break;
 
-    if(bandwidth.equals("10HZ")){
-        if( !writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_10) ){ // setting accel bandwidth to 10Hz
-            return -1;
-        } 
-        if( !writeRegister(CONFIG,GYRO_DLPF_10) ){ // setting gyro bandwidth to 10Hz
-            return -1;
-        } 
-    }
+        case DLPF_BANDWIDTH_10HZ:
+            if( !writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_10) ){ // setting accel bandwidth to 10Hz
+                return -1;
+            } 
+            if( !writeRegister(CONFIG,GYRO_DLPF_10) ){ // setting gyro bandwidth to 10Hz
+                return -1;
+            }
+            break;
 
-    if(bandwidth.equals("5HZ")){
-        if( !writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_5) ){ // setting accel bandwidth to 5Hz
-            return -1;
-        } 
-        if( !writeRegister(CONFIG,GYRO_DLPF_5) ){ // setting gyro bandwidth to 5Hz
-            return -1;
-        } 
+        case DLPF_BANDWIDTH_5HZ:
+            if( !writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_5) ){ // setting accel bandwidth to 5Hz
+                return -1;
+            } 
+            if( !writeRegister(CONFIG,GYRO_DLPF_5) ){ // setting gyro bandwidth to 5Hz
+                return -1;
+            }
+            break; 
     }
 
     /* setting the sample rate divider */
