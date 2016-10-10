@@ -2,7 +2,7 @@
 Interrupt_I2C.ino
 Brian R Taylor
 brian.taylor@bolderflight.com
-2016-10-08 
+2016-10-10 
 
 Copyright (c) 2016 Bolder Flight Systems
 
@@ -40,7 +40,7 @@ void setup() {
   // set the accelerometer and gyro ranges.
   // ACCELEROMETER 2G 4G 8G 16G
   // GYRO 250DPS 500DPS 1000DPS 2000DPS
-  beginStatus = IMU.begin("4G","250DPS");
+  beginStatus = IMU.begin(ACCEL_RANGE_4G,GYRO_RANGE_250DPS);
   
   if(beginStatus < 0) {
     delay(1000);
@@ -54,7 +54,7 @@ void setup() {
   // data output rate set to 100 Hz, and
   // MPU-9250 generated interrupt attached
   // to Teensy pin 2
-  setFiltStatus = IMU.setFilt("41HZ",9);
+  setFiltStatus = IMU.setFilt(DLPF_BANDWIDTH_41HZ,9);
   if(setFiltStatus < 0) {
     delay(1000);
     Serial.println("Filter initialization unsuccessful");

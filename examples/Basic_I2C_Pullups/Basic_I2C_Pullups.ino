@@ -41,7 +41,7 @@ void setup() {
   // set the accelerometer and gyro ranges.
   // ACCELEROMETER 2G 4G 8G 16G
   // GYRO 250DPS 500DPS 1000DPS 2000DPS
-  beginStatus = IMU.begin("4G","250DPS");
+  beginStatus = IMU.begin(ACCEL_RANGE_4G,GYRO_RANGE_250DPS);
 }
 
 void loop() {
