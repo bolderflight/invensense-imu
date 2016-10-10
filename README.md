@@ -31,6 +31,20 @@ An MPU9250 object should be declared, specifying the MPU-9250 I2C address and th
 MPU9250 IMU(0x68, 0);
 ```
 
+**MPU9250(uint8_t address, uint8_t bus, i2c_pins pins)**
+Optionally, the I2C pins can be specified, which is useful for accessing the [alternate I2C pins](https://github.com/nox771/i2c_t3/#pins) for a given bus. If these aren't specified, this library uses the default pins for a given I2C bus. In this case, an MPU9250 object should be declared, specifying the MPU-9250 I2C address, the Teensy I2C bus number, and the I2C pins. The MPU-9250 I2C address will be 0x68 if the AD0 pin is grounded or 0x69 if the AD0 pin is pulled high. For example, the following code declares an MPU9250 object called *IMU* with an MPU-9250 sensor located on Teensy I2C bus 0, alternate I2C bus 0 pins 16 and 17, with a sensor address of 0x68 (AD0 grounded).
+
+```C++
+MPU9250 IMU(0x68, 0, I2C_PINS_16_17);
+```
+
+**MPU9250(uint8_t address, uint8_t bus, i2c_pins pins, i2c_pullup pullups)**
+Optionally, the I2C pins and pullups can be specified. This is useful for accessing the [alternate I2C pins](https://github.com/nox771/i2c_t3/#pins) for a given bus and using the Teensy's [internal pullups](https://github.com/nox771/i2c_t3/#pullups). If these aren't specified, this library uses the default pins for a given I2C bus and external pullups. In this case, an MPU9250 object should be declared, specifying the MPU-9250 I2C address, the Teensy I2C bus number, the I2C pins, and the I2C pullups. The MPU-9250 I2C address will be 0x68 if the AD0 pin is grounded or 0x69 if the AD0 pin is pulled high. For example, the following code declares an MPU9250 object called *IMU* with an MPU-9250 sensor located on Teensy I2C bus 0, alternate I2C bus 0 pins 16 and 17,  with internal pullups and a sensor address of 0x68 (AD0 grounded).
+
+```C++
+MPU9250 IMU(0x68, 0, I2C_PINS_16_17, I2C_PULLUP_INT);
+```
+
 ### SPI Object Declaratioon
 
 **MPU9250(uint8_t csPin)**
@@ -192,7 +206,7 @@ The MPU-9250 pins should be connected as:
    * AUXDA: not used.
    * AUXCL: not used.
 
-The Teensy pinout is:
+By default, the Teensy pinout is:
 
    * Teensy 3.0:
       * Bus 0 - Pin 18: SDA, Pin 19: SCL
@@ -212,7 +226,39 @@ The Teensy pinout is:
       * Bus 0 - Pin 18: SDA, Pin 19: SCL
       * Bus 1 - Pin 22: SCL, Pin 23: SDA  
 
-4.7 kOhm resistors should be used as pullups on SDA and SCL, these resistors should pullup with a 3.3V source.
+Alternatively, if the *MPU9250* object is declared specifying the I2C pins used, the Teensy pinout is:
+
+   * Teensy 3.0:
+      * Bus 0 - Pin 16: SCL, Pin 17: SDA
+      * Bus 0 - Pin 18: SDA, Pin 19: SCL
+   * Teensy 3.1/3.2:
+      * Bus 0 - Pin 16: SCL, Pin 17: SDA
+      * Bus 0 - Pin 18: SDA, Pin 19: SCL
+      * Bus 1 - Pin 26: SCL, Pin 31: SDA
+      * Bus 1 - Pin 29: SCL, Pin 30: SDA
+   * Teensy 3.5:
+      * Bus 0 - Pin 7: SCL, Pin 8: SDA
+      * Bus 0 - Pin 16: SCL, Pin 17: SDA
+      * Bus 0 - Pin 18: SDA, Pin 19: SCL
+      * Bus 0 - Pin 33: SCL, Pin 34: SDA
+      * Bus 0 - Pin 47: SCL, Pin 48: SDA
+      * Bus 1 - Pin 37: SCL, Pin 38: SDA
+      * Bus 2 - Pin 3: SCL, Pin 4: SDA
+   * Teensy 3.6:
+      * Bus 0 - Pin 7: SCL, Pin 8: SDA
+      * Bus 0 - Pin 16: SCL, Pin 17: SDA
+      * Bus 0 - Pin 18: SDA, Pin 19: SCL
+      * Bus 0 - Pin 33: SCL, Pin 34: SDA
+      * Bus 0 - Pin 47: SCL, Pin 48: SDA
+      * Bus 1 - Pin 37: SCL, Pin 38: SDA
+      * Bus 2 - Pin 3: SCL, Pin 4: SDA
+      * Bus 3 - Pin 56: SDA, Pin 57: SCL
+   * Teensy LC:
+      * Bus 0 - Pin 16: SCL, Pin 17: SDA
+      * Bus 0 - Pin 18: SDA, Pin 19: SCL
+      * Bus 1 - Pin 22: SCL, Pin 23: SDA 
+
+4.7 kOhm resistors should be used as pullups on SDA and SCL, these resistors should pullup with a 3.3V source. In some very limited cases with the Teensy 3.0, 3.1/3.2, and 3.5, internal pullups could be used for a single device on a short bus. In this case, the *MPU9250* object should be declared specifying the I2C pins used and the I2C pullup. 
 
 ## SPI
 
