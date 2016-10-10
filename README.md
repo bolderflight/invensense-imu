@@ -66,6 +66,7 @@ beginStatus = IMU.begin(ACCEL_RANGE_8G,GYRO_RANGE_250DPS);
 ```
 
 The enumerated accelerometer and gyroscope ranges are:
+
 | Accelerometer Name | Accelerometer Full Scale Range | Gyroscope Name     | Gyroscope Full Scale Range |
 | ------------------ | ------------------------------ | ------------------ | -------------------------- |
 | ACCEL_RANGE_2G     | +/- 2 (g)                      | GYRO_RANGE_250DPS  | +/- 250 (deg/s)            |
