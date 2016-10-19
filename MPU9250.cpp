@@ -2,7 +2,7 @@
 MPU9250.cpp
 Brian R Taylor
 brian.taylor@bolderflight.com
-2016-10-10
+2016-10-19
 
 Copyright (c) 2016 Bolder Flight Systems
 
@@ -151,11 +151,29 @@ int MPU9250::begin(mpu9250_accel_range accelRange, mpu9250_gyro_range gyroRange)
         i2c_t3(_bus).begin(I2C_MASTER, 0, _pins, _pullups, _i2cRate);
     }
 
-	// reset the MPU9250
-	writeRegister(PWR_MGMNT_1,PWR_RESET);
+    // enable I2C master mode
+    if( !writeRegister(USER_CTRL,I2C_MST_EN) ){
+        return -1;
+    }
 
-    // wait for oscillators to stabilize
-    delay(200);
+    // set the I2C bus speed to 400 kHz
+    if( !writeRegister(I2C_MST_CTRL,I2C_MST_CLK) ){
+        return -1;
+    }
+
+    // set AK8963 to Power Down
+    if( !writeAK8963Register(AK8963_CNTL1,AK8963_PWR_DOWN) ){
+        return -1;
+    }
+
+    // reset the MPU9250
+    writeRegister(PWR_MGMNT_1,PWR_RESET);
+
+    // wait for MPU-9250 to come back up
+    delay(1);
+
+    // reset the AK8963
+    writeAK8963Register(AK8963_CNTL2,AK8963_RESET);
 
     // select clock source to gyro
     if( !writeRegister(PWR_MGMNT_1,CLOCK_SEL_PLL) ){
@@ -287,7 +305,12 @@ int MPU9250::begin(mpu9250_accel_range accelRange, mpu9250_gyro_range gyroRange)
     if( !writeAK8963Register(AK8963_CNTL1,AK8963_CNT_MEAS2) ){
         return -1;
     }
-    delay(100); // long wait between AK8963 mode changes     
+    delay(100); // long wait between AK8963 mode changes
+
+    // select clock source to gyro
+    if( !writeRegister(PWR_MGMNT_1,CLOCK_SEL_PLL) ){
+        return -1;
+    }       
 
     // instruct the MPU9250 to get 7 bytes of data from the AK8963 at the sample rate
     readAK8963Registers(AK8963_HXL,sizeof(data),&data[0]);
