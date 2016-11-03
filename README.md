@@ -112,7 +112,7 @@ Below is an example of selecting a 41 Hz DLPF bandwidth and a data output rate o
 
 ```C++
 int setFiltStatus;
-setFiltStatus = IMU.setFilt("41HZ",9);
+setFiltStatus = IMU.setFilt(DLPF_BANDWIDTH_41HZ,9);
 ```
 
 ### Common Data Collection Functions
