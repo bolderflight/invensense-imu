@@ -2,7 +2,7 @@
 MPU9250.h
 Brian R Taylor
 brian.taylor@bolderflight.com
-2016-10-10
+2017-01-03
 
 Copyright (c) 2016 Bolder Flight Systems
 
@@ -62,6 +62,7 @@ class MPU9250{
         MPU9250(uint8_t csPin);
         int begin(mpu9250_accel_range accelRange, mpu9250_gyro_range gyroRange);
         int setFilt(mpu9250_dlpf_bandwidth bandwidth, uint8_t SRD);
+        int enableInt(bool enable);
         void getAccel(float* ax, float* ay, float* az);
         void getGyro(float* gx, float* gy, float* gz);
         void getMag(float* hx, float* hy, float* hz);
@@ -144,6 +145,7 @@ class MPU9250{
 
         const uint8_t INT_PIN_CFG = 0x37;
         const uint8_t INT_ENABLE = 0x38;
+        const uint8_t INT_DISABLE = 0x00;
         const uint8_t INT_PULSE_50US = 0x00;
         const uint8_t INT_RAW_RDY_EN = 0x01;
 

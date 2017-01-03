@@ -2,7 +2,7 @@
 MPU9250.cpp
 Brian R Taylor
 brian.taylor@bolderflight.com
-2016-10-19
+2017-01-03
 
 Copyright (c) 2016 Bolder Flight Systems
 
@@ -414,6 +414,29 @@ int MPU9250::setFilt(mpu9250_dlpf_bandwidth bandwidth, uint8_t SRD){
     // successful filter setup, return 0
     return 0; 
 }
+
+/* enables and disables the interrupt */
+int MPU9250::enableInt(bool enable){
+
+	if(enable){
+		/* setting the interrupt */
+	    if( !writeRegister(INT_PIN_CFG,INT_PULSE_50US) ){ // setup interrupt, 50 us pulse
+	        return -1;
+	    }  
+	    if( !writeRegister(INT_ENABLE,INT_RAW_RDY_EN) ){ // set to data ready
+	        return -1;
+	    }  
+	}
+	else{
+	    if( !writeRegister(INT_ENABLE,INT_DISABLE) ){ // disable interrupt
+	        return -1;
+	    }  
+	}
+
+    // successful interrupt setup, return 0
+    return 0; 
+}
+
 
 /* get accelerometer data given pointers to store the three values, return data as counts */
 void MPU9250::getAccelCounts(int16_t* ax, int16_t* ay, int16_t* az){
