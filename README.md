@@ -115,7 +115,7 @@ int setFiltStatus;
 setFiltStatus = IMU.setFilt(DLPF_BANDWIDTH_41HZ,9);
 ```
 
-**int enableInt(bool enable)**
+**(optional) int enableInt(bool enable)**
 This is an optional function to enable or disable the MPU-9250 generated interrupt without setting the programmable Digital Low Pass Filters (DLPF). When enabled a 50us pulse is issued when data is ready. When the programmable Digital Low Pass Filters (DLPF) are not used, this is typically at the 4 kHz accelerometer data rate. *true* is passed to the function to enable the interrupt and *false* is passed to disable the interrupt. Below is an example of enabling the interrupt.
 
 ```C++
