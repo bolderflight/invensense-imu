@@ -332,12 +332,35 @@ The MPU-9250 pins should be connected as:
    * VDDI: digital I/O supply voltage. This should be between 1.71V and VDD. This can be supplied by the Teensy 3.3V output.
    * FSYNC: not used, should be grounded.
    * INT: (optional) used for the interrupt output setup in *setFilt*. Connect to Teensy pin inerrupt is attached to.
-   * SDA / SDI: connect to Teensy DOUT, pin 11.
-   * SCL / SCLK: connect to Teensy CLK, pin 13.
-   * AD0 / SDO: connect to Teensy DIN, pin 12.
+   * SDA / SDI: connect to Teensy MOSI.
+   * SCL / SCLK: connect to Teensy SCK.
+   * AD0 / SDO: connect to Teensy MISO.
    * nCS: connect to Teensy chip select pin. Pin 10 was used in the code snippets in this document and the included examples, but any Teensy digital I/O pin can be used. 
    * AUXDA: not used.
    * AUXCL: not used.
+
+By default, the Teensy pinout is:
+
+   * SPI Bus 0 - Pin 11: MOSI, Pin 12: MISO, Pin 13: SCK
+
+Alternatively, if the *MPU9250* object is declared specifying the MOSI pin used, the Teensy pinout is:
+
+   * Teensy 3.0, 3.1, and 3.2:
+      * Bus 0 - Pin 7: MOSI, Pin 8: MISO, Pin 14: SCK
+      * Bus 0 - Pin 11: MOSI, Pin 12: MISO, Pin 13: SCK
+   * Teensy 3.5 and 3.6:
+      * Bus 0 - Pin 7: MOSI, Pin 8: MISO, Pin 14: SCK
+      * Bus 0 - Pin 11: MOSI, Pin 12: MISO, Pin 13: SCK
+      * Bus 0 - Pin 28: MOSI, Pin 39: MISO, Pin 27: SCK
+      * Bus 1 - Pin 0: MOSI, Pin 1: MISO, Pin 32: SCK
+      * Bus 1 - Pin 21: MOSI, Pin 5: MISO, Pin 20: SCK
+      * Bus 2 - Pin 44: MOSI, Pin 45: MISO, Pin 46: SCK
+      * Bus 2 - Pin 52: MOSI, Pin 51: MISO, Pin 53: SCK
+   * Teensy LC:
+      * Bus 0 - Pin 7: MOSI, Pin 8: MISO, Pin 14: SCK
+      * Bus 0 - Pin 11: MOSI, Pin 12: MISO, Pin 13: SCK
+      * Bus 1 - Pin 0: MOSI, Pin 1: MISO, Pin 20: SCK
+      * Bus 1 - Pin 21: MOSI, Pin 5: MISO, Pin 20: SCK
 
 Some breakout boards, including the Embedded Masters breakout board, require slight modification to enable SPI. Please refer to your vendor's documentation.
 
