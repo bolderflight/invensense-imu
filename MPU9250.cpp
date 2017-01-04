@@ -151,6 +151,11 @@ int MPU9250::begin(mpu9250_accel_range accelRange, mpu9250_gyro_range gyroRange)
         i2c_t3(_bus).begin(I2C_MASTER, 0, _pins, _pullups, _i2cRate);
     }
 
+    // select clock source to gyro
+    if( !writeRegister(PWR_MGMNT_1,CLOCK_SEL_PLL) ){
+        return -1;
+    }
+
     // enable I2C master mode
     if( !writeRegister(USER_CTRL,I2C_MST_EN) ){
         return -1;
