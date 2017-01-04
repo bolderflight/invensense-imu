@@ -48,10 +48,48 @@ MPU9250 IMU(0x68, 0, I2C_PINS_16_17, I2C_PULLUP_INT);
 ### SPI Object Declaratioon
 
 **MPU9250(uint8_t csPin)**
-An MPU9250 object should be declared, specifying the Teensy chip select pin used. Multiple MPU-9250 or other SPI objects could be used on the same SPI bus, each with their own chip select pin. For example, the following code declares an MPU9250 object called *IMU* with an MPU-9250 sensor located on chip select pin 10.
+An MPU9250 object should be declared, specifying the Teensy chip select pin used. Multiple MPU-9250 or other SPI objects could be used on the same SPI bus, each with their own chip select pin. SPI Bus 0 is used with the default MOSI, MISO, and SCK pins. The chip select pin can be any available digital pin. For example, the following code declares an MPU9250 object called *IMU* with an MPU-9250 sensor located on chip select pin 10.
 
 ```C++
 MPU9250 IMU(10);
+```
+
+**MPU9250(uint8_t csPin, spi_mosi_pin pin)**
+Optionally, the SPI MOSI pin can be specified. This allows selecting SPI buses other than SPI Bus 0 and pins other than the defaults. The enumerated pin names and assigned pin numbers are:
+
+*Teensy 3.0, 3.1, and 3.2*
+
+| MOSI Pin Name | MOSI Pin Number | MISO Pin Number | SCK Pin Number |
+| ------------- | --------------- | --------------- | -------------- |
+| MOSI_PIN_7    | 7               | 8               | 14             |
+| MOSI_PIN_11   | 11              | 12              | 13             |
+
+*Teensy 3.5 and 3.6*
+
+| MOSI Pin Name | MOSI Pin Number | MISO Pin Number | SCK Pin Number |
+| ------------- | --------------- | --------------- | -------------- |
+| MOSI_PIN_0    | 0               | 1               | 32             |
+| MOSI_PIN_7    | 7               | 8               | 14             |
+| MOSI_PIN_11   | 11              | 12              | 13             |
+| MOSI_PIN_21   | 21              | 5               | 20             |
+| MOSI_PIN_28   | 28              | 39              | 27             |
+| MOSI_PIN_44   | 44              | 45              | 46             |
+| MOSI_PIN_52   | 52              | 51              | 53             |
+
+
+*Teensy LC*
+
+| MOSI Pin Name | MOSI Pin Number | MISO Pin Number | SCK Pin Number |
+| ------------- | --------------- | --------------- | -------------- |
+| MOSI_PIN_0    | 0               | 1               | 20             |
+| MOSI_PIN_7    | 7               | 8               | 14             |
+| MOSI_PIN_11   | 11              | 12              | 13             |
+| MOSI_PIN_21   | 21              | 5               | 20             |
+
+For example, the following code declares an MPU9250 object called *IMU* with an MPU-9250 sensor located on chip select pin 10 and MOSI pin 7.
+
+```C++
+MPU9250 IMU(10, MOSI_PIN_7);
 ```
 
 ### Common Setup Functions
