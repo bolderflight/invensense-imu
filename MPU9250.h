@@ -28,46 +28,40 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "Arduino.h"
 #include "i2c_t3.h"  // I2C library
 
-// Teensy 3.0 || Teensy 3.1/3.2
-#if defined(__MK20DX128__) || defined(__MK20DX256__)
-
-enum spi_mosi_pin
-{
-	MOSI_PIN_7,
-	MOSI_PIN_11
-};
-
+#ifndef SPI_MOSI_PIN
+#define SPI_MOSI_PIN
+    // Teensy 3.0 || Teensy 3.1/3.2
+    #if defined(__MK20DX128__) || defined(__MK20DX256__)
+    enum spi_mosi_pin
+    {
+      MOSI_PIN_7,
+      MOSI_PIN_11
+    };
+    #endif
+    // Teensy 3.5 || Teensy 3.6
+    #if defined(__MK64FX512__) || defined(__MK66FX1M0__)
+    enum spi_mosi_pin
+    {
+      MOSI_PIN_0,
+      MOSI_PIN_7,
+      MOSI_PIN_11,
+      MOSI_PIN_21,
+      MOSI_PIN_28,
+      MOSI_PIN_44,
+      MOSI_PIN_52
+    };
+    #endif
+    // Teensy LC 
+    #if defined(__MKL26Z64__)
+    enum spi_mosi_pin
+    {
+      MOSI_PIN_0,
+      MOSI_PIN_7,
+      MOSI_PIN_11,
+      MOSI_PIN_21
+    };
+    #endif
 #endif
-
-// Teensy 3.5 || Teensy 3.6
-#if defined(__MK64FX512__) || defined(__MK66FX1M0__)
-
-enum spi_mosi_pin
-{
-	MOSI_PIN_0,
-	MOSI_PIN_7,
-	MOSI_PIN_11,
-	MOSI_PIN_21,
-	MOSI_PIN_28,
-	MOSI_PIN_44,
-	MOSI_PIN_52
-};
-
-#endif
-
-// Teensy LC 
-#if defined(__MKL26Z64__)
-
-enum spi_mosi_pin
-{
-	MOSI_PIN_0,
-	MOSI_PIN_7,
-	MOSI_PIN_11,
-	MOSI_PIN_21
-};
-
-#endif
-
 
 enum mpu9250_gyro_range
 {
