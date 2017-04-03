@@ -171,7 +171,7 @@ int16_t ax, ay, az;
 IMU.getAccelCounts(&ax, &ay, &az);
 ```
 
-**void getAccel(float* ax, float* ay, float* az)**
+**void getAccel(float&ast; ax, float&ast; ay, float&ast; az)**
 *getAccel(float&ast; ax, float&ast; ay, float&ast; az)* samples the MPU-9250 sensor and returns the three-axis accelerometer data as floats in m/s/s.
 
 ```C++
@@ -179,7 +179,7 @@ float ax, ay, az;
 IMU.getAccel(&ax, &ay, &az);
 ```
 
-**void getGyro(float* gx, float* gy, float* gz)**
+**void getGyro(float&ast; gx, float&ast; gy, float&ast; gz)**
 *getGyro(float&ast; gx, float&ast; gy, float&ast; gz)* samples the MPU-9250 sensor and returns the three-axis gyroscope data as floats in rad/s.
 
 ```C++
@@ -187,7 +187,7 @@ float gx, gy, gz;
 IMU.getGyro(&gx, &gy, &gz);
 ```
 
-**void getMag(float* hx, float* hy, float* hz)**
+**void getMag(float&ast; hx, float&ast; hy, float&ast; hz)**
 *getMag(float&ast; hx, float&ast; hy, float&ast; hz)* samples the MPU-9250 sensor and returns the three-axis magnetometer data as floats in uT.
 
 ```C++
@@ -195,7 +195,7 @@ float hx, hy, hz;
 IMU.getMag(&hx, &hy, &hz);
 ```
 
-**void getTemp(float *t)**
+**void getTemp(float&ast; t)**
 *getTemp(float&ast; t)* samples the MPU-9250 sensor and returns the die temperature as a float in C.
 
 ```C++
@@ -203,7 +203,7 @@ float t;
 IMU.getTemp(&t);
 ```
 
-**void getMotion6(float* ax, float* ay, float* az, float* gx, float* gy, float* gz)**
+**void getMotion6(float&ast; ax, float&ast; ay, float&ast; az, float&ast; gx, float&ast; gy, float&ast; gz)**
 *getMotion6(float&ast; ax, float&ast; ay, float&ast; az, float&ast; gx, float&ast; gy, float&ast; gz)* samples the MPU-9250 sensor and returns the three-axis accelerometer data as floats in m/s/s and the three-axis gyroscope data as floats in rad/s.
 
 ```C++
@@ -211,7 +211,7 @@ float ax, ay, az, gx, gy, gz;
 IMU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 ```
 
-**void getMotion7(float* ax, float* ay, float* az, float* gx, float* gy, float* gz, float* t)**
+**void getMotion7(float&ast; ax, float&ast; ay, float&ast; az, float&ast; gx, float&ast; gy, float&ast; gz, float&ast; t)**
 *getMotion7(float&ast; ax, float&ast; ay, float&ast; az, float&ast; gx, float&ast; gy, float&ast; gz, float&ast; t)* samples the MPU-9250 sensor and returns the three-axis accelerometer data as floats in m/s/s, the three-axis gyroscope data as floats in rad/s, and the die temperature as a float in C.
 
 ```C++
@@ -219,7 +219,7 @@ float ax, ay, az, gx, gy, gz, t;
 IMU.getMotion7(&ax, &ay, &az, &gx, &gy, &gz, &t);
 ```
 
-**getMotion9(float* ax, float* ay, float* az, float* gx, float* gy, float* gz, float* hx, float* hy, float* hz)**
+**getMotion9(float&ast; ax, float&ast; ay, float&ast; az, float&ast; gx, float&ast; gy, float&ast; gz, float&ast; hx, float&ast; hy, float&ast; hz)**
 *getMotion9(float&ast; ax, float&ast; ay, float&ast; az, float&ast; gx, float&ast; gy, float&ast; gz, float&ast; hx, float&ast; hy, float&ast; hz)* samples the MPU-9250 sensor and returns the three-axis accelerometer data as floats in m/s/s, the three-axis gyroscope data as floats in rad/s, and the three-axis magnetometer data as floats in uT.
 
 ```C++
@@ -227,7 +227,7 @@ float ax, ay, az, gx, gy, gz, hx, hy, hz;
 IMU.getMotion9(&ax, &ay, &az, &gx, &gy, &gz, &hx, &hy, &hz);
 ```
 
-**getMotion10(float* ax, float* ay, float* az, float* gx, float* gy, float* gz, float* hx, float* hy, float* hz, float* t)**
+**getMotion10(float&ast; ax, float&ast; ay, float&ast; az, float&ast; gx, float&ast; gy, float&ast; gz, float&ast; hx, float&ast; hy, float&ast; hz, float&ast; t)**
 *getMotion10(float&ast; ax, float&ast; ay, float&ast; az, float&ast; gx, float&ast; gy, float&ast; gz, float&ast; hx, float&ast; hy, float&ast; hz, float&ast; t)* samples the MPU-9250 sensor and returns the three-axis accelerometer data as floats in m/s/s, the three-axis gyroscope data as floats in rad/s, the three-axis magnetometer data as floats in uT, and the die temperature as a float in C.
 
 ```C++
