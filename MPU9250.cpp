@@ -21,15 +21,12 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+#include "MPU9250.h"
 
 // Teensy 3.0 || Teensy 3.1/3.2 || Teensy 3.5 || Teensy 3.6 || Teensy LC 
-#if defined(__MK20DX128__) || defined(__MK20DX256__) || defined(__MK64FX512__) || \
-	defined(__MK66FX1M0__) || defined(__MKL26Z64__)
+//#if defined(__MK20DX128__) || defined(__MK20DX256__) || defined(__MK64FX512__) || \
+//	defined(__MK66FX1M0__) || defined(__MKL26Z64__)
 
-#include "Arduino.h"
-#include "MPU9250.h"
-#include "i2c_t3.h"  // I2C library
-#include "SPI.h" // SPI Library
 
 /* MPU9250 object, input the I2C address and I2C bus */
 MPU9250::MPU9250(uint8_t address, uint8_t bus){
@@ -39,12 +36,13 @@ MPU9250::MPU9250(uint8_t address, uint8_t bus){
     _useSPI = false; // set to use I2C instead of SPI
 }
 
+#if defined(Teensy)
 /* MPU9250 object, input the I2C address, I2C bus, and I2C pins */
 MPU9250::MPU9250(uint8_t address, uint8_t bus, i2c_pins pins){
     _address = address; // I2C address
     _bus = bus; // I2C bus
-    _pins = pins; // I2C pins
-    _pullups = I2C_PULLUP_EXT; // I2C pullups
+	_pins = pins; // I2C pins
+	_pullups = I2C_PULLUP_EXT; // I2C pullups
     _userDefI2C = true; // user defined I2C
     _useSPI = false; // set to use I2C instead of SPI
 }
@@ -59,18 +57,18 @@ MPU9250::MPU9250(uint8_t address, uint8_t bus, i2c_pins pins, i2c_pullup pullups
     _useSPI = false; // set to use I2C instead of SPI
 }
 
-/* MPU9250 object, input the SPI CS Pin */
-MPU9250::MPU9250(uint8_t csPin){
-    _csPin = csPin; // SPI CS Pin
-    _mosiPin = MOSI_PIN_11;	// SPI MOSI Pin, set to default
-    _useSPI = true; // set to use SPI instead of I2C
-    _useSPIHS = false; // defaul to low speed SPI transactions until data reads start to occur
-}
-
 /* MPU9250 object, input the SPI CS Pin and MOSI Pin */
 MPU9250::MPU9250(uint8_t csPin, spi_mosi_pin pin){
     _csPin = csPin; // SPI CS Pin
     _mosiPin = pin;	// SPI MOSI Pin
+    _useSPI = true; // set to use SPI instead of I2C
+    _useSPIHS = false; // defaul to low speed SPI transactions until data reads start to occur
+}
+#endif
+
+/* MPU9250 object, input the SPI CS Pin */
+MPU9250::MPU9250(uint8_t csPin){
+    _csPin = csPin; // SPI CS Pin
     _useSPI = true; // set to use SPI instead of I2C
     _useSPIHS = false; // defaul to low speed SPI transactions until data reads start to occur
 }
@@ -80,6 +78,7 @@ int MPU9250::begin(mpu9250_accel_range accelRange, mpu9250_gyro_range gyroRange)
     uint8_t buff[3];
     uint8_t data[7];
 
+  #if defined(Teensy)
     if( _useSPI ){ // using SPI for communication
 
         // setting CS pin to output
@@ -264,7 +263,27 @@ int MPU9250::begin(mpu9250_accel_range accelRange, mpu9250_gyro_range gyroRange)
         // starting the I2C bus
         i2c_t3(_bus).begin(I2C_MASTER, 0, _pins, _pullups, _i2cRate);
     }
+  #else
+    if( _useSPI ){ // using SPI for communication
 
+        // setting CS pin to output
+        pinMode(_csPin,OUTPUT);
+
+        // setting CS pin high
+        digitalWrite(_csPin,HIGH);
+	}
+	else
+	#if _bus == 0 
+		#define wire_bus Wire
+	#elif _bus == 1
+		#define wire_bus Wire1
+	#else
+		#define wire_bus Wire
+	#endif
+	wire_bus.begin();
+	wire_bus.setClock(400000L);
+  #endif
+  
     // select clock source to gyro
     if( !writeRegister(PWR_MGMNT_1,CLOCK_SEL_PLL) ){
         return -1;
@@ -437,7 +456,6 @@ int MPU9250::begin(mpu9250_accel_range accelRange, mpu9250_gyro_range gyroRange)
     // successful init, return 0
     return 0;
 }
-
 
 /* sets the DLPF and interrupt settings */
 int MPU9250::setFilt(mpu9250_dlpf_bandwidth bandwidth, uint8_t SRD){
@@ -857,7 +875,7 @@ void MPU9250::getMotion10(float* ax, float* ay, float* az, float* gx, float* gy,
 /* writes a byte to MPU9250 register given a register address and data */
 bool MPU9250::writeRegister(uint8_t subAddress, uint8_t data){
     uint8_t buff[1];
-
+  #if defined(Teensy)
     /* write data to device */
     if( _useSPI ){
 
@@ -935,6 +953,23 @@ bool MPU9250::writeRegister(uint8_t subAddress, uint8_t data){
     }
     delay(10); // need to slow down how fast I write to MPU9250
 
+  #else
+	if(_useSPI) {
+		SPI.beginTransaction(SPISettings(SPI_LS_CLOCK, MSBFIRST, SPI_MODE0)); // begin the transaction
+		digitalWrite(_csPin,LOW); // select the MPU9250 chip
+		SPI.transfer(subAddress); // write the register address
+		SPI.transfer(data); // write the data
+		digitalWrite(_csPin,HIGH); // deselect the MPU9250 chip
+		SPI.endTransaction(); // end the transaction
+	} else {
+      	wire_bus.beginTransmission(_address); // open the device
+      	wire_bus.write(subAddress); // write the register address
+      	wire_bus.write(data); // write the data
+      	wire_bus.endTransmission();
+	}
+    delay(10); // need to slow down how fast I write to MPU9250
+  #endif
+  
   	/* read back the register */
   	readRegisters(subAddress,sizeof(buff),&buff[0]);
 
@@ -949,7 +984,7 @@ bool MPU9250::writeRegister(uint8_t subAddress, uint8_t data){
 
 /* reads registers from MPU9250 given a starting register address, number of bytes, and a pointer to store data */
 void MPU9250::readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest){
-
+  #if defined(Teensy)
     if( _useSPI ){
 
     	// Teensy 3.0 || Teensy 3.1/3.2
@@ -1081,7 +1116,6 @@ void MPU9250::readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest){
 		        digitalWriteFast(_csPin,HIGH); // deselect the MPU9250 chip
 		        SPI1.endTransaction(); // end the transaction
 	    	}
-
     	#endif
     }
     else{
@@ -1096,6 +1130,35 @@ void MPU9250::readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest){
             dest[i++] = i2c_t3(_bus).readByte();
         }
     }
+  #else
+	if(_useSPI) {
+		// begin the transaction
+		SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE3));
+		digitalWrite(_csPin,LOW); // select the MPU9250 chip
+
+		SPI.transfer(subAddress | SPI_READ); // specify the starting register address
+
+		for(uint8_t i = 0; i < count; i++){
+		    dest[i] = SPI.transfer(0x00); // read the data
+		}
+
+		digitalWrite(_csPin,HIGH); // deselect the MPU9250 chip
+		SPI.endTransaction(); // end the transaction
+		
+	} else {
+        wire_bus.beginTransmission(_address); // open the device
+        wire_bus.write(subAddress); // specify the starting register address
+        wire_bus.endTransmission(false);
+
+        wire_bus.requestFrom(_address, count); // specify the number of bytes to receive
+
+        //uint8_t i = 0; // read the data into the buffer
+        //while( wire_bus.available() ){
+        //    dest[i++] = wire_bus.readByte();
+        //}
+		wire_bus.readBytes(dest, count);
+	}
+  #endif
 }
 
 /* writes a register to the AK8963 given a register address and data */
@@ -1151,4 +1214,4 @@ uint8_t MPU9250::whoAmIAK8963(){
     return buff[0];
 }
 
-#endif
+//#endif
