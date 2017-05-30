@@ -967,6 +967,12 @@ void MPU9250::readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest){
 
 		        SPI.transfer(subAddress | SPI_READ); // specify the starting register address
 
+                digitalWriteFast(_csPin,HIGH); // deselect the MPU9250 chip
+                delayMicroseconds(1);
+                digitalWriteFast(_csPin,LOW); // select the MPU9250 chip
+
+                SPI.transfer(subAddress | SPI_READ); // specify the starting register address
+
 		        for(uint8_t i = 0; i < count; i++){
 		            dest[i] = SPI.transfer(0x00); // read the data
 		        }
@@ -992,6 +998,12 @@ void MPU9250::readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest){
 
 		        SPI.transfer(subAddress | SPI_READ); // specify the starting register address
 
+                digitalWriteFast(_csPin,HIGH); // deselect the MPU9250 chip
+                delayMicroseconds(1);
+                digitalWriteFast(_csPin,LOW); // select the MPU9250 chip
+                
+                SPI.transfer(subAddress | SPI_READ); // specify the starting register address
+
 		        for(uint8_t i = 0; i < count; i++){
 		            dest[i] = SPI.transfer(0x00); // read the data
 		        }
@@ -1011,6 +1023,12 @@ void MPU9250::readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest){
 
 		        SPI1.transfer(subAddress | SPI_READ); // specify the starting register address
 
+                digitalWriteFast(_csPin,HIGH); // deselect the MPU9250 chip
+                delayMicroseconds(1);
+                digitalWriteFast(_csPin,LOW); // select the MPU9250 chip
+                
+                SPI1.transfer(subAddress | SPI_READ); // specify the starting register address
+
 		        for(uint8_t i = 0; i < count; i++){
 		            dest[i] = SPI1.transfer(0x00); // read the data
 		        }
@@ -1029,6 +1047,12 @@ void MPU9250::readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest){
 		        digitalWriteFast(_csPin,LOW); // select the MPU9250 chip
 
 		        SPI2.transfer(subAddress | SPI_READ); // specify the starting register address
+
+                digitalWriteFast(_csPin,HIGH); // deselect the MPU9250 chip
+                delayMicroseconds(1);
+                digitalWriteFast(_csPin,LOW); // select the MPU9250 chip
+                
+                SPI2.transfer(subAddress | SPI_READ); // specify the starting register address
 
 		        for(uint8_t i = 0; i < count; i++){
 		            dest[i] = SPI.transfer(0x00); // read the data
@@ -1055,6 +1079,12 @@ void MPU9250::readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest){
 
 		        SPI.transfer(subAddress | SPI_READ); // specify the starting register address
 
+                digitalWriteFast(_csPin,HIGH); // deselect the MPU9250 chip
+                delayMicroseconds(1);
+                digitalWriteFast(_csPin,LOW); // select the MPU9250 chip
+                
+                SPI.transfer(subAddress | SPI_READ); // specify the starting register address
+
 		        for(uint8_t i = 0; i < count; i++){
 		            dest[i] = SPI.transfer(0x00); // read the data
 		        }
@@ -1073,6 +1103,12 @@ void MPU9250::readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest){
 		        digitalWriteFast(_csPin,LOW); // select the MPU9250 chip
 
 		        SPI1.transfer(subAddress | SPI_READ); // specify the starting register address
+
+                digitalWriteFast(_csPin,HIGH); // deselect the MPU9250 chip
+                delayMicroseconds(1);
+                digitalWriteFast(_csPin,LOW); // select the MPU9250 chip
+                
+                SPI1.transfer(subAddress | SPI_READ); // specify the starting register address
 
 		        for(uint8_t i = 0; i < count; i++){
 		            dest[i] = SPI1.transfer(0x00); // read the data
