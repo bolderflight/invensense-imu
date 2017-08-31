@@ -281,9 +281,7 @@ int MPU9250::begin(mpu9250_accel_range accelRange, mpu9250_gyro_range gyroRange)
     }
 
     // set AK8963 to Power Down
-    if( !writeAK8963Register(AK8963_CNTL1,AK8963_PWR_DOWN) ){
-        return -1;
-    }
+    writeAK8963Register(AK8963_CNTL1,AK8963_PWR_DOWN);
 
     // reset the MPU9250
     writeRegister(PWR_MGMNT_1,PWR_RESET);
