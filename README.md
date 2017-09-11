@@ -215,7 +215,7 @@ float ax, ay, az, gx, gy, gz, hx, hy, hz, t;
 IMU.getMotion10(&ax, &ay, &az, &gx, &gy, &gz, &hx, &hy, &hz, &t);
 ```
 
-##<a name="sensor-orientation"></a>Sensor Orientation
+## <a name="sensor-orientation"></a>Sensor Orientation
 This library transforms all data to a common axis system before it is returned. This axis system is shown below. It is a right handed coordinate system with the z-axis positive down, common in aircraft dynamics.
 
 <img src="https://github.com/bolderflight/MPU9250/blob/master/docs/MPU-9250-AXIS.png" alt="Common Axis System" width="250">
