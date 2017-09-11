@@ -17,7 +17,7 @@ The MPU-9250 samples the gyroscopes, accelerometers, and magnetometers with 16 b
 This library supports both I2C and SPI commmunication with the MPU-9250. The [i2c_t3 enhanced I2C library](https://github.com/nox771/i2c_t3) for Teensy 3.x/LC devices is used for I2C communication.
 
 ## Installation
-Simply clone or download this library into your Arduino/libraries folder. The [i2c_t3 enhanced I2C library](https://github.com/nox771/i2c_t3) is bundled with the [Teensyduino software](http://pjrc.com/teensy/td_download.html) and is not required to download separately.
+Simply clone or download this library into your Arduino/libraries folder. The [i2c_t3 enhanced I2C library](https://github.com/nox771/i2c_t3) is bundled with the [Teensyduino software](http://pjrc.com/teensy/td_download.html) and is not required to download separately. [Teensyduino](http://pjrc.com/teensy/td_download.html) version 1.37 or newer is required.
 
 ## Function Description
 This library supports both I2C and SPI communication with the MPU-9250. The *MPU9250* object declaration is overloaded with different declarations for I2C and SPI communication. All other functions remain the same. 
@@ -54,42 +54,22 @@ An MPU9250 object should be declared, specifying the Teensy chip select pin used
 MPU9250 IMU(10);
 ```
 
-**MPU9250(uint8_t csPin, spi_mosi_pin pin)**
-Optionally, the SPI MOSI pin can be specified. This allows selecting SPI buses other than SPI Bus 0 and pins other than the defaults. The enumerated pin names and assigned pin numbers are:
-
-*Teensy 3.0, 3.1, and 3.2*
-
-| MOSI Pin Name | MOSI Pin Number | MISO Pin Number | SCK Pin Number |
-| ------------- | --------------- | --------------- | -------------- |
-| MOSI_PIN_7    | 7               | 8               | 14             |
-| MOSI_PIN_11   | 11              | 12              | 13             |
-
-*Teensy 3.5 and 3.6*
-
-| MOSI Pin Name | MOSI Pin Number | MISO Pin Number | SCK Pin Number |
-| ------------- | --------------- | --------------- | -------------- |
-| MOSI_PIN_0    | 0               | 1               | 32             |
-| MOSI_PIN_7    | 7               | 8               | 14             |
-| MOSI_PIN_11   | 11              | 12              | 13             |
-| MOSI_PIN_21   | 21              | 5               | 20             |
-| MOSI_PIN_28   | 28              | 39              | 27             |
-| MOSI_PIN_44   | 44              | 45              | 46             |
-| MOSI_PIN_52   | 52              | 51              | 53             |
-
-
-*Teensy LC*
-
-| MOSI Pin Name | MOSI Pin Number | MISO Pin Number | SCK Pin Number |
-| ------------- | --------------- | --------------- | -------------- |
-| MOSI_PIN_0    | 0               | 1               | 20             |
-| MOSI_PIN_7    | 7               | 8               | 14             |
-| MOSI_PIN_11   | 11              | 12              | 13             |
-| MOSI_PIN_21   | 21              | 5               | 20             |
-
-For example, the following code declares an MPU9250 object called *IMU* with an MPU-9250 sensor located on chip select pin 10 and MOSI pin 7.
+**MPU9250(uint8_t csPin, SPIClass &ast;SPI)**
+Optionally, the SPI bus can be specified. This allows selecting SPI buses other than SPI Bus 0. For example, the following code declares an MPU9250 object called *IMU* with an MPU-9250 sensor located on chip select pin 10 and SPI bus 2.
 
 ```C++
-MPU9250 IMU(10, MOSI_PIN_7);
+MPU9250 IMU(10, &SPI2);
+```
+
+**setMOSI, setMISO, and setSCK**
+*setMOSI*, *setMISO*, and *setSCK* can be used after the SPI object declaration and before calling begin to set alternate MOSI, MISO, and SCK pins. For example, the code below uses SPI Bus 0, but pin 14 for SCK instead of pin 13.
+
+```C++
+MPU9250 IMU(10);
+void setup() {
+   SPI.setSCK(14);
+   IMU.begin(ACCEL_RANGE_8G,GYRO_RANGE_250DPS);
+}
 ```
 
 ### Common Setup Functions
@@ -343,7 +323,7 @@ By default, the Teensy pinout is:
 
    * SPI Bus 0 - Pin 11: MOSI, Pin 12: MISO, Pin 13: SCK
 
-Alternatively, if the *MPU9250* object is declared specifying the MOSI pin used, the Teensy pinout is:
+Alternatively, by selecting the SPI bus, MOSI, MISO, and SCK pins, the Teensy pinout is:
 
    * Teensy 3.0, 3.1, and 3.2:
       * Bus 0 - Pin 7: MOSI, Pin 8: MISO, Pin 14: SCK
