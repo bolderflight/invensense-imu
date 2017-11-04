@@ -56,11 +56,19 @@ enum mpu9250_dlpf_bandwidth
 
 class MPU9250{
     public:
+        MPU9250();
         MPU9250(uint8_t address, uint8_t bus);
         MPU9250(uint8_t address, uint8_t bus, i2c_pins pins);
         MPU9250(uint8_t address, uint8_t bus, i2c_pins pins, i2c_pullup pullups);
         MPU9250(uint8_t csPin);
         MPU9250(uint8_t csPin, SPIClass *Spi);
+
+        void configure(uint8_t address, uint8_t bus);
+        void configure(uint8_t address, uint8_t bus, i2c_pins pins);
+        void configure(uint8_t address, uint8_t bus, i2c_pins pins, i2c_pullup pullups);
+        void configure(uint8_t csPin);
+        void configure(uint8_t csPin, SPIClass *Spi);        
+
         int begin(mpu9250_accel_range accelRange, mpu9250_gyro_range gyroRange);
         int setFilt(mpu9250_dlpf_bandwidth bandwidth, uint8_t SRD);
         int enableInt(bool enable);
