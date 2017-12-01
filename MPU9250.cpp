@@ -457,47 +457,47 @@ float MPU9250::getAccelX_mss() {
 }
 
 /* returns the accelerometer measurement in the y direction, m/s/s */
-float getAccelY_mss() {
+float MPU9250::getAccelY_mss() {
   return _ay;
 }
 
 /* returns the accelerometer measurement in the z direction, m/s/s */
-float getAccelZ_mss() {
+float MPU9250::getAccelZ_mss() {
   return _az;
 }
 
 /* returns the gyroscope measurement in the x direction, rad/s */
-float getGyroX_rads() {
+float MPU9250::getGyroX_rads() {
   return _gx;
 }
 
 /* returns the gyroscope measurement in the y direction, rad/s */
-float getGyroY_rads() {
+float MPU9250::getGyroY_rads() {
   return _gy;
 }
 
 /* returns the gyroscope measurement in the z direction, rad/s */
-float getGyroZ_rads() {
+float MPU9250::getGyroZ_rads() {
   return _gz;
 }
 
 /* returns the magnetometer measurement in the x direction, uT */
-float getMagX_uT() {
+float MPU9250::getMagX_uT() {
   return _hx;
 }
 
 /* returns the magnetometer measurement in the y direction, uT */
-float getMagY_uT() {
+float MPU9250::getMagY_uT() {
   return _hy;
 }
 
 /* returns the magnetometer measurement in the z direction, uT */
-float getMagZ_uT() {
+float MPU9250::getMagZ_uT() {
   return _hz;
 }
 
 /* returns the die temperature, C */
-float getTemp_C() {
+float MPU9250::getTemp_C() {
   return _t;
 }
 
@@ -554,64 +554,65 @@ int MPU9250::readFifo() {
       _hSize = _fifoSize/_fifoFrameSize;
     }
   }
+  return 1;
 }
 
 /* returns the accelerometer FIFO size and data in the x direction, m/s/s */
-void getFifoAccelX_mss(size_t *size,float* data) {
+void MPU9250::getFifoAccelX_mss(size_t *size,float* data) {
   *size = _aSize;
   memcpy(data,_axFifo,_aSize*sizeof(float));
 }
 
 /* returns the accelerometer FIFO size and data in the y direction, m/s/s */
-void getFifoAccelY_mss(size_t *size,float* data) {
+void MPU9250::getFifoAccelY_mss(size_t *size,float* data) {
   *size = _aSize;
   memcpy(data,_ayFifo,_aSize*sizeof(float));
 }
 
 /* returns the accelerometer FIFO size and data in the z direction, m/s/s */
-void getFifoAccelZ_mss(size_t *size,float* data) {
+void MPU9250::getFifoAccelZ_mss(size_t *size,float* data) {
   *size = _aSize;
   memcpy(data,_azFifo,_aSize*sizeof(float));
 }
 
 /* returns the gyroscope FIFO size and data in the x direction, rad/s */
-void getFifoGyroX_rads(size_t *size,float* data) {
+void MPU9250::getFifoGyroX_rads(size_t *size,float* data) {
   *size = _gSize;
   memcpy(data,_gxFifo,_gSize*sizeof(float));
 }
 
 /* returns the gyroscope FIFO size and data in the y direction, rad/s */
-void getFifoGyroY_rads(size_t *size,float* data) {
+void MPU9250::getFifoGyroY_rads(size_t *size,float* data) {
   *size = _gSize;
   memcpy(data,_gyFifo,_gSize*sizeof(float));
 }
 
 /* returns the gyroscope FIFO size and data in the z direction, rad/s */
-void getFifoGyroZ_rads(size_t *size,float* data) {
+void MPU9250::getFifoGyroZ_rads(size_t *size,float* data) {
   *size = _gSize;
   memcpy(data,_gzFifo,_gSize*sizeof(float));
 }
 
 /* returns the magnetometer FIFO size and data in the x direction, uT */
-void getFifoMagX_uT(size_t *size,float* data) {
+void MPU9250::getFifoMagX_uT(size_t *size,float* data) {
   *size = _hSize;
   memcpy(data,_hxFifo,_hSize*sizeof(float));
 }
 
 /* returns the magnetometer FIFO size and data in the y direction, uT */
-void getFifoMagY_uT(size_t *size,float* data) {
+void MPU9250::getFifoMagY_uT(size_t *size,float* data) {
   *size = _hSize;
   memcpy(data,_hyFifo,_hSize*sizeof(float));
 }
 
 /* returns the magnetometer FIFO size and data in the z direction, uT */
-void getFifoMagZ_uT(size_t *size,float* data) {
+void MPU9250::getFifoMagZ_uT(size_t *size,float* data) {
   *size = _hSize;
   memcpy(data,_hzFifo,_hSize*sizeof(float));
 }
 
 /* returns the die temperature FIFO size and data, C */
-void getFifoTemp_C(size_t *size,float* data) {
+void MPU9250::getFifoTemp_C(size_t *size,float* data) {
   *size = _tSize;
   memcpy(data,_tFifo,_tSize*sizeof(float));  
 }
