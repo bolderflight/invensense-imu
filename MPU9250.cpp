@@ -79,8 +79,8 @@ int MPU9250::begin(){
   if(writeRegister(PWR_MGMNT_1,CLOCK_SEL_PLL) < 0){
     return -4;
   }
-  // check the WHO AM I byte, expected value is 0x71 (decimal 113)
-  if( whoAmI() != 113 ){
+  // check the WHO AM I byte, expected value is 0x71 (decimal 113) or 0x73 (decimal 115)
+  if((whoAmI() != 113)&&(whoAmI() != 115)){
     return -5;
   }
   // enable accelerometer and gyro
