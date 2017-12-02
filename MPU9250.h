@@ -89,7 +89,7 @@ class MPU9250{
     float getMagX_uT();
     float getMagY_uT();
     float getMagZ_uT();
-    float getTemp_C();
+    float getTemperature_C();
     int readFifo();
     void getFifoAccelX_mss(size_t *size,float* data);
     void getFifoAccelY_mss(size_t *size,float* data);
@@ -100,7 +100,7 @@ class MPU9250{
     void getFifoMagX_uT(size_t *size,float* data);
     void getFifoMagY_uT(size_t *size,float* data);
     void getFifoMagZ_uT(size_t *size,float* data);
-    void getFifoTemp_C(size_t *size,float* data);
+    void getFifoTemperature_C(size_t *size,float* data);
   private:
     // i2c
     uint8_t _address;

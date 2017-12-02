@@ -497,7 +497,7 @@ float MPU9250::getMagZ_uT() {
 }
 
 /* returns the die temperature, C */
-float MPU9250::getTemp_C() {
+float MPU9250::getTemperature_C() {
   return _t;
 }
 
@@ -612,7 +612,7 @@ void MPU9250::getFifoMagZ_uT(size_t *size,float* data) {
 }
 
 /* returns the die temperature FIFO size and data, C */
-void MPU9250::getFifoTemp_C(size_t *size,float* data) {
+void MPU9250::getFifoTemperature_C(size_t *size,float* data) {
   *size = _tSize;
   memcpy(data,_tFifo,_tSize*sizeof(float));  
 }

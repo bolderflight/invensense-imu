@@ -76,5 +76,5 @@ void getIMU(){
   Serial.print("\t");
   Serial.print(IMU.getMagZ_uT(),6);
   Serial.print("\t");
-  Serial.println(IMU.getTemp_C(),6);
+  Serial.println(IMU.getTemperature_C(),6);
 }
