@@ -44,7 +44,7 @@ MPU9250 IMU(SPI,10);
 The following functions are used to setup the MPU-9250 sensor. These should be called once before data collection, typically this is done in the Arduino *void setup()* function. The *begin* function should always be used. Optionally, the *setAccelRange* and *setGyroRange*, *setDlpfBandwidth*, and *setSrd* functions can be used to set the accelerometer and gyroscope full scale ranges, DLPF bandwidth, and SRD to values other than default. The *enableDataReadyInterrupt* and *disableDataReadyInterrupt* control whether the MPU-9250 generates an interrupt on data ready. The *enableWakeOnMotion* puts the MPU-9250 into a low power mode and enables an interrupt when motion detected is above a given threshold. Finally, *enableFifo* sets up and enables the FIFO buffer. These functions are described in detail, below.
 
 **int begin()**
-This should be called in your setup function. It initializes communication with the MPU-9250 and sets up the sensor for reading data. This function returns a positive value on a successful initialization and returns a negative value on an unsuccesful initialization. If unsuccessful, please check your wiring or try resetting power to the sensor. The following is an example of setting up the MPU-9250.
+This should be called in your setup function. It initializes communication with the MPU-9250, sets up the sensor for reading data, and estimates the gyro bias, which is removed from the sensor data. This function returns a positive value on a successful initialization and returns a negative value on an unsuccesful initialization. If unsuccessful, please check your wiring or try resetting power to the sensor. The following is an example of setting up the MPU-9250.
 
 ```C++
 int status;
@@ -132,6 +132,61 @@ This function disables the data ready interrupt, described above. This function 
 
 ```C++
 status = IMU.disableDataReadyInterrupt();
+```
+
+**(optional) int estimateGyroBias()**
+The gyro bias is automatically estimated during the *begin()* function and removed from sensor measurements. This function will re-estimate the gyro bias and remove the new bias from future sensor measurements. The sensor should be stationary during this process. This function returns a positive value on success and a negative value on failure. The following is an example of estimating new gyro biases.
+
+```C++
+status = IMU.estimateGyroBias();
+```
+
+**(optional) float getGyroBiasX_rads()**
+This function returns the current gyro bias in the X direction in units of rad/s. 
+
+```C++
+float gxb;
+gxb = IMU.getGyroBiasX_rads();
+```
+
+**(optional) float getGyroBiasY_rads()**
+This function returns the current gyro bias in the Y direction in units of rad/s.
+
+```C++
+float gyb;
+gyb = IMU.getGyroBiasY_rads();
+```
+
+**(optional) float getGyroBiasZ_rads()**
+This function returns the current gyro bias in the Z direction in units of rad/s.
+
+```C++
+float gzb;
+gzb = IMU.getGyroBiasZ_rads();
+```
+
+**(optional) void setGyroBiasX_rads(float bias)**
+This function sets the gyro bias being used in the X direction to the input value in units of rad/s.
+
+```C++
+float gxb = 0.001; // gyro bias of 0.001 rad/s
+IMU.setGyroBiasX_rads(gxb);
+```
+
+**(optional) void setGyroBiasY_rads(float bias)**
+This function sets the gyro bias being used in the Y direction to the input value in units of rad/s.
+
+```C++
+float gyb = 0.001; // gyro bias of 0.001 rad/s
+IMU.setGyroBiasY_rads(gyb);
+```
+
+**(optional) void setGyroBiasZ_rads(float bias)**
+This function sets the gyro bias being used in the Z direction to the input value in units of rad/s.
+
+```C++
+float gzb = 0.001; // gyro bias of 0.001 rad/s
+IMU.setGyroBiasZ_rads(gzb);
 ```
 
 **(optional) int enableWakeOnMotion(float womThresh_mg,LpAccelOdr odr)**
