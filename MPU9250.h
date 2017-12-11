@@ -101,6 +101,13 @@ class MPU9250{
     void getFifoMagY_uT(size_t *size,float* data);
     void getFifoMagZ_uT(size_t *size,float* data);
     void getFifoTemperature_C(size_t *size,float* data);
+    int estimateGyroBias();
+    float getGyroBiasX_rads();
+    float getGyroBiasY_rads();
+    float getGyroBiasZ_rads();
+    void setGyroBiasX_rads(float bias);
+    void setGyroBiasY_rads(float bias);
+    void setGyroBiasZ_rads(float bias);
   private:
     // i2c
     uint8_t _address;
@@ -148,6 +155,15 @@ class MPU9250{
     float _magScaleX, _magScaleY, _magScaleZ;
     const float _tempScale = 333.87f;
     const float _tempOffset = 21.0f;
+    // configuration
+    AccelRange _accelRange;
+    GyroRange _gyroRange;
+    DlpfBandwidth _bandwidth;
+    uint8_t _srd;
+    // gyro bias estimation
+    size_t _numSamples = 100;
+    double _gxbD, _gybD, _gzbD;
+    float _gxb, _gyb, _gzb;
     // transformation matrix
     /* transform the accel and gyro axes to match the magnetometer axes */
     const int16_t tX[3] = {0,  1,  0}; 

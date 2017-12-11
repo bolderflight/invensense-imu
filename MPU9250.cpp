@@ -92,11 +92,13 @@ int MPU9250::begin(){
     return -7;
   }
   _accelScale = G * 16.0f/32767.5f; // setting the accel scale to 16G
+  _accelRange = ACCEL_RANGE_16G;
   // setting the gyro range to 2000DPS as default
   if(writeRegister(GYRO_CONFIG,GYRO_FS_SEL_2000DPS) < 0){
     return -8;
   }
   _gyroScale = 2000.0f/32767.5f * _d2r; // setting the gyro scale to 2000DPS
+  _gyroRange = GYRO_RANGE_2000DPS;
   // setting bandwidth to 184Hz as default
   if(writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_184) < 0){ 
     return -9;
@@ -104,10 +106,12 @@ int MPU9250::begin(){
   if(writeRegister(CONFIG,GYRO_DLPF_184) < 0){ // setting gyro bandwidth to 184Hz
     return -10;
   }
+  _bandwidth = DLPF_BANDWIDTH_184HZ;
   // setting the sample rate divider to 0 as default
   if(writeRegister(SMPDIV,0x00) < 0){ 
     return -11;
   } 
+  _srd = 0;
   // enable I2C master mode
   if(writeRegister(USER_CTRL,I2C_MST_EN) < 0){
   	return -12;
@@ -152,6 +156,10 @@ int MPU9250::begin(){
   }       
   // instruct the MPU9250 to get 7 bytes of data from the AK8963 at the sample rate
   readAK8963Registers(AK8963_HXL,7,_buffer);
+  // estimate gyro bias
+  if (estimateGyroBias() < 0) {
+    return -20;
+  }
   // successful init, return 1
   return 1;
 }
@@ -194,6 +202,7 @@ int MPU9250::setAccelRange(AccelRange range) {
       break;
     }
   }
+  _accelRange = range;
   return 1;
 }
 
@@ -235,6 +244,7 @@ int MPU9250::setGyroRange(GyroRange range) {
       break;
     }
   }
+  _gyroRange = range;
   return 1;
 }
 
@@ -298,6 +308,7 @@ int MPU9250::setDlpfBandwidth(DlpfBandwidth bandwidth) {
       break;
     }
   }
+  _bandwidth = bandwidth;
   return 1;
 }
 
@@ -336,6 +347,7 @@ int MPU9250::setSrd(uint8_t srd) {
     // instruct the MPU9250 to get 7 bytes of data from the AK8963 at the sample rate
     readAK8963Registers(AK8963_HXL,7,_buffer);    
   } 
+  _srd = srd;
   return 1; 
 }
 
@@ -441,9 +453,9 @@ int MPU9250::readSensor() {
   _ax = (float)(tX[0]*_axcounts + tX[1]*_aycounts + tX[2]*_azcounts) * _accelScale;
   _ay = (float)(tY[0]*_axcounts + tY[1]*_aycounts + tY[2]*_azcounts) * _accelScale;
   _az = (float)(tZ[0]*_axcounts + tZ[1]*_aycounts + tZ[2]*_azcounts) * _accelScale;
-  _gx = (float)(tX[0]*_gxcounts + tX[1]*_gycounts + tX[2]*_gzcounts) * _gyroScale;
-  _gy = (float)(tY[0]*_gxcounts + tY[1]*_gycounts + tY[2]*_gzcounts) * _gyroScale;
-  _gz = (float)(tZ[0]*_gxcounts + tZ[1]*_gycounts + tZ[2]*_gzcounts) * _gyroScale;
+  _gx = ((float)(tX[0]*_gxcounts + tX[1]*_gycounts + tX[2]*_gzcounts) * _gyroScale) - _gxb;
+  _gy = ((float)(tY[0]*_gxcounts + tY[1]*_gycounts + tY[2]*_gzcounts) * _gyroScale) - _gyb;
+  _gz = ((float)(tZ[0]*_gxcounts + tZ[1]*_gycounts + tZ[2]*_gzcounts) * _gyroScale) - _gzb;
   _hx = (float)(_hxcounts) * _magScaleX;
   _hy = (float)(_hycounts) * _magScaleY;
   _hz = (float)(_hzcounts) * _magScaleZ;
@@ -537,9 +549,9 @@ int MPU9250::readFifo() {
       _gycounts = (((int16_t)_buffer[2 + _enFifoAccel*6 + _enFifoTemp*2]) << 8) | _buffer[3 + _enFifoAccel*6 + _enFifoTemp*2];
       _gzcounts = (((int16_t)_buffer[4 + _enFifoAccel*6 + _enFifoTemp*2]) << 8) | _buffer[5 + _enFifoAccel*6 + _enFifoTemp*2];
       // transform and convert to float values
-      _gxFifo[i] = (float)(tX[0]*_gxcounts + tX[1]*_gycounts + tX[2]*_gzcounts) * _gyroScale;
-      _gyFifo[i] = (float)(tY[0]*_gxcounts + tY[1]*_gycounts + tY[2]*_gzcounts) * _gyroScale;
-      _gzFifo[i] = (float)(tZ[0]*_gxcounts + tZ[1]*_gycounts + tZ[2]*_gzcounts) * _gyroScale;
+      _gxFifo[i] = ((float)(tX[0]*_gxcounts + tX[1]*_gycounts + tX[2]*_gzcounts) * _gyroScale) - _gxb;
+      _gyFifo[i] = ((float)(tY[0]*_gxcounts + tY[1]*_gycounts + tY[2]*_gzcounts) * _gyroScale) - _gyb;
+      _gzFifo[i] = ((float)(tZ[0]*_gxcounts + tZ[1]*_gycounts + tZ[2]*_gzcounts) * _gyroScale) - _gzb;
       _gSize = _fifoSize/_fifoFrameSize;
     }
     if (_enFifoMag) {
@@ -615,6 +627,74 @@ void MPU9250::getFifoMagZ_uT(size_t *size,float* data) {
 void MPU9250::getFifoTemperature_C(size_t *size,float* data) {
   *size = _tSize;
   memcpy(data,_tFifo,_tSize*sizeof(float));  
+}
+
+/* estimates the gyro biases */
+int MPU9250::estimateGyroBias() {
+  // set the range, bandwidth, and srd
+  if (setGyroRange(GYRO_RANGE_250DPS) < 0) {
+    return -1;
+  }
+  if (setDlpfBandwidth(DLPF_BANDWIDTH_20HZ) < 0) {
+    return -2;
+  }
+  if (setSrd(19) < 0) {
+    return -3;
+  }
+
+  // take samples and find bias
+  for (size_t i=0; i < _numSamples; i++) {
+    readSensor();
+    _gxbD += getGyroX_rads()/((double)_numSamples);
+    _gybD += getGyroY_rads()/((double)_numSamples);
+    _gzbD += getGyroZ_rads()/((double)_numSamples);
+    delay(20);
+  }
+  _gxb = (float)_gxbD;
+  _gyb = (float)_gybD;
+  _gzb = (float)_gzbD;
+
+  // set the range, bandwidth, and srd back to what they were
+  if (setGyroRange(_gyroRange) < 0) {
+    return -4;
+  }
+  if (setDlpfBandwidth(_bandwidth) < 0) {
+    return -5;
+  }
+  if (setSrd(_srd) < 0) {
+    return -6;
+  }
+  return 1;
+}
+
+/* returns the gyro bias in the X direction, rad/s */
+float MPU9250::getGyroBiasX_rads() {
+  return _gxb;
+}
+
+/* returns the gyro bias in the Y direction, rad/s */
+float MPU9250::getGyroBiasY_rads() {
+  return _gyb;
+}
+
+/* returns the gyro bias in the Z direction, rad/s */
+float MPU9250::getGyroBiasZ_rads() {
+  return _gzb;
+}
+
+/* sets the gyro bias in the X direction to bias, rad/s */
+void MPU9250::setGyroBiasX_rads(float bias) {
+  _gxb = bias;
+}
+
+/* sets the gyro bias in the Y direction to bias, rad/s */
+void MPU9250::setGyroBiasY_rads(float bias) {
+  _gyb = bias;
+}
+
+/* sets the gyro bias in the Z direction to bias, rad/s */
+void MPU9250::setGyroBiasZ_rads(float bias) {
+  _gzb = bias;
 }
 
 /* writes a byte to MPU9250 register given a register address and data */
