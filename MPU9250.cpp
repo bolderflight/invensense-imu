@@ -643,17 +643,20 @@ int MPU9250::estimateGyroBias() {
   }
 
   // take samples and find bias
+  _gxbD = 0;
+  _gybD = 0;
+  _gzbD = 0;
   for (size_t i=0; i < _numSamples; i++) {
     readSensor();
-    _gxbD += getGyroX_rads()/((double)_numSamples);
-    _gybD += getGyroY_rads()/((double)_numSamples);
-    _gzbD += getGyroZ_rads()/((double)_numSamples);
+    _gxbD += (getGyroX_rads() + _gxb)/((double)_numSamples);
+    _gybD += (getGyroY_rads() + _gyb)/((double)_numSamples);
+    _gzbD += (getGyroZ_rads() + _gzb)/((double)_numSamples);
     delay(20);
   }
   _gxb = (float)_gxbD;
   _gyb = (float)_gybD;
   _gzb = (float)_gzbD;
-
+  
   // set the range, bandwidth, and srd back to what they were
   if (setGyroRange(_gyroRange) < 0) {
     return -4;
