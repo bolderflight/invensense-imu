@@ -51,6 +51,8 @@ int status;
 status = IMU.begin();
 ```
 
+#### Configuration Functions
+
 **(optional) int setAccelRange(AccelRange range)**
 This function sets the accelerometer full scale range to the given  value. By default, if this function is not called, a full scale range of +/- 16 g will be used. The enumerated accelerometer full scale ranges are:
 
@@ -134,11 +136,13 @@ This function disables the data ready interrupt, described above. This function 
 status = IMU.disableDataReadyInterrupt();
 ```
 
-**(optional) int estimateGyroBias()**
+#### Calibration Functions
+
+**(optional) int calibrateGyro()**
 The gyro bias is automatically estimated during the *begin()* function and removed from sensor measurements. This function will re-estimate the gyro bias and remove the new bias from future sensor measurements. The sensor should be stationary during this process. This function returns a positive value on success and a negative value on failure. The following is an example of estimating new gyro biases.
 
 ```C++
-status = IMU.estimateGyroBias();
+status = IMU.calibrateGyro();
 ```
 
 **(optional) float getGyroBiasX_rads()**
@@ -188,6 +192,172 @@ This function sets the gyro bias being used in the Z direction to the input valu
 float gzb = 0.001; // gyro bias of 0.001 rad/s
 IMU.setGyroBiasZ_rads(gzb);
 ```
+
+**(optional) int calibrateAccel()**
+This function will estimate the bias and scale factor needed to calibrate the accelerometers. This function works one axis at a time and needs to be run for all 6 sensor orientations. After it has collected enough sensor data, it will estimate the bias and scale factor for all three accelerometer channels and apply these corrections to the measured data. Accelerometer calibration only needs to be performed once on the IMU, the get and set functions detailed below can be used to retrieve the estimated bias and scale factors and use them during future power cycles or operations with the IMU. This function returns a positive value on success and a negative value on failure.
+
+```C++
+status = IMU.calibrateAccel();
+```
+
+**(optional) float getAccelBiasX_mss()**
+This function returns the current accelerometer bias in the X direction in units of m/s/s.
+
+```C++
+float axb;
+axb = IMU.getAccelBiasX_mss();
+```
+
+**(optional) float getAccelScaleFactorX()**
+This function returns the current accelerometer scale factor in the X direction.
+
+```C++
+float axs;
+axs = IMU.getAccelScaleFactorX();
+```
+
+**(optional) float getAccelBiasY_mss()**
+This function returns the current accelerometer bias in the Y direction in units of m/s/s.
+
+```C++
+float ayb;
+ayb = IMU.getAccelBiasY_mss();
+```
+
+**(optional) float getAccelScaleFactorY()**
+This function returns the current accelerometer scale factor in the Y direction.
+
+```C++
+float ays;
+ays = IMU.getAccelScaleFactorY();
+```
+
+**(optional) float getAccelBiasZ_mss()**
+This function returns the current accelerometer bias in the Z direction in units of m/s/s.
+
+```C++
+float azb;
+azb = IMU.getAccelBiasZ_mss();
+```
+
+**(optional) float getAccelScaleFactorZ()**
+This function returns the current accelerometer scale factor in the Z direction.
+
+```C++
+float azs;
+azs = IMU.getAccelScaleFactorZ();
+```
+
+**(optional) void setAccelCalX(float bias,float scaleFactor)**
+This function sets the accelerometer bias (m/s/s) and scale factor being used in the X direction to the input values.
+
+```C++
+float axb = 0.01; // accel bias of 0.01 m/s/s
+float axs = 0.97; // accel scale factor of 0.97
+IMU.setAccelCalX(axb,axs);
+```
+
+**(optional) void setAccelCalY(float bias,float scaleFactor)**
+This function sets the accelerometer bias (m/s/s) and scale factor being used in the Y direction to the input values.
+
+```C++
+float ayb = 0.01; // accel bias of 0.01 m/s/s
+float ays = 0.97; // accel scale factor of 0.97
+IMU.setAccelCalY(ayb,ays);
+```
+
+**(optional) void setAccelCalZ(float bias,float scaleFactor)**
+This function sets the accelerometer bias (m/s/s) and scale factor being used in the Z direction to the input values.
+
+```C++
+float azb = 0.01; // accel bias of 0.01 m/s/s
+float azs = 0.97; // accel scale factor of 0.97
+IMU.setAccelCalZ(azb,azs);
+```
+
+**(optional) int calibrateMag()**
+This function will estimate the bias and scale factor needed to calibrate the magnetometers. This function works on all the sensor axes at once, you should continuously and slowly move the sensor in a figure 8 while the function is running. After it has collected enough sensor data, it will estimate the bias and scale factor for all three magnetometer channels and apply these corrections to the measured data. Magnetometer calibration only needs to be performed once on the IMU, unless the eletrical or magnetic environment changes. The get and set functions detailed below can be used to retrieve the estimated bias and scale factors and use them during future power cycles or operations with the IMU. This function returns a positive value on success and a negative value on failure.
+
+```C++
+status = IMU.calibrateMag();
+```
+
+**(optional) float getMagBiasX_uT()**
+This function returns the current magnetometer bias in the X direction in units of uT.
+
+```C++
+float hxb;
+hxb = IMU.getMagBiasX_uT();
+```
+
+**(optional) float getMagScaleFactorX()**
+This function returns the current magnetometer scale factor in the X direction.
+
+```C++
+float hxs;
+hxs = IMU.getMagScaleFactorX();
+```
+
+**(optional) float getMagBiasY_uT()**
+This function returns the current magnetometer bias in the Y direction in units of uT.
+
+```C++
+float hyb;
+hyb = IMU.getMagBiasY_uT();
+```
+
+**(optional) float getMagScaleFactorY()**
+This function returns the current magnetometer scale factor in the Y direction.
+
+```C++
+float hys;
+hys = IMU.getMagScaleFactorY();
+```
+
+**(optional) float getMagBiasZ_uT()**
+This function returns the current magnetometer bias in the Z direction in units of uT.
+
+```C++
+float hzb;
+hzb = IMU.getMagBiasZ_uT();
+```
+
+**(optional) float getMagScaleFactorZ()**
+This function returns the current magnetometer scale factor in the Z direction.
+
+```C++
+float hzs;
+hzs = IMU.getMagScaleFactorZ();
+```
+
+**(optional) void setMagCalX(float bias,float scaleFactor)**
+This function sets the magnetometer bias (uT) and scale factor being used in the X direction to the input values.
+
+```C++
+float hxb = 10.0; // mag bias of 10 uT
+float hxs = 0.97; // mag scale factor of 0.97
+IMU.setMagCalX(hxb,hxs);
+```
+
+**(optional) void setMagCalY(float bias,float scaleFactor)**
+This function sets the magnetometer bias (uT) and scale factor being used in the Y direction to the input values.
+
+```C++
+float hyb = 10.0; // mag bias of 10 uT
+float hys = 0.97; // mag scale factor of 0.97
+IMU.setMagCalY(hyb,hys);
+```
+
+**(optional) void setMagCalZ(float bias,float scaleFactor)**
+This function sets the magnetometer bias (uT) and scale factor being used in the Z direction to the input values.
+
+```C++
+float hzb = 10.0; // mag bias of 10 uT
+float hzs = 0.97; // mag scale factor of 0.97
+IMU.setMagCalZ(hzb,hzs);
+```
+
+#### Wake on Motion and FIFO Setup
 
 **(optional) int enableWakeOnMotion(float womThresh_mg,LpAccelOdr odr)**
 This function enables the MPU-9250 wake on motion interrupt functionality. It places the MPU-9250 into a low power state, with the MPU-9250 waking up at an interval determined by the Low Power Accelerometer Output Data Rate. If the accelerometer detects motion in excess of the threshold given, it generates a 50us pulse from the MPU-9250 INT pin. The following enumerated Low Power Accelerometer Output Data Rates are supported:
