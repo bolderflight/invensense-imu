@@ -101,13 +101,33 @@ class MPU9250{
     void getFifoMagY_uT(size_t *size,float* data);
     void getFifoMagZ_uT(size_t *size,float* data);
     void getFifoTemperature_C(size_t *size,float* data);
-    int estimateGyroBias();
+    int calibrateGyro();
     float getGyroBiasX_rads();
     float getGyroBiasY_rads();
     float getGyroBiasZ_rads();
     void setGyroBiasX_rads(float bias);
     void setGyroBiasY_rads(float bias);
     void setGyroBiasZ_rads(float bias);
+    int calibrateAccel();
+    float getAccelBiasX_mss();
+    float getAccelScaleFactorX();
+    float getAccelBiasY_mss();
+    float getAccelScaleFactorY();
+    float getAccelBiasZ_mss();
+    float getAccelScaleFactorZ();
+    void setAccelCalX(float bias,float scaleFactor);
+    void setAccelCalY(float bias,float scaleFactor);
+    void setAccelCalZ(float bias,float scaleFactor);
+    int calibrateMag();
+    float getMagBiasX_uT();
+    float getMagScaleFactorX();
+    float getMagBiasY_uT();
+    float getMagScaleFactorY();
+    float getMagBiasZ_uT();
+    float getMagScaleFactorZ();
+    void setMagCalX(float bias,float scaleFactor);
+    void setMagCalY(float bias,float scaleFactor);
+    void setMagCalZ(float bias,float scaleFactor);
   private:
     // i2c
     uint8_t _address;
@@ -164,6 +184,28 @@ class MPU9250{
     size_t _numSamples = 100;
     double _gxbD, _gybD, _gzbD;
     float _gxb, _gyb, _gzb;
+    // accel bias and scale factor estimation
+    double _axbD, _aybD, _azbD;
+    float _axmax, _aymax, _azmax;
+    float _axmin, _aymin, _azmin;
+    float _axb, _ayb, _azb;
+    float _axs = 1.0f;
+    float _ays = 1.0f;
+    float _azs = 1.0f;
+    // magnetometer bias and scale factor estimation
+    uint16_t _maxCounts = 1000;
+    float _deltaThresh = 0.3f;
+    uint8_t _coeff = 8;
+    uint16_t _counter;
+    float _framedelta, _delta;
+    float _hxfilt, _hyfilt, _hzfilt;
+    float _hxmax, _hymax, _hzmax;
+    float _hxmin, _hymin, _hzmin;
+    float _hxb, _hyb, _hzb;
+    float _hxs = 1.0f;
+    float _hys = 1.0f;
+    float _hzs = 1.0f;
+    float _avgs;
     // transformation matrix
     /* transform the accel and gyro axes to match the magnetometer axes */
     const int16_t tX[3] = {0,  1,  0}; 
