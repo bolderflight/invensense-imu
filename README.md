@@ -27,7 +27,7 @@ This library supports both I2C and SPI communication with the MPU-9250. The *MPU
 ### I2C Object Declaration
 
 **MPU9250(TwoWire &bus,uint8_t address)**
-An MPU9250 object should be declared, specifying the I2C bus MPU-9250 I2C address. The MPU-9250 I2C address will be 0x68 if the AD0 pin is grounded or 0x69 if the AD0 pin is pulled high. For example, the following code declares an MPU9250 object called *IMU* with an MPU-9250 sensor located on I2C bus 0 with a sensor address of 0x68 (AD0 grounded).
+An MPU9250 object should be declared, specifying the I2C bus and MPU-9250 I2C address. The MPU-9250 I2C address will be 0x68 if the AD0 pin is grounded or 0x69 if the AD0 pin is pulled high. For example, the following code declares an MPU9250 object called *IMU* with an MPU-9250 sensor located on I2C bus 0 with a sensor address of 0x68 (AD0 grounded).
 
 ```C++
 MPU9250 IMU(Wire,0x68);
@@ -466,12 +466,12 @@ temperature = IMU.getTemperature_C();
 ```
 
 ## MPU9250FIFO Class
-The *MPU9250FIFO* derived class extends the functionality provided by the *MPU9250* base class by providing support for setting up and reading the MPU-9250 FIFO buffer. All of the functions described above, as part of the *MPU9250* class are also available to the *MPU9250FIFO* class. 
+The *MPU9250FIFO* derived class extends the functionality provided by the *MPU9250* base class by providing support for setting up and reading the MPU-9250 FIFO buffer. All of the functions described above, as part of the *MPU9250* class, are also available to the *MPU9250FIFO* class. 
 
 ### I2C Object Declaration
 
 **MPU9250FIFO(TwoWire &bus,uint8_t address)**
-An MPU9250FIFO object should be declared, specifying the I2C bus MPU-9250 I2C address. The MPU-9250 I2C address will be 0x68 if the AD0 pin is grounded or 0x69 if the AD0 pin is pulled high. For example, the following code declares an MPU9250FIFO object called *IMU* with an MPU-9250 sensor located on I2C bus 0 with a sensor address of 0x68 (AD0 grounded).
+An MPU9250FIFO object should be declared, specifying the I2C bus and MPU-9250 I2C address. The MPU-9250 I2C address will be 0x68 if the AD0 pin is grounded or 0x69 if the AD0 pin is pulled high. For example, the following code declares an MPU9250FIFO object called *IMU* with an MPU-9250 sensor located on I2C bus 0 with a sensor address of 0x68 (AD0 grounded).
 
 ```C++
 MPU9250FIFO IMU(Wire,0x68);
