@@ -78,7 +78,6 @@ class MPU9250{
     int enableDataReadyInterrupt();
     int disableDataReadyInterrupt();
     int enableWakeOnMotion(float womThresh_mg,LpAccelOdr odr);
-    int enableFifo(bool accel,bool gyro,bool mag,bool temp);
     int readSensor();
     float getUncompensatedAccelX_mss();
     float getUncompensatedAccelY_mss();
@@ -90,6 +89,8 @@ class MPU9250{
     float getUncompensatedMagY_uT();
     float getUncompensatedMagZ_uT();
     float getTemperature_C();
+<<<<<<< HEAD
+=======
     int readFifo();
     void getFifoUncompensatedAccelX_mss(size_t *size,float* data);
     void getFifoUncompensatedAccelY_mss(size_t *size,float* data);
@@ -102,6 +103,7 @@ class MPU9250{
     void getFifoUncompensatedMagZ_uT(size_t *size,float* data);
     void getFifoTemperature_C(size_t *size,float* data);
 
+>>>>>>> 02632b040fad4891fcc7ded81809a8a72fb4831c
     int calibrateGyro();
     float getGyroBiasX_rads();
     float getGyroBiasY_rads();
@@ -136,6 +138,9 @@ class MPU9250{
     void setMagCalX(float bias,float scaleFactor);
     void setMagCalY(float bias,float scaleFactor);
     void setMagCalZ(float bias,float scaleFactor);
+<<<<<<< HEAD
+  protected:
+=======
 
     float getGyroX_rads();
     float getGyroY_rads();
@@ -145,6 +150,7 @@ class MPU9250{
     void getFifoGyroY_rads(size_t *size,float* data);
     void getFifoGyroZ_rads(size_t *size,float* data);
   private:
+>>>>>>> 02632b040fad4891fcc7ded81809a8a72fb4831c
     // i2c
     uint8_t _address;
     TwoWire *_i2c;
@@ -172,17 +178,6 @@ class MPU9250{
     float _gx, _gy, _gz;
     float _hx, _hy, _hz;
     float _t;
-    // fifo
-    bool _enFifoAccel,_enFifoGyro,_enFifoMag,_enFifoTemp;
-    size_t _fifoSize,_fifoFrameSize;
-    float _axFifo[85], _ayFifo[85], _azFifo[85];
-    size_t _aSize;
-    float _gxFifo[85], _gyFifo[85], _gzFifo[85];
-    size_t _gSize;
-    float _hxFifo[73], _hyFifo[73], _hzFifo[73];
-    size_t _hSize;
-    float _tFifo[256];
-    size_t _tSize;
     // wake on motion
     uint8_t _womThreshold;
     // scale factors
@@ -319,6 +314,35 @@ class MPU9250{
     int readAK8963Registers(uint8_t subAddress, uint8_t count, uint8_t* dest);
     int whoAmI();
     int whoAmIAK8963();
+};
+
+class MPU9250FIFO: public MPU9250 {
+  public:
+    using MPU9250::MPU9250;
+    int enableFifo(bool accel,bool gyro,bool mag,bool temp);
+    int readFifo();
+    void getFifoAccelX_mss(size_t *size,float* data);
+    void getFifoAccelY_mss(size_t *size,float* data);
+    void getFifoAccelZ_mss(size_t *size,float* data);
+    void getFifoGyroX_rads(size_t *size,float* data);
+    void getFifoGyroY_rads(size_t *size,float* data);
+    void getFifoGyroZ_rads(size_t *size,float* data);
+    void getFifoMagX_uT(size_t *size,float* data);
+    void getFifoMagY_uT(size_t *size,float* data);
+    void getFifoMagZ_uT(size_t *size,float* data);
+    void getFifoTemperature_C(size_t *size,float* data);
+  protected:
+    // fifo
+    bool _enFifoAccel,_enFifoGyro,_enFifoMag,_enFifoTemp;
+    size_t _fifoSize,_fifoFrameSize;
+    float _axFifo[85], _ayFifo[85], _azFifo[85];
+    size_t _aSize;
+    float _gxFifo[85], _gyFifo[85], _gzFifo[85];
+    size_t _gSize;
+    float _hxFifo[73], _hyFifo[73], _hzFifo[73];
+    size_t _hSize;
+    float _tFifo[256];
+    size_t _tSize;
 };
 
 #endif
