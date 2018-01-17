@@ -24,7 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "MPU9250.h"
 
 // an MPU9250 object with the MPU-9250 sensor on SPI bus 0 and chip select pin 10
-MPU9250 IMU(SPI,10);
+MPU9250FIFO IMU(SPI,10);
 int status;
 
 // variables to hold FIFO data, these need to be large enough to hold the data
