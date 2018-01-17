@@ -426,7 +426,7 @@ int MPU9250::enableWakeOnMotion(float womThresh_mg,LpAccelOdr odr) {
 }
 
 /* configures and enables the FIFO buffer  */
-int MPU9250FIFO::enableFifo(bool accel,bool gyro,bool mag,bool temp) {
+int MPU9250::enableFifo(bool accel,bool gyro,bool mag,bool temp) {
   // use low speed SPI for register setting
   _useSPIHS = false;
   if(writeRegister(USER_CTRL, (0x40 | I2C_MST_EN)) < 0){
@@ -528,7 +528,7 @@ float MPU9250::getTemperature_C() {
 
 
 /* reads data from the MPU9250 FIFO and stores in buffer */
-int MPU9250FIFO::readFifo() {
+int MPU9250::readFifo() {
   _useSPIHS = true; // use the high speed SPI for data readout
   // get the fifo size
   readRegisters(FIFO_COUNT, 2, _buffer);
@@ -584,97 +584,61 @@ int MPU9250FIFO::readFifo() {
 }
 
 /* returns the accelerometer FIFO size and data in the x direction, m/s/s */
-<<<<<<< HEAD
-void MPU9250FIFO::getFifoAccelX_mss(size_t *size,float* data) {
-=======
 void MPU9250::getFifoUncompensatedAccelX_mss(size_t *size,float* data) {
->>>>>>> 02632b040fad4891fcc7ded81809a8a72fb4831c
   *size = _aSize;
   memcpy(data,_axFifo,_aSize*sizeof(float));
 }
 
 /* returns the accelerometer FIFO size and data in the y direction, m/s/s */
-<<<<<<< HEAD
-void MPU9250FIFO::getFifoAccelY_mss(size_t *size,float* data) {
-=======
 void MPU9250::getFifoUncompensatedAccelY_mss(size_t *size,float* data) {
->>>>>>> 02632b040fad4891fcc7ded81809a8a72fb4831c
   *size = _aSize;
   memcpy(data,_ayFifo,_aSize*sizeof(float));
 }
 
 /* returns the accelerometer FIFO size and data in the z direction, m/s/s */
-<<<<<<< HEAD
-void MPU9250FIFO::getFifoAccelZ_mss(size_t *size,float* data) {
-=======
 void MPU9250::getFifoUncompensatedAccelZ_mss(size_t *size,float* data) {
->>>>>>> 02632b040fad4891fcc7ded81809a8a72fb4831c
   *size = _aSize;
   memcpy(data,_azFifo,_aSize*sizeof(float));
 }
 
 /* returns the gyroscope FIFO size and data in the x direction, rad/s */
-<<<<<<< HEAD
-void MPU9250FIFO::getFifoGyroX_rads(size_t *size,float* data) {
-=======
 void MPU9250::getFifoUncompensatedGyroX_rads(size_t *size,float* data) {
->>>>>>> 02632b040fad4891fcc7ded81809a8a72fb4831c
   *size = _gSize;
   memcpy(data,_gxFifo,_gSize*sizeof(float));
 }
 
 /* returns the gyroscope FIFO size and data in the y direction, rad/s */
-<<<<<<< HEAD
-void MPU9250FIFO::getFifoGyroY_rads(size_t *size,float* data) {
-=======
 void MPU9250::getFifoUncompensatedGyroY_rads(size_t *size,float* data) {
->>>>>>> 02632b040fad4891fcc7ded81809a8a72fb4831c
   *size = _gSize;
   memcpy(data,_gyFifo,_gSize*sizeof(float));
 }
 
 /* returns the gyroscope FIFO size and data in the z direction, rad/s */
-<<<<<<< HEAD
-void MPU9250FIFO::getFifoGyroZ_rads(size_t *size,float* data) {
-=======
 void MPU9250::getFifoUncompensatedGyroZ_rads(size_t *size,float* data) {
->>>>>>> 02632b040fad4891fcc7ded81809a8a72fb4831c
   *size = _gSize;
   memcpy(data,_gzFifo,_gSize*sizeof(float));
 }
 
 /* returns the magnetometer FIFO size and data in the x direction, uT */
-<<<<<<< HEAD
-void MPU9250FIFO::getFifoMagX_uT(size_t *size,float* data) {
-=======
 void MPU9250::getFifoUncompensatedMagX_uT(size_t *size,float* data) {
->>>>>>> 02632b040fad4891fcc7ded81809a8a72fb4831c
   *size = _hSize;
   memcpy(data,_hxFifo,_hSize*sizeof(float));
 }
 
 /* returns the magnetometer FIFO size and data in the y direction, uT */
-<<<<<<< HEAD
-void MPU9250FIFO::getFifoMagY_uT(size_t *size,float* data) {
-=======
 void MPU9250::getFifoUncompensatedMagY_uT(size_t *size,float* data) {
->>>>>>> 02632b040fad4891fcc7ded81809a8a72fb4831c
   *size = _hSize;
   memcpy(data,_hyFifo,_hSize*sizeof(float));
 }
 
 /* returns the magnetometer FIFO size and data in the z direction, uT */
-<<<<<<< HEAD
-void MPU9250FIFO::getFifoMagZ_uT(size_t *size,float* data) {
-=======
 void MPU9250::getFifoUncompensatedMagZ_uT(size_t *size,float* data) {
->>>>>>> 02632b040fad4891fcc7ded81809a8a72fb4831c
   *size = _hSize;
   memcpy(data,_hzFifo,_hSize*sizeof(float));
 }
 
 /* returns the die temperature FIFO size and data, C */
-void MPU9250FIFO::getFifoTemperature_C(size_t *size,float* data) {
+void MPU9250::getFifoTemperature_C(size_t *size,float* data) {
   *size = _tSize;
   memcpy(data,_tFifo,_tSize*sizeof(float));  
 }
