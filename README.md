@@ -20,12 +20,14 @@ This library supports both I2C and SPI commmunication with the MPU-9250.
 Simply clone or download this library into your Arduino/libraries folder.
 
 ## Function Description
-This library supports both I2C and SPI communication with the MPU-9250. The *MPU9250* object declaration is overloaded with different declarations for I2C and SPI communication. All other functions remain the same. 
+This library supports both I2C and SPI communication with the MPU-9250. The *MPU9250* object declaration is overloaded with different declarations for I2C and SPI communication. All other functions remain the same. Additionally, a derived class, *MPU250FIFO*, is included, which provides FIFO setup and data collection functionality in addition to all of the functionality included in the base *MPU9250* class.  
+
+## MPU9250 Class
 
 ### I2C Object Declaration
 
 **MPU9250(TwoWire &bus,uint8_t address)**
-An MPU9250 object should be declared, specifying the I2C bus MPU-9250 I2C address. The MPU-9250 I2C address will be 0x68 if the AD0 pin is grounded or 0x69 if the AD0 pin is pulled high. For example, the following code declares an MPU9250 object called *IMU* with an MPU-9250 sensor located on I2C bus 0 with a sensor address of 0x68 (AD0 grounded).
+An MPU9250 object should be declared, specifying the I2C bus and MPU-9250 I2C address. The MPU-9250 I2C address will be 0x68 if the AD0 pin is grounded or 0x69 if the AD0 pin is pulled high. For example, the following code declares an MPU9250 object called *IMU* with an MPU-9250 sensor located on I2C bus 0 with a sensor address of 0x68 (AD0 grounded).
 
 ```C++
 MPU9250 IMU(Wire,0x68);
@@ -357,7 +359,7 @@ float hzs = 0.97; // mag scale factor of 0.97
 IMU.setMagCalZ(hzb,hzs);
 ```
 
-#### Wake on Motion and FIFO Setup
+#### Wake on Motion Setup
 
 **(optional) int enableWakeOnMotion(float womThresh_mg,LpAccelOdr odr)**
 This function enables the MPU-9250 wake on motion interrupt functionality. It places the MPU-9250 into a low power state, with the MPU-9250 waking up at an interval determined by the Low Power Accelerometer Output Data Rate. If the accelerometer detects motion in excess of the threshold given, it generates a 50us pulse from the MPU-9250 INT pin. The following enumerated Low Power Accelerometer Output Data Rates are supported:
@@ -381,13 +383,6 @@ The motion threshold is given as a float value between 0 and 1020 mg mapped, whi
 
 ```C++
 status = IMU.enableWakeOnMotion(400,MPU9250::LP_ACCEL_ODR_31_25HZ);
-```
-
-**(optional) int enableFifo(bool accel,bool gyro,bool mag,bool temp)**
-This function configures and enables the MPU-9250 FIFO buffer. This 512 byte buffer samples data at the data output rate set by the SRD and enables the microcontroller to bulk read the data, reducing microcontroller workload for certain applications. It is configured with a set of boolean values describing which data to buffer in the FIFO: accelerometer, gyroscope, magnetometer, or temperature. The accelerometer and gyroscope data each take 6 bytes of space per sample while the magnetometer takes 7 bytes of space and the temperature 2 bytes. It's important to select only the data sources desired to ensure that the FIFO does not overrun between reading it. For example, enabling all of the data sources would take 21 bytes per sample allowing the FIFO to hold only 24 samples before overflowing. If only the accelerometer data is needed, this increases to 85 samples before overflowing. This function returns a positive value on success and a negative value on failure. Please see the *FIFO_SPI example*. The following is an example of enabling the FIFO to buffer accelerometer and gyroscope data. 
-
-```C++
-status = IMU.enableFifo(true,true,false,false);
 ```
 
 ### Common Data Collection Functions
@@ -470,7 +465,36 @@ float temperature;
 temperature = IMU.getTemperature_C();
 ```
 
-#### FIFO Data Collection
+## MPU9250FIFO Class
+The *MPU9250FIFO* derived class extends the functionality provided by the *MPU9250* base class by providing support for setting up and reading the MPU-9250 FIFO buffer. All of the functions described above, as part of the *MPU9250* class are also available to the *MPU9250FIFO* class. 
+
+### I2C Object Declaration
+
+**MPU9250FIFO(TwoWire &bus,uint8_t address)**
+An MPU9250FIFO object should be declared, specifying the I2C bus and MPU-9250 I2C address. The MPU-9250 I2C address will be 0x68 if the AD0 pin is grounded or 0x69 if the AD0 pin is pulled high. For example, the following code declares an MPU9250FIFO object called *IMU* with an MPU-9250 sensor located on I2C bus 0 with a sensor address of 0x68 (AD0 grounded).
+
+```C++
+MPU9250FIFO IMU(Wire,0x68);
+```
+
+### SPI Object Declaratioon
+
+**MPU9250FIFO(SPIClass &bus,uint8_t csPin)**
+An MPU9250FIFO object should be declared, specifying the SPI bus and chip select pin used. Multiple MPU-9250 or other SPI objects could be used on the same SPI bus, each with their own chip select pin. The chip select pin can be any available digital pin. For example, the following code declares an MPU9250FIFO object called *IMU* with an MPU-9250 sensor located on SPI bus 0 with chip select pin 10.
+
+```C++
+MPU9250FIFO IMU(SPI,10);
+```
+
+### FIFO Setup
+**(optional) int enableFifo(bool accel,bool gyro,bool mag,bool temp)**
+This function configures and enables the MPU-9250 FIFO buffer. This 512 byte buffer samples data at the data output rate set by the SRD and enables the microcontroller to bulk read the data, reducing microcontroller workload for certain applications. It is configured with a set of boolean values describing which data to buffer in the FIFO: accelerometer, gyroscope, magnetometer, or temperature. The accelerometer and gyroscope data each take 6 bytes of space per sample while the magnetometer takes 7 bytes of space and the temperature 2 bytes. It's important to select only the data sources desired to ensure that the FIFO does not overrun between reading it. For example, enabling all of the data sources would take 21 bytes per sample allowing the FIFO to hold only 24 samples before overflowing. If only the accelerometer data is needed, this increases to 85 samples before overflowing. This function returns a positive value on success and a negative value on failure. Please see the *FIFO_SPI example*. The following is an example of enabling the FIFO to buffer accelerometer and gyroscope data. 
+
+```C++
+status = IMU.enableFifo(true,true,false,false);
+```
+
+### FIFO Data Collection
 **int readFifo()** reads the FIFO buffer from the MPU-9250, parses it and stores the data in buffers on the microcontroller. It should be called every time you would like to retrieve data from the FIFO buffer. This function returns a positive value on success and a negative value on failure.
 
 ```C++
