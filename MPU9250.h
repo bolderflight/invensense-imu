@@ -80,42 +80,34 @@ class MPU9250{
     int enableWakeOnMotion(float womThresh_mg,LpAccelOdr odr);
     int enableFifo(bool accel,bool gyro,bool mag,bool temp);
     int readSensor();
-    float getUncompensatedAccelX_mss();
-    float getUncompensatedAccelY_mss();
-    float getUncompensatedAccelZ_mss();
-    float getUncompensatedGyroX_rads();
-    float getUncompensatedGyroY_rads();
-    float getUncompensatedGyroZ_rads();
-    float getUncompensatedMagX_uT();
-    float getUncompensatedMagY_uT();
-    float getUncompensatedMagZ_uT();
+    float getAccelX_mss();
+    float getAccelY_mss();
+    float getAccelZ_mss();
+    float getGyroX_rads();
+    float getGyroY_rads();
+    float getGyroZ_rads();
+    float getMagX_uT();
+    float getMagY_uT();
+    float getMagZ_uT();
     float getTemperature_C();
     int readFifo();
-    void getFifoUncompensatedAccelX_mss(size_t *size,float* data);
-    void getFifoUncompensatedAccelY_mss(size_t *size,float* data);
-    void getFifoUncompensatedAccelZ_mss(size_t *size,float* data);
-    void getFifoUncompensatedGyroX_rads(size_t *size,float* data);
-    void getFifoUncompensatedGyroY_rads(size_t *size,float* data);
-    void getFifoUncompensatedGyroZ_rads(size_t *size,float* data);
-    void getFifoUncompensatedMagX_uT(size_t *size,float* data);
-    void getFifoUncompensatedMagY_uT(size_t *size,float* data);
-    void getFifoUncompensatedMagZ_uT(size_t *size,float* data);
+    void getFifoAccelX_mss(size_t *size,float* data);
+    void getFifoAccelY_mss(size_t *size,float* data);
+    void getFifoAccelZ_mss(size_t *size,float* data);
+    void getFifoGyroX_rads(size_t *size,float* data);
+    void getFifoGyroY_rads(size_t *size,float* data);
+    void getFifoGyroZ_rads(size_t *size,float* data);
+    void getFifoMagX_uT(size_t *size,float* data);
+    void getFifoMagY_uT(size_t *size,float* data);
+    void getFifoMagZ_uT(size_t *size,float* data);
     void getFifoTemperature_C(size_t *size,float* data);
-
     int calibrateGyro();
     float getGyroBiasX_rads();
     float getGyroBiasY_rads();
     float getGyroBiasZ_rads();
-    float getGyroVarX();
-    float getGyroStdX();
-    float getGyroVarY();
-    float getGyroStdY();
-    float getGyroVarZ();
-    float getGyroStdZ();
     void setGyroBiasX_rads(float bias);
     void setGyroBiasY_rads(float bias);
     void setGyroBiasZ_rads(float bias);
-
     int calibrateAccel();
     float getAccelBiasX_mss();
     float getAccelScaleFactorX();
@@ -136,14 +128,6 @@ class MPU9250{
     void setMagCalX(float bias,float scaleFactor);
     void setMagCalY(float bias,float scaleFactor);
     void setMagCalZ(float bias,float scaleFactor);
-
-    float getGyroX_rads();
-    float getGyroY_rads();
-    float getGyroZ_rads();
-
-    void getFifoGyroX_rads(size_t *size,float* data);
-    void getFifoGyroY_rads(size_t *size,float* data);
-    void getFifoGyroZ_rads(size_t *size,float* data);
   private:
     // i2c
     uint8_t _address;
@@ -197,12 +181,8 @@ class MPU9250{
     DlpfBandwidth _bandwidth;
     uint8_t _srd;
     // gyro bias estimation
-    size_t _numSamples;
-    size_t _count;
-    float _deltaGx, _deltaGy, _deltaGz;
-    float _delta2Gx, _delta2Gy, _delta2Gz;
-    float _M2Gx, _M2Gy, _M2Gz;
-    float _gxv, _gyv, _gzv;
+    size_t _numSamples = 100;
+    double _gxbD, _gybD, _gzbD;
     float _gxb, _gyb, _gzb;
     // accel bias and scale factor estimation
     double _axbD, _aybD, _azbD;
