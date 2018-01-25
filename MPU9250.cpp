@@ -316,8 +316,7 @@ int MPU9250::setDlpfBandwidth(DlpfBandwidth bandwidth) {
 int MPU9250::setSrd(uint8_t srd) {
   // use low speed SPI for register setting
   _useSPIHS = false;
-  /* setting the sample rate divider */
-  if(writeRegister(SMPDIV,srd) < 0){ // setting the sample rate divider
+  if(writeRegister(SMPDIV, 19) < 0){ // setting the sample rate divider to 19 to ensure that the following AK8963 related calls work
     return -1;
   } 
   if(srd > 9){
@@ -346,6 +345,10 @@ int MPU9250::setSrd(uint8_t srd) {
     delay(100); // long wait between AK8963 mode changes     
     // instruct the MPU9250 to get 7 bytes of data from the AK8963 at the sample rate
     readAK8963Registers(AK8963_HXL,7,_buffer);    
+  }
+  /* setting the sample rate divider */
+  if(writeRegister(SMPDIV,srd) < 0){ // setting the sample rate divider
+    return -1;
   } 
   _srd = srd;
   return 1; 
