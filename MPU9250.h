@@ -134,7 +134,7 @@ class MPU9250{
     // track success of interacting with sensor
     int _status;
     // buffer for reading from sensor
-    uint8_t _buffer[512];
+    uint8_t _buffer[21];
     // data counts
     int16_t _axcounts,_aycounts,_azcounts;
     int16_t _gxcounts,_gycounts,_gzcounts;
