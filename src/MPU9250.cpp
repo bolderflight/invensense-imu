@@ -435,6 +435,20 @@ int MPU9250FIFO::enableFifo(bool accel,bool gyro,bool mag,bool temp) {
   return 1;
 }
 
+
+int MPU9250::readSensor(Madgwick & filter) {
+	return readSensor(&filter);
+
+}
+int MPU9250::readSensor(Madgwick * filter) {
+	int retVal = readSensor();
+	if (retVal != 1) {
+		return retVal;
+	}
+	filter->update(_gx, _gy, _gz, _ax, _ay, _az, _hx, _hy, _hz);
+	return retVal;
+}
+
 /* reads the most current data from MPU9250 and stores in buffer */
 int MPU9250::readSensor() {
   _useSPIHS = true; // use the high speed SPI for data readout

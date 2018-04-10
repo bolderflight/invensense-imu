@@ -28,6 +28,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "Wire.h"    // I2C library
 #include "SPI.h"     // SPI library
 
+#include "util/MPUUtils.h"
+
 class MPU9250{
   public:
     enum GyroRange
@@ -79,6 +81,11 @@ class MPU9250{
     int disableDataReadyInterrupt();
     int enableWakeOnMotion(float womThresh_mg,LpAccelOdr odr);
     int readSensor();
+
+    // read sensor AND update Madgwick AHRS filter
+    int readSensor(Madgwick & filter);
+    int readSensor(Madgwick * filter);
+
     float getAccelX_mss();
     float getAccelY_mss();
     float getAccelZ_mss();
