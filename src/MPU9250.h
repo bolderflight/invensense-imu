@@ -72,7 +72,7 @@ class MPU9250{
     };
     MPU9250(TwoWire &bus,uint8_t address);
     MPU9250(SPIClass &bus,uint8_t csPin);
-    int begin();
+    int begin(bool autoInitComm=true);
     int setAccelRange(AccelRange range);
     int setGyroRange(GyroRange range);
     int setDlpfBandwidth(DlpfBandwidth bandwidth);

@@ -39,7 +39,7 @@ MPU9250::MPU9250(SPIClass &bus,uint8_t csPin){
 }
 
 /* starts communication with the MPU-9250 */
-int MPU9250::begin(){
+int MPU9250::begin(bool autoInitComm){
   if( _useSPI ) { // using SPI for communication
     // use low speed SPI for register setting
     _useSPIHS = false;
@@ -48,12 +48,18 @@ int MPU9250::begin(){
     // setting CS pin high
     digitalWrite(_csPin,HIGH);
     // begin SPI communication
-    _spi->begin();
+    if (autoInitComm) {
+    	_spi->begin();
+    }
   } else { // using I2C for communication
     // starting the I2C bus
-    _i2c->begin();
-    // setting the I2C clock
-    _i2c->setClock(_i2cRate);
+	  if (autoInitComm) {
+		  _i2c->begin();
+		  // setting the I2C clock
+	#ifndef MPU9250_API_I2C_SETCLOCK_UNAVAILABLE
+		  _i2c->setClock(_i2cRate);
+	#endif
+	  }
   }
   // select clock source to gyro
   if(writeRegister(PWR_MGMNT_1,CLOCK_SEL_PLL) < 0){
