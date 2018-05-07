@@ -29,7 +29,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #if defined(__MK20DX128__) || defined(__MK20DX256__) || defined(__MK64FX512__) || \
     defined(__MK66FX1M0__) || defined(__MKL26Z64__)
     #include "i2c_t3.h"     // I2C library
-    #define I2Ccom t3_i2c   // Changing reference
+    #define I2Ccom i2c_t3   // Changing reference
 #else
     #include "Wire.h"       // I2C library
     #define I2Ccom TwoWire  // Changing reference
