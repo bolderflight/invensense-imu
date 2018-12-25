@@ -755,7 +755,7 @@ int MPU9250::calibrateAccel() {
     _axs = G/((abs(_axmin) + abs(_axmax)) / 2.0f);
   }
   if ((abs(_aymin) > 9.0f) && (abs(_aymax) > 9.0f)) {
-    _ayb = (_axmin + _axmax) / 2.0f;
+    _ayb = (_aymin + _aymax) / 2.0f;
     _ays = G/((abs(_aymin) + abs(_aymax)) / 2.0f);
   }
   if ((abs(_azmin) > 9.0f) && (abs(_azmax) > 9.0f)) {
