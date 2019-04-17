@@ -161,12 +161,12 @@ class MPU9250{
     // gyro bias estimation
     size_t _numSamples = 100;
     double _gxbD, _gybD, _gzbD;
-    float _gxb, _gyb, _gzb;
+    float _gxb = 0.0f, _gyb = 0.0f, _gzb = 0.0f;
     // accel bias and scale factor estimation
     double _axbD, _aybD, _azbD;
     float _axmax, _aymax, _azmax;
     float _axmin, _aymin, _azmin;
-    float _axb, _ayb, _azb;
+    float _axb = 0.0f, _ayb = 0.0f, _azb = 0.0f;
     float _axs = 1.0f;
     float _ays = 1.0f;
     float _azs = 1.0f;
@@ -179,7 +179,7 @@ class MPU9250{
     float _hxfilt, _hyfilt, _hzfilt;
     float _hxmax, _hymax, _hzmax;
     float _hxmin, _hymin, _hzmin;
-    float _hxb, _hyb, _hzb;
+    float _hxb = 0.0f, _hyb = 0.0f, _hzb = 0.0f;
     float _hxs = 1.0f;
     float _hys = 1.0f;
     float _hzs = 1.0f;
