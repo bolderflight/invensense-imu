@@ -30,13 +30,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 class MPU9250{
   public:
-    enum GyroRange
-    {
-      GYRO_RANGE_250DPS,
-      GYRO_RANGE_500DPS,
-      GYRO_RANGE_1000DPS,
-      GYRO_RANGE_2000DPS
-    };
     enum AccelRange
     {
       ACCEL_RANGE_2G,
@@ -69,10 +62,8 @@ class MPU9250{
       LP_ACCEL_ODR_500HZ = 11
     };
     MPU9250(TwoWire &bus,uint8_t address);
-    MPU9250(SPIClass &bus,uint8_t csPin);
     int begin();
     int setAccelRange(AccelRange range);
-    int setGyroRange(GyroRange range);
     int setDlpfBandwidth(DlpfBandwidth bandwidth);
     int setSrd(uint8_t srd);
     int enableDataReadyInterrupt();
@@ -82,21 +73,7 @@ class MPU9250{
     float getAccelX_mss();
     float getAccelY_mss();
     float getAccelZ_mss();
-    float getGyroX_rads();
-    float getGyroY_rads();
-    float getGyroZ_rads();
-    float getMagX_uT();
-    float getMagY_uT();
-    float getMagZ_uT();
-    float getTemperature_C();
     
-    int calibrateGyro();
-    float getGyroBiasX_rads();
-    float getGyroBiasY_rads();
-    float getGyroBiasZ_rads();
-    void setGyroBiasX_rads(float bias);
-    void setGyroBiasY_rads(float bias);
-    void setGyroBiasZ_rads(float bias);
     int calibrateAccel();
     float getAccelBiasX_mss();
     float getAccelScaleFactorX();
@@ -107,62 +84,30 @@ class MPU9250{
     void setAccelCalX(float bias,float scaleFactor);
     void setAccelCalY(float bias,float scaleFactor);
     void setAccelCalZ(float bias,float scaleFactor);
-    int calibrateMag();
-    float getMagBiasX_uT();
-    float getMagScaleFactorX();
-    float getMagBiasY_uT();
-    float getMagScaleFactorY();
-    float getMagBiasZ_uT();
-    float getMagScaleFactorZ();
-    void setMagCalX(float bias,float scaleFactor);
-    void setMagCalY(float bias,float scaleFactor);
-    void setMagCalZ(float bias,float scaleFactor);
   protected:
     // i2c
     uint8_t _address;
     TwoWire *_i2c;
     const uint32_t _i2cRate = 400000; // 400 kHz
     size_t _numBytes; // number of bytes received from I2C
-    // spi
-    SPIClass *_spi;
-    uint8_t _csPin;
-    bool _useSPI;
-    bool _useSPIHS;
-    const uint8_t SPI_READ = 0x80;
-    const uint32_t SPI_LS_CLOCK = 1000000;  // 1 MHz
-    const uint32_t SPI_HS_CLOCK = 15000000; // 15 MHz
     // track success of interacting with sensor
     int _status;
     // buffer for reading from sensor
-    uint8_t _buffer[21];
+    uint8_t _buffer[6];
     // data counts
     int16_t _axcounts,_aycounts,_azcounts;
-    int16_t _gxcounts,_gycounts,_gzcounts;
-    int16_t _hxcounts,_hycounts,_hzcounts;
-    int16_t _tcounts;
     // data buffer
     float _ax, _ay, _az;
-    float _gx, _gy, _gz;
-    float _hx, _hy, _hz;
-    float _t;
     // wake on motion
     uint8_t _womThreshold;
     // scale factors
     float _accelScale;
-    float _gyroScale;
-    float _magScaleX, _magScaleY, _magScaleZ;
-    const float _tempScale = 333.87f;
-    const float _tempOffset = 21.0f;
     // configuration
     AccelRange _accelRange;
-    GyroRange _gyroRange;
     DlpfBandwidth _bandwidth;
     uint8_t _srd;
-    // gyro bias estimation
-    size_t _numSamples = 100;
-    double _gxbD, _gybD, _gzbD;
-    float _gxb = 0.0f, _gyb = 0.0f, _gzb = 0.0f;
     // accel bias and scale factor estimation
+    size_t _numSamples = 100;
     double _axbD, _aybD, _azbD;
     float _axmax, _aymax, _azmax;
     float _axmin, _aymin, _azmin;
@@ -170,20 +115,6 @@ class MPU9250{
     float _axs = 1.0f;
     float _ays = 1.0f;
     float _azs = 1.0f;
-    // magnetometer bias and scale factor estimation
-    uint16_t _maxCounts = 1000;
-    float _deltaThresh = 0.3f;
-    uint8_t _coeff = 8;
-    uint16_t _counter;
-    float _framedelta, _delta;
-    float _hxfilt, _hyfilt, _hzfilt;
-    float _hxmax, _hymax, _hzmax;
-    float _hxmin, _hymin, _hzmin;
-    float _hxb = 0.0f, _hyb = 0.0f, _hzb = 0.0f;
-    float _hxs = 1.0f;
-    float _hys = 1.0f;
-    float _hzs = 1.0f;
-    float _avgs;
     // transformation matrix
     /* transform the accel and gyro axes to match the magnetometer axes */
     const int16_t tX[3] = {0,  1,  0}; 
@@ -278,34 +209,4 @@ class MPU9250{
     int whoAmI();
     int whoAmIAK8963();
 };
-
-class MPU9250FIFO: public MPU9250 {
-  public:
-    using MPU9250::MPU9250;
-    int enableFifo(bool accel,bool gyro,bool mag,bool temp);
-    int readFifo();
-    void getFifoAccelX_mss(size_t *size,float* data);
-    void getFifoAccelY_mss(size_t *size,float* data);
-    void getFifoAccelZ_mss(size_t *size,float* data);
-    void getFifoGyroX_rads(size_t *size,float* data);
-    void getFifoGyroY_rads(size_t *size,float* data);
-    void getFifoGyroZ_rads(size_t *size,float* data);
-    void getFifoMagX_uT(size_t *size,float* data);
-    void getFifoMagY_uT(size_t *size,float* data);
-    void getFifoMagZ_uT(size_t *size,float* data);
-    void getFifoTemperature_C(size_t *size,float* data);
-  protected:
-    // fifo
-    bool _enFifoAccel,_enFifoGyro,_enFifoMag,_enFifoTemp;
-    size_t _fifoSize,_fifoFrameSize;
-    float _axFifo[85], _ayFifo[85], _azFifo[85];
-    size_t _aSize;
-    float _gxFifo[85], _gyFifo[85], _gzFifo[85];
-    size_t _gSize;
-    float _hxFifo[73], _hyFifo[73], _hzFifo[73];
-    size_t _hSize;
-    float _tFifo[256];
-    size_t _tSize;
-};
-
 #endif
