@@ -25,6 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #define MPU9250_h
 
 #include "Arduino.h"
+
 // Teensy 3.0 || Teensy 3.1/3.2 || Teensy 3.5 || Teensy 3.6 || Teensy LC 
 #if defined(__MK20DX128__) || defined(__MK20DX256__) || defined(__MK64FX512__) || \
     defined(__MK66FX1M0__) || defined(__MKL26Z64__)
@@ -33,7 +34,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #else
     #include "Wire.h"       // I2C library
     #define I2Ccom TwoWire  // Changing reference
+    //#define I2Ccom Wire0
+    //#define I2Ccom Wire1
 #endif
+
+//#include "Wire.h"       // I2C library
+//#define I2Ccom TwoWire  // Changing reference
 #include "SPI.h"     // SPI library
 
 class MPU9250{
