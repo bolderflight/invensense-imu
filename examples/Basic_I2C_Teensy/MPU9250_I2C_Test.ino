@@ -42,7 +42,7 @@ void setup() {
   // Permalink to info on i2c pin selection
   // https://github.com/nox771/i2c_t3/blob/1a482d9f85bfebcd526e68fdea1c99cf83d7c85b/i2c_t3.h#L222
   // If you wish to modify default i2c settings you will need to call Wire.begin here seperately
-  // with the additional arguments that you wish to pass in.gi
+  // with the additional arguments that you wish to pass in.
   // Setup for Master mode, pins 18/19, external pullups, 400kHz, 200ms default timeout
   //Wire.begin(I2C_MASTER, 0x00, I2C_PINS_18_19, I2C_PULLUP_EXT, 400000);
   //Wire2.begin(I2C_MASTER, 0x00, I2C_PINS_3_4, I2C_PULLUP_EXT, 400000);
