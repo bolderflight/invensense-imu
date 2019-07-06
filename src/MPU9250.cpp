@@ -51,19 +51,10 @@ int MPU9250::begin(){
     // begin SPI communication
     _spi->begin();
   } else { // using I2C for communication
-    #if defined(__MK20DX128__) || defined(__MK20DX256__) || defined(__MK64FX512__) || \
-      defined(__MK66FX1M0__) || defined(__MKL26Z64__)
-      //_i2c->begin(I2C_MASTER, 0x00, I2C_PINS_18_19, I2C_PULLUP_EXT, 100000);
-      //_i2c->begin(I2C_MASTER, 0x00, I2C_PINS_18_19, I2C_PULLUP_EXT, 400000);
-      _i2c->begin(I2C_MASTER, 0x00, I2C_PINS_3_4, I2C_PULLUP_EXT, 400000);
-      //_i2c->begin(I2C_MASTER, 0x00, I2C_PINS_3_4, I2C_PULLUP_EXT, 100000);
-      _i2c->setDefaultTimeout(200000); // 200ms
-    #else
-      // starting the I2C bus
-      _i2c->begin();
-      // setting the I2C clock
-      _i2c->setClock(_i2cRate);
-    #endif
+    // starting the I2C bus
+    _i2c->begin();
+    // setting the I2C clock
+    _i2c->setClock(_i2cRate);
   }
   // select clock source to gyro
   if(writeRegister(PWR_MGMNT_1,CLOCK_SEL_PLL) < 0){

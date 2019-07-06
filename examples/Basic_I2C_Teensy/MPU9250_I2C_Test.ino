@@ -24,7 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "Arduino.h"
 #include "MPU9250.h"
 
-// an MPU9250 object with the MPU-9250 sensor on I2C bus 0 with address 0x68
+// an MPU9250 object with the MPU-9250 sensor on I2C bus 2 with address 0x68
 //MPU9250 IMU(Wire,0x68);
 MPU9250 IMU(Wire2,0x68);
 int status;
@@ -36,11 +36,17 @@ void setup() {
 
   Serial.println("Serial COM Opened");
 
-  //Serial.println("Initializing I2C");
+  Serial.println("Initializing I2C");
+  // When if using i2c_t3 refer to the i2c_t3 library for configuration info
+  // https://github.com/nox771/i2c_t3
+  // Permalink to info on i2c pin selection
+  // https://github.com/nox771/i2c_t3/blob/1a482d9f85bfebcd526e68fdea1c99cf83d7c85b/i2c_t3.h#L222
   // Setup for Master mode, pins 18/19, external pullups, 400kHz, 200ms default timeout
   //Wire.begin(I2C_MASTER, 0x00, I2C_PINS_18_19, I2C_PULLUP_EXT, 400000);
-  //Wire.begin(I2C_MASTER, 0x00, I2C_PINS_3_4, I2C_PULLUP_EXT, 400000);
-  //Wire.setDefaultTimeout(200000); // 200ms
+  //Wire2.begin(I2C_MASTER, 0x00, I2C_PINS_3_4, I2C_PULLUP_EXT, 400000);
+  //Wire2.setDefaultTimeout(200000); // 200ms
+  //Wire.begin(I2C_MASTER, 0x00, I2C_PINS_16_17, I2C_PULLUP_EXT, 400000);
+  Wire.setDefaultTimeout(200000); // 200ms
 
    Serial.println("Initializing IMU");
   // start communication with IMU 
