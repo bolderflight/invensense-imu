@@ -1,0 +1,458 @@
+/*
+* Brian R Taylor
+* brian.taylor@bolderflight.com
+* 
+* Copyright (c) 2020 Bolder Flight Systems
+*/
+
+#include "mpu9250/mpu9250.h"
+#include "types/types.h"
+#include "core/core.h"
+
+Mpu9250::Mpu9250(i2c_t3 &bus, uint8_t addr) {
+  iface_ = I2C;
+  i2c_ = &bus;
+  conn_ = addr;
+}
+Mpu9250::Mpu9250(SPIClass &bus, uint8_t cs) {
+  iface_ = SPI;
+  spi_ = &bus;
+  conn_ = cs;
+}
+bool Mpu9250::Begin() {
+  if (iface_ == I2C) {
+    i2c_->begin();
+    i2c_->setClock(I2C_CLOCK_);
+  } else {
+    pinMode(conn_, OUTPUT);
+    digitalWriteFast(conn_, HIGH);
+    spi_->begin();
+  }
+  spi_clock_ = 1000000;
+  /* Select clock source to gyro */
+  if (!WriteRegister(PWR_MGMNT_1_, CLKSEL_PLL_)) {
+    return false;
+  }
+  /* Check the WHO AM I byte */
+  uint8_t who_am_i;
+  if (!ReadRegisters(WHOAMI_, sizeof(who_am_i), &who_am_i)) {
+    return false;
+  }
+  if ((who_am_i != WHOAMI_MPU9250_) && (who_am_i != WHOAMI_MPU9255_)) {
+    return false;
+  }
+  /* Set the accel range to 16G by default */
+  if (!accel_range(ACCEL_RANGE_16G)) {
+    return false;
+  }
+  /* Set the gyro range to 2000DPS by default*/
+  if (!gyro_range(GYRO_RANGE_2000DPS)) {
+    return false;
+  }
+  /* Set the DLPF to 20HZ by default */
+  if (!dlpf_bandwidth(DLPF_BANDWIDTH_20HZ)) {
+    return false;
+  }
+  /* Set the SRD to 0 by default */
+  if (!sample_rate_divider(0)) {
+    return false;
+  }
+  return true;
+}
+bool Mpu9250::EnableDrdyInt() {
+  spi_clock_ = 1000000;
+  if (!WriteRegister(INT_PIN_CFG_, INT_PULSE_50US_)) {
+    return false;
+  }
+  if (!WriteRegister(INT_ENABLE_, INT_RAW_RDY_EN_)) {
+    return false;
+  }
+  return true;
+}
+bool Mpu9250::DisableDrdyInt() {
+  spi_clock_ = 1000000;
+  if (!WriteRegister(INT_ENABLE_, INT_DISABLE_)) {
+    return false;
+  }
+  return true;
+}
+bool Mpu9250::EnableMag() {
+  /* Enable I2C master mode */
+  if (!WriteRegister(USER_CTRL_, I2C_MST_EN_)){
+    return false;
+  }
+  /* Set the I2C bus speed to 400 kHz */
+  if (!WriteRegister(I2C_MST_CTRL_, I2C_MST_CLK_)){
+    return false;
+  }
+  /* Check the AK8963 WHOAMI */
+  uint8_t who_am_i;
+  if (!ReadAk8963Registers(AK8963_WHOAMI_, sizeof(who_am_i), &who_am_i)) {
+    return false;
+  }
+  if (who_am_i != WHOAMI_AK8963_) {
+    return false;
+  }
+  /* Get the magnetometer calibration */
+  /* Set AK8963 to power down */
+  if (!WriteAk8963Register(AK8963_CNTL1_, AK8963_PWR_DOWN_)){
+    return false;
+  }
+  delay(100);  // long wait between AK8963 mode changes
+  /* Set AK8963 to FUSE ROM access */
+  if(!WriteAk8963Register(AK8963_CNTL1_, AK8963_FUSE_ROM_)){
+    return false;
+  }
+  delay(100);  // long wait between AK8963 mode changes
+  /* Read the AK8963 ASA registers and compute magnetometer scale factors */
+  uint8_t asa_buff[3];
+  if(!ReadAk8963Registers(AK8963_ASA_, sizeof(asa_buff), asa_buff)) {
+    return false;
+  }
+  mag_scale_[0] = (((float) asa_buff[0] - 128.0f) / 256.0f + 1.0f) * 4912.0f / 32760.0f;
+  mag_scale_[1] = (((float) asa_buff[1] - 128.0f) / 256.0f + 1.0f) * 4912.0f / 32760.0f;
+  mag_scale_[2] = (((float) asa_buff[2] - 128.0f) / 256.0f + 1.0f) * 4912.0f / 32760.0f;
+  /* Set AK8963 to power down */
+  if (!WriteAk8963Register(AK8963_CNTL1_, AK8963_PWR_DOWN_)){
+    return false;
+  }
+  /* Set AK8963 to 16 bit resolution, 100 Hz update rate */
+  if (!WriteAk8963Register(AK8963_CNTL1_, AK8963_CNT_MEAS2_)){
+    return false;
+  }
+  delay(100);  // long wait between AK8963 mode changes
+  /* Instruct the MPU9250 to get 7 bytes of data from the AK8963 at the sample rate */
+  uint8_t mag_data[7];
+  if (!ReadAk8963Registers(AK8963_HXL_, sizeof(mag_data), mag_data)) {
+    return false;
+  }
+  use_mag_ = true;
+  return true;
+}
+bool Mpu9250::DisableMag() {
+  use_mag_ = false;
+  return true;
+}
+void Mpu9250::rotation(Eigen::Matrix3f c) {
+  rotation_ = c;
+}
+Eigen::Matrix3f Mpu9250::rotation() {
+  return rotation_;
+}
+bool Mpu9250::accel_range(AccelRange range) {
+  AccelRange requested_range;
+  float requested_scale;
+  spi_clock_ = 1000000;
+  /* Check input is valid and set requested range and scale */
+  switch (range) {
+    case ACCEL_RANGE_2G: {
+      requested_range = range;
+      requested_scale = 2.0f / 32767.5f;
+      break;
+    }
+    case ACCEL_RANGE_4G: {
+      requested_range = range;
+      requested_scale = 4.0f / 32767.5f;
+      break;
+    }
+    case ACCEL_RANGE_8G: {
+      requested_range = range;
+      requested_scale = 8.0f / 32767.5f;
+      break;
+    }
+    case ACCEL_RANGE_16G: {
+      requested_range = range;
+      requested_scale = 16.0f / 32767.5f;
+      break;
+    }
+    default: {
+      return false;
+    }
+  }
+  /* Try setting the requested range */
+  if (!WriteRegister(ACCEL_CONFIG_, requested_range)) {
+    return false;
+  }
+  /* Update stored range and scale */
+  accel_range_ = requested_range;
+  accel_scale_ = requested_scale;
+  return true;
+}
+Mpu9250::AccelRange Mpu9250::accel_range() {
+  return accel_range_;
+}
+bool Mpu9250::gyro_range(GyroRange range) {
+  GyroRange requested_range;
+  float requested_scale;
+  spi_clock_ = 1000000;
+  /* Check input is valid and set requested range and scale */
+  switch (range) {
+    case GYRO_RANGE_250DPS: {
+      requested_range = range;
+      requested_scale = 250.0f / 32767.5f;
+      break;
+    }
+    case GYRO_RANGE_500DPS: {
+      requested_range = range;
+      requested_scale = 500.0f / 32767.5f;
+      break;
+    }
+    case GYRO_RANGE_1000DPS: {
+      requested_range = range;
+      requested_scale = 1000.0f / 32767.5f;
+      break;
+    }
+    case GYRO_RANGE_2000DPS: {
+      requested_range = range;
+      requested_scale = 2000.0f / 32767.5f;
+      break;
+    }
+    default: {
+      return false;
+    }
+  }
+  /* Try setting the requested range */
+  if (!WriteRegister(GYRO_CONFIG_, requested_range)) {
+    return false;
+  }
+  /* Update stored range and scale */
+  gyro_range_ = requested_range;
+  gyro_scale_ = requested_scale;
+  return true;
+}
+Mpu9250::GyroRange Mpu9250::gyro_range() {
+  return gyro_range_;
+}
+bool Mpu9250::sample_rate_divider(uint8_t srd) {
+  spi_clock_ = 1000000;
+  if (!WriteRegister(SMPLRT_DIV_, srd)) {
+    return false;
+  }
+  srd_ = srd;
+  return true;
+}
+uint8_t Mpu9250::sample_rate_divider() {
+  return srd_;
+}
+bool Mpu9250::dlpf_bandwidth(DlpfBandwidth dlpf) {
+  DlpfBandwidth requested_dlpf;
+  spi_clock_ = 1000000;
+  /* Check input is valid and set requested dlpf */
+  switch (dlpf) {
+    case DLPF_BANDWIDTH_184HZ: {
+      requested_dlpf = dlpf;
+      break;
+    }
+    case DLPF_BANDWIDTH_92HZ: {
+      requested_dlpf = dlpf;
+      break;
+    }
+    case DLPF_BANDWIDTH_41HZ: {
+      requested_dlpf = dlpf;
+      break;
+    }
+    case DLPF_BANDWIDTH_20HZ: {
+      requested_dlpf = dlpf;
+      break;
+    }
+    case DLPF_BANDWIDTH_10HZ: {
+      requested_dlpf = dlpf;
+      break;
+    }
+    case DLPF_BANDWIDTH_5HZ: {
+      requested_dlpf = dlpf;
+      break;
+    }
+    default: {
+      return false;
+    }
+  }
+  /* Try setting the dlpf */
+  if (!WriteRegister(ACCEL_CONFIG2_, requested_dlpf)) {
+    return false;
+  }
+  if (!WriteRegister(CONFIG_, requested_dlpf)) {
+    return false;
+  }
+  /* Update stored dlpf */
+  dlpf_bandwidth_ = requested_dlpf;
+  return true;
+}
+Mpu9250::DlpfBandwidth Mpu9250::dlpf_bandwidth() {
+  return dlpf_bandwidth_;
+}
+void Mpu9250::DrdyCallback(uint8_t int_pin, void (*function)()) {
+  pinMode(int_pin, INPUT);
+  attachInterrupt(int_pin, function, RISING);
+}
+bool Mpu9250::ReadSensor() {
+  spi_clock_ = 20000000;
+  if (use_mag_) {
+    /* Read the data registers */
+    uint8_t data_buff[22];
+    if (!ReadRegisters(INT_STATUS_, sizeof(data_buff), data_buff)) {
+      return false;
+    }
+    /* Check if data is ready */
+    bool data_ready = (data_buff[0] & RAW_DATA_RDY_INT_);
+    if (!data_ready) {
+      return false;
+    }
+    /* Unpack the buffer */
+    int16_t accel_counts[3], gyro_counts[3], temp_counts, mag_counts[3];
+    accel_counts[0] = (int16_t) data_buff[1] << 8 | data_buff[2];
+    accel_counts[1] = (int16_t) data_buff[3] << 8 | data_buff[4];
+    accel_counts[2] = (int16_t) data_buff[5] << 8 | data_buff[6];
+    temp_counts =     (int16_t) data_buff[7] << 8 | data_buff[8];
+    gyro_counts[0] =  (int16_t) data_buff[9] << 8 | data_buff[10];
+    gyro_counts[1] =  (int16_t) data_buff[11] << 8 | data_buff[12];
+    gyro_counts[2] =  (int16_t) data_buff[13] << 8 | data_buff[14];
+    mag_counts[0] =   (int16_t) data_buff[16] << 8 | data_buff[15];
+    mag_counts[1] =   (int16_t) data_buff[18] << 8 | data_buff[17];
+    mag_counts[2] =   (int16_t) data_buff[20] << 8 | data_buff[19];
+    /* Convert to float values and rotate the accel / gyro axis */
+    Eigen::Vector3f accel, gyro, mag;
+    float temp;
+    accel(1) = (float) accel_counts[0] * accel_scale_;
+    accel(0) = (float) accel_counts[1] * accel_scale_;
+    accel(2) = (float) accel_counts[2] * accel_scale_ * -1.0f;
+    temp =    ((float) temp_counts - 21.0f) / temp_scale_ + 21.0f;
+    gyro(1) =  (float) gyro_counts[0] * gyro_scale_;
+    gyro(0) =  (float) gyro_counts[1] * gyro_scale_;
+    gyro(2) =  (float) gyro_counts[2] * gyro_scale_ * -1.0f;
+    mag(0) =   (float) mag_counts[0] * mag_scale_[0];
+    mag(1) =   (float) mag_counts[1] * mag_scale_[1];
+    mag(2) =   (float) mag_counts[2] * mag_scale_[2];
+    /* Apply rotation and store values */
+    imu_.accel.g(rotation_ * accel);
+    imu_.gyro.dps(rotation_ * gyro);
+    die_temperature_.c(temp);
+    mag_.t(rotation_ * mag);
+    return true;
+  } else {
+    /* Read the data registers */
+    uint8_t data_buff[15];
+    if (!ReadRegisters(INT_STATUS_, sizeof(data_buff), data_buff)) {
+      return false;
+    }
+    /* Check if data is ready */
+    bool data_ready = (data_buff[0] & RAW_DATA_RDY_INT_);
+    if (!data_ready) {
+      return false;
+    }
+    /* Unpack the buffer */
+    int16_t accel_counts[3], gyro_counts[3], temp_counts;
+    accel_counts[0] = (int16_t) data_buff[1] << 8 | data_buff[2];
+    accel_counts[1] = (int16_t) data_buff[3] << 8 | data_buff[4];
+    accel_counts[2] = (int16_t) data_buff[5] << 8 | data_buff[6];
+    temp_counts =     (int16_t) data_buff[7] << 8 | data_buff[8];
+    gyro_counts[0] =  (int16_t) data_buff[9] << 8 | data_buff[10];
+    gyro_counts[1] =  (int16_t) data_buff[11] << 8 | data_buff[12];
+    gyro_counts[2] =  (int16_t) data_buff[13] << 8 | data_buff[14];
+    /* Convert to float values and rotate the accel / gyro axis */
+    Eigen::Vector3f accel, gyro;
+    float temp;
+    accel(1) = (float) accel_counts[0] * accel_scale_;
+    accel(0) = (float) accel_counts[1] * accel_scale_;
+    accel(2) = (float) accel_counts[2] * accel_scale_ * -1.0f;
+    temp =    ((float) temp_counts - 21.0f) / temp_scale_ + 21.0f;
+    gyro(1) =  (float) gyro_counts[0] * gyro_scale_;
+    gyro(0) =  (float) gyro_counts[1] * gyro_scale_;
+    gyro(2) =  (float) gyro_counts[2] * gyro_scale_ * -1.0f;
+    /* Apply rotation and store values */
+    imu_.accel.g(rotation_ * accel);
+    imu_.gyro.dps(rotation_ * gyro);
+    die_temperature_.c(temp);
+    return true;
+  }
+}
+Imu Mpu9250::imu() {
+  return imu_;
+}
+Temperature Mpu9250::die_temperature() {
+  return die_temperature_;
+}
+Mag Mpu9250::mag() {
+  return mag_;
+}
+bool Mpu9250::WriteRegister(uint8_t reg, uint8_t data) {
+  uint8_t ret_val;
+  if (iface_ == I2C) {
+    i2c_->beginTransmission(conn_);
+    i2c_->write(reg);
+    i2c_->write(data);
+    i2c_->endTransmission();
+  } else {
+    spi_->beginTransaction(SPISettings(spi_clock_, MSBFIRST, SPI_MODE3));
+    digitalWriteFast(conn_, LOW);
+    spi_->transfer(reg);
+    spi_->transfer(data);
+    digitalWriteFast(conn_, HIGH);
+    spi_->endTransaction();
+  }
+  delay(10);
+  ReadRegisters(reg, sizeof(ret_val), &ret_val);
+  if (data == ret_val) {
+    return true;
+  } else {
+    return false;
+  }
+}
+bool Mpu9250::ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data) {
+  if (iface_ == I2C) {
+    i2c_->beginTransmission(conn_);
+    i2c_->write(reg);
+    i2c_->endTransmission(false);
+    uint8_t bytes_rx = i2c_->requestFrom(conn_, count);
+    if (bytes_rx == count) {
+      i2c_->read(data, count);
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    spi_->beginTransaction(SPISettings(spi_clock_, MSBFIRST, SPI_MODE3));
+    digitalWriteFast(conn_, LOW);
+    spi_->transfer(reg | SPI_READ_);
+    spi_->transfer(data, count);
+    digitalWriteFast(conn_, HIGH);
+    spi_->endTransaction();
+    return true;
+  }
+}
+bool Mpu9250::WriteAk8963Register(uint8_t reg, uint8_t data) {
+  uint8_t ret_val;
+  if (!WriteRegister(I2C_SLV0_ADDR_, AK8963_I2C_ADDR_)) {
+    return false;
+  }
+  if (!WriteRegister(I2C_SLV0_REG_, reg)) {
+    return false;
+  }
+  if (!WriteRegister(I2C_SLV0_DO_, data)) {
+    return false;
+  }
+	if (!WriteRegister(I2C_SLV0_CTRL_, I2C_SLV0_EN_ | sizeof(data))) {
+    return false;
+  }
+	if (!ReadAk8963Registers(reg, sizeof(ret_val), &ret_val)) {
+    return false;
+  }
+  if (data == ret_val) {
+    return true;
+  } else {
+    return false;
+  }
+}
+bool Mpu9250::ReadAk8963Registers(uint8_t reg, uint8_t count, uint8_t *data) {
+  if (!WriteRegister(I2C_SLV0_ADDR_, AK8963_I2C_ADDR_ | I2C_READ_FLAG_)) {
+    return false;
+  }
+  if (!WriteRegister(I2C_SLV0_REG_, reg)) {
+    return false;
+  }
+  if (!WriteRegister(I2C_SLV0_CTRL_, I2C_SLV0_EN_ | count)) {
+    return false;
+  }  
+  delay(1);
+  return ReadRegisters(EXT_SENS_DATA_00_, count, data);
+}
