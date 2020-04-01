@@ -16,7 +16,7 @@ macro (configMcu MCU)
     # Compile options
     add_compile_options(
       $<$<COMPILE_LANGUAGE:C>:-std=c11>
-      $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>
+      $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>
       $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
       $<$<COMPILE_LANGUAGE:CXX>:-felide-constructors>
       $<$<COMPILE_LANGUAGE:CXX>:-Wno-error=narrowing>
@@ -62,7 +62,7 @@ macro (configMcu MCU)
     # Compile options
     add_compile_options(
       $<$<COMPILE_LANGUAGE:C>:-std=c11>
-      $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>
+      $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>
       $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
       $<$<COMPILE_LANGUAGE:CXX>:-felide-constructors>
       $<$<COMPILE_LANGUAGE:CXX>:-Wno-error=narrowing>
@@ -108,7 +108,7 @@ macro (configMcu MCU)
     # Compile options
     add_compile_options(
       $<$<COMPILE_LANGUAGE:C>:-std=c11>
-      $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>
+      $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>
       $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
       $<$<COMPILE_LANGUAGE:CXX>:-felide-constructors>
       $<$<COMPILE_LANGUAGE:CXX>:-Wno-error=narrowing>
@@ -158,7 +158,7 @@ macro (configMcu MCU)
     # Compile options
     add_compile_options(
       $<$<COMPILE_LANGUAGE:C>:-std=c11>
-      $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>
+      $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>
       $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
       $<$<COMPILE_LANGUAGE:CXX>:-felide-constructors>
       $<$<COMPILE_LANGUAGE:CXX>:-Wno-error=narrowing>
@@ -208,7 +208,7 @@ macro (configMcu MCU)
     # Compile options
     add_compile_options(
       $<$<COMPILE_LANGUAGE:C>:-std=c11>
-      $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>
+      $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>
       $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
       $<$<COMPILE_LANGUAGE:CXX>:-felide-constructors>
       $<$<COMPILE_LANGUAGE:CXX>:-Wno-error=narrowing>
