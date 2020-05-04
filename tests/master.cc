@@ -10,8 +10,6 @@
 #include "serial_link/serial_link.h"
 #include "gtest/gtest.h"
 
-
-
 TEST(Mpu9250, BeginSpi) {
   /* Reset mcu */
   system("mcu_reset");
@@ -21,7 +19,7 @@ TEST(Mpu9250, BeginSpi) {
   SerialLink link(serial);
   RemoteTestMaster test(link);
   /* Command test */
-  bool result = test.Test(2, 1);
+  bool result = test.Test(1, 1);
   EXPECT_TRUE(result);
 }
 

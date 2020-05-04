@@ -11,10 +11,8 @@
 #include "serial_link/serial_link.h"
 #include "mcu_hil_defs/mcu_hil_defs.h"
 
-void yield() {}
-
 bool TestBeginSpi() {
-  sensors::Mpu9250 mpu(&MPU9250_SPI, 10);
+  sensors::Mpu9250 mpu(&MPU9250_SPI, MPU9250_SPI_CS);
   bool status = mpu.Begin();
   return status;
 }
@@ -24,7 +22,7 @@ int main() {
   UsbSerialLink link(Serial);
   RemoteTestSlave test(link);
   /* Registering tests */
-  test.AddTest(2, TestBeginSpi);
+  test.AddTest(1, TestBeginSpi);
   while (1) {
     /* Check for new tests */
     test.Check();

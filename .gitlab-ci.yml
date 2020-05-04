@@ -1,8 +1,17 @@
 stages:
+  - lint
   - build
   - upload
   - test
 
+Lint:
+  stage: lint
+  tags:
+    - bfs
+  script: 
+    - cpplint.py --verbose=0 src/mpu9250/mpu9250.cc
+    - cpplint.py --verbose=0 include/mpu9250/mpu9250.h
+  
 Compile:
   stage: build
   tags:
