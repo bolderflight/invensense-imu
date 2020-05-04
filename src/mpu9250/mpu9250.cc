@@ -9,14 +9,16 @@
 #include "types/types.h"
 #include "core/core.h"
 
-Mpu9250::Mpu9250(i2c_t3 &bus, uint8_t addr) {
+namespace sensors {
+
+Mpu9250::Mpu9250(i2c_t3 *bus, uint8_t addr) {
   iface_ = I2C;
-  i2c_ = &bus;
+  i2c_ = bus;
   conn_ = addr;
 }
-Mpu9250::Mpu9250(SPIClass &bus, uint8_t cs) {
+Mpu9250::Mpu9250(SPIClass *bus, uint8_t cs) {
   iface_ = SPI;
-  spi_ = &bus;
+  spi_ = bus;
   conn_ = cs;
 }
 bool Mpu9250::Begin() {
@@ -33,12 +35,87 @@ bool Mpu9250::Begin() {
   if (!WriteRegister(PWR_MGMNT_1_, CLKSEL_PLL_)) {
     return false;
   }
+  /* Enable I2C master mode */
+  if (!WriteRegister(USER_CTRL_, I2C_MST_EN_)) {
+    return false;
+  }
+  /* Set the I2C bus speed to 400 kHz */
+  if (!WriteRegister(I2C_MST_CTRL_, I2C_MST_CLK_)) {
+    return false;
+  }
+  /* Set AK8963 to power down */
+  WriteAk8963Register(AK8963_CNTL1_, AK8963_PWR_DOWN_);
+  /* Reset the MPU9250 */
+  WriteRegister(PWR_MGMNT_1_, H_RESET_);
+  /* Wait for MPU-9250 to come back up */
+  delay(1);
+  /* Reset the AK8963 */
+  WriteAk8963Register(AK8963_CNTL2_, AK8963_RESET_);
+  /* Select clock source to gyro */
+  if (!WriteRegister(PWR_MGMNT_1_, CLKSEL_PLL_)) {
+    return false;
+  }
   /* Check the WHO AM I byte */
   uint8_t who_am_i;
   if (!ReadRegisters(WHOAMI_, sizeof(who_am_i), &who_am_i)) {
     return false;
   }
   if ((who_am_i != WHOAMI_MPU9250_) && (who_am_i != WHOAMI_MPU9255_)) {
+    return false;
+  }
+  /* Enable I2C master mode */
+  if (!WriteRegister(USER_CTRL_, I2C_MST_EN_)) {
+    return false;
+  }
+  /* Set the I2C bus speed to 400 kHz */
+  if (!WriteRegister(I2C_MST_CTRL_, I2C_MST_CLK_)) {
+    return false;
+  }
+  /* Check the AK8963 WHOAMI */
+  if (!ReadAk8963Registers(AK8963_WHOAMI_, sizeof(who_am_i), &who_am_i)) {
+    return false;
+  }
+  if (who_am_i != WHOAMI_AK8963_) {
+    return false;
+  }
+  /* Get the magnetometer calibration */
+  /* Set AK8963 to power down */
+  if (!WriteAk8963Register(AK8963_CNTL1_, AK8963_PWR_DOWN_)) {
+    return false;
+  }
+  delay(100);  // long wait between AK8963 mode changes
+  /* Set AK8963 to FUSE ROM access */
+  if (!WriteAk8963Register(AK8963_CNTL1_, AK8963_FUSE_ROM_)) {
+    return false;
+  }
+  delay(100);  // long wait between AK8963 mode changes
+  /* Read the AK8963 ASA registers and compute magnetometer scale factors */
+  uint8_t asa_buff[3];
+  if (!ReadAk8963Registers(AK8963_ASA_, sizeof(asa_buff), asa_buff)) {
+    return false;
+  }
+  mag_scale_[0] = ((static_cast<float>(asa_buff[0]) - 128.0f)
+    / 256.0f + 1.0f) * 4912.0f / 32760.0f;
+  mag_scale_[1] = ((static_cast<float>(asa_buff[1]) - 128.0f)
+    / 256.0f + 1.0f) * 4912.0f / 32760.0f;
+  mag_scale_[2] = ((static_cast<float>(asa_buff[2]) - 128.0f)
+    / 256.0f + 1.0f) * 4912.0f / 32760.0f;
+  /* Set AK8963 to power down */
+  if (!WriteAk8963Register(AK8963_CNTL1_, AK8963_PWR_DOWN_)) {
+    return false;
+  }
+  /* Set AK8963 to 16 bit resolution, 100 Hz update rate */
+  if (!WriteAk8963Register(AK8963_CNTL1_, AK8963_CNT_MEAS2_)) {
+    return false;
+  }
+  delay(100);  // long wait between AK8963 mode changes
+  /* Select clock source to gyro */
+  if (!WriteRegister(PWR_MGMNT_1_, CLKSEL_PLL_)) {
+    return false;
+  }
+  /* Instruct the MPU9250 to get 7 bytes from the AK8963 at the sample rate */
+  uint8_t mag_data[7];
+  if (!ReadAk8963Registers(AK8963_HXL_, sizeof(mag_data), mag_data)) {
     return false;
   }
   /* Set the accel range to 16G by default */
@@ -74,63 +151,6 @@ bool Mpu9250::DisableDrdyInt() {
   if (!WriteRegister(INT_ENABLE_, INT_DISABLE_)) {
     return false;
   }
-  return true;
-}
-bool Mpu9250::EnableMag() {
-  /* Enable I2C master mode */
-  if (!WriteRegister(USER_CTRL_, I2C_MST_EN_)){
-    return false;
-  }
-  /* Set the I2C bus speed to 400 kHz */
-  if (!WriteRegister(I2C_MST_CTRL_, I2C_MST_CLK_)){
-    return false;
-  }
-  /* Check the AK8963 WHOAMI */
-  uint8_t who_am_i;
-  if (!ReadAk8963Registers(AK8963_WHOAMI_, sizeof(who_am_i), &who_am_i)) {
-    return false;
-  }
-  if (who_am_i != WHOAMI_AK8963_) {
-    return false;
-  }
-  /* Get the magnetometer calibration */
-  /* Set AK8963 to power down */
-  if (!WriteAk8963Register(AK8963_CNTL1_, AK8963_PWR_DOWN_)){
-    return false;
-  }
-  delay(100);  // long wait between AK8963 mode changes
-  /* Set AK8963 to FUSE ROM access */
-  if(!WriteAk8963Register(AK8963_CNTL1_, AK8963_FUSE_ROM_)){
-    return false;
-  }
-  delay(100);  // long wait between AK8963 mode changes
-  /* Read the AK8963 ASA registers and compute magnetometer scale factors */
-  uint8_t asa_buff[3];
-  if(!ReadAk8963Registers(AK8963_ASA_, sizeof(asa_buff), asa_buff)) {
-    return false;
-  }
-  mag_scale_[0] = (((float) asa_buff[0] - 128.0f) / 256.0f + 1.0f) * 4912.0f / 32760.0f;
-  mag_scale_[1] = (((float) asa_buff[1] - 128.0f) / 256.0f + 1.0f) * 4912.0f / 32760.0f;
-  mag_scale_[2] = (((float) asa_buff[2] - 128.0f) / 256.0f + 1.0f) * 4912.0f / 32760.0f;
-  /* Set AK8963 to power down */
-  if (!WriteAk8963Register(AK8963_CNTL1_, AK8963_PWR_DOWN_)){
-    return false;
-  }
-  /* Set AK8963 to 16 bit resolution, 100 Hz update rate */
-  if (!WriteAk8963Register(AK8963_CNTL1_, AK8963_CNT_MEAS2_)){
-    return false;
-  }
-  delay(100);  // long wait between AK8963 mode changes
-  /* Instruct the MPU9250 to get 7 bytes of data from the AK8963 at the sample rate */
-  uint8_t mag_data[7];
-  if (!ReadAk8963Registers(AK8963_HXL_, sizeof(mag_data), mag_data)) {
-    return false;
-  }
-  use_mag_ = true;
-  return true;
-}
-bool Mpu9250::DisableMag() {
-  use_mag_ = false;
   return true;
 }
 void Mpu9250::rotation(Eigen::Matrix3f c) {
@@ -225,6 +245,37 @@ Mpu9250::GyroRange Mpu9250::gyro_range() {
 }
 bool Mpu9250::sample_rate_divider(uint8_t srd) {
   spi_clock_ = 1000000;
+  /* Set the magnetometer sample rate */
+  if (srd > 9) {
+    /* Set AK8963 to power down */
+    WriteAk8963Register(AK8963_CNTL1_, AK8963_PWR_DOWN_);
+    delay(100);  // long wait between AK8963 mode changes
+    /* Set AK8963 to 16 bit resolution, 8 Hz update rate */
+    if (!WriteAk8963Register(AK8963_CNTL1_, AK8963_CNT_MEAS1_)) {
+      return false;
+    }
+    delay(100);  // long wait between AK8963 mode changes
+    /* Instruct the MPU9250 to get 7 bytes from the AK8963 at the sample rate */
+    uint8_t mag_data[7];
+    if (!ReadAk8963Registers(AK8963_HXL_, sizeof(mag_data), mag_data)) {
+      return false;
+    }
+  } else {
+    /* Set AK8963 to power down */
+    WriteAk8963Register(AK8963_CNTL1_, AK8963_PWR_DOWN_);
+    delay(100);  // long wait between AK8963 mode changes
+    /* Set AK8963 to 16 bit resolution, 100 Hz update rate */
+    if (!WriteAk8963Register(AK8963_CNTL1_, AK8963_CNT_MEAS2_)) {
+      return false;
+    }
+    delay(100);  // long wait between AK8963 mode changes
+    /* Instruct the MPU9250 to get 7 bytes from the AK8963 at the sample rate */
+    uint8_t mag_data[7];
+    if (!ReadAk8963Registers(AK8963_HXL_, sizeof(mag_data), mag_data)) {
+      return false;
+    }
+  }
+  /* Set the IMU sample rate */
   if (!WriteRegister(SMPLRT_DIV_, srd)) {
     return false;
   }
@@ -287,84 +338,47 @@ void Mpu9250::DrdyCallback(uint8_t int_pin, void (*function)()) {
 }
 bool Mpu9250::ReadSensor() {
   spi_clock_ = 20000000;
-  if (use_mag_) {
-    /* Read the data registers */
-    uint8_t data_buff[22];
-    if (!ReadRegisters(INT_STATUS_, sizeof(data_buff), data_buff)) {
-      return false;
-    }
-    /* Check if data is ready */
-    bool data_ready = (data_buff[0] & RAW_DATA_RDY_INT_);
-    if (!data_ready) {
-      return false;
-    }
-    /* Unpack the buffer */
-    int16_t accel_counts[3], gyro_counts[3], temp_counts, mag_counts[3];
-    accel_counts[0] = (int16_t) data_buff[1] << 8 | data_buff[2];
-    accel_counts[1] = (int16_t) data_buff[3] << 8 | data_buff[4];
-    accel_counts[2] = (int16_t) data_buff[5] << 8 | data_buff[6];
-    temp_counts =     (int16_t) data_buff[7] << 8 | data_buff[8];
-    gyro_counts[0] =  (int16_t) data_buff[9] << 8 | data_buff[10];
-    gyro_counts[1] =  (int16_t) data_buff[11] << 8 | data_buff[12];
-    gyro_counts[2] =  (int16_t) data_buff[13] << 8 | data_buff[14];
-    mag_counts[0] =   (int16_t) data_buff[16] << 8 | data_buff[15];
-    mag_counts[1] =   (int16_t) data_buff[18] << 8 | data_buff[17];
-    mag_counts[2] =   (int16_t) data_buff[20] << 8 | data_buff[19];
-    /* Convert to float values and rotate the accel / gyro axis */
-    Eigen::Vector3f accel, gyro, mag;
-    float temp;
-    accel(1) = (float) accel_counts[0] * accel_scale_;
-    accel(0) = (float) accel_counts[1] * accel_scale_;
-    accel(2) = (float) accel_counts[2] * accel_scale_ * -1.0f;
-    temp =    ((float) temp_counts - 21.0f) / temp_scale_ + 21.0f;
-    gyro(1) =  (float) gyro_counts[0] * gyro_scale_;
-    gyro(0) =  (float) gyro_counts[1] * gyro_scale_;
-    gyro(2) =  (float) gyro_counts[2] * gyro_scale_ * -1.0f;
-    mag(0) =   (float) mag_counts[0] * mag_scale_[0];
-    mag(1) =   (float) mag_counts[1] * mag_scale_[1];
-    mag(2) =   (float) mag_counts[2] * mag_scale_[2];
-    /* Apply rotation and store values */
-    imu_.accel.g(rotation_ * accel);
-    imu_.gyro.dps(rotation_ * gyro);
-    die_temperature_.c(temp);
-    mag_.t(rotation_ * mag);
-    return true;
-  } else {
-    /* Read the data registers */
-    uint8_t data_buff[15];
-    if (!ReadRegisters(INT_STATUS_, sizeof(data_buff), data_buff)) {
-      return false;
-    }
-    /* Check if data is ready */
-    bool data_ready = (data_buff[0] & RAW_DATA_RDY_INT_);
-    if (!data_ready) {
-      return false;
-    }
-    /* Unpack the buffer */
-    int16_t accel_counts[3], gyro_counts[3], temp_counts;
-    accel_counts[0] = (int16_t) data_buff[1] << 8 | data_buff[2];
-    accel_counts[1] = (int16_t) data_buff[3] << 8 | data_buff[4];
-    accel_counts[2] = (int16_t) data_buff[5] << 8 | data_buff[6];
-    temp_counts =     (int16_t) data_buff[7] << 8 | data_buff[8];
-    gyro_counts[0] =  (int16_t) data_buff[9] << 8 | data_buff[10];
-    gyro_counts[1] =  (int16_t) data_buff[11] << 8 | data_buff[12];
-    gyro_counts[2] =  (int16_t) data_buff[13] << 8 | data_buff[14];
-    /* Convert to float values and rotate the accel / gyro axis */
-    Eigen::Vector3f accel, gyro;
-    float temp;
-    accel(1) = (float) accel_counts[0] * accel_scale_;
-    accel(0) = (float) accel_counts[1] * accel_scale_;
-    accel(2) = (float) accel_counts[2] * accel_scale_ * -1.0f;
-    temp =    ((float) temp_counts - 21.0f) / temp_scale_ + 21.0f;
-    gyro(1) =  (float) gyro_counts[0] * gyro_scale_;
-    gyro(0) =  (float) gyro_counts[1] * gyro_scale_;
-    gyro(2) =  (float) gyro_counts[2] * gyro_scale_ * -1.0f;
-    /* Apply rotation and store values */
-    imu_.accel.g(rotation_ * accel);
-    imu_.gyro.dps(rotation_ * gyro);
-    die_temperature_.c(temp);
-    return true;
+  /* Read the data registers */
+  uint8_t data_buff[22];
+  if (!ReadRegisters(INT_STATUS_, sizeof(data_buff), data_buff)) {
+    return false;
   }
+  /* Check if data is ready */
+  bool data_ready = (data_buff[0] & RAW_DATA_RDY_INT_);
+  if (!data_ready) {
+    return false;
+  }
+  /* Unpack the buffer */
+  int16_t accel_counts[3], gyro_counts[3], temp_counts, mag_counts[3];
+  accel_counts[0] = static_cast<int16_t>(data_buff[1])  << 8 | data_buff[2];
+  accel_counts[1] = static_cast<int16_t>(data_buff[3])  << 8 | data_buff[4];
+  accel_counts[2] = static_cast<int16_t>(data_buff[5])  << 8 | data_buff[6];
+  temp_counts =     static_cast<int16_t>(data_buff[7])  << 8 | data_buff[8];
+  gyro_counts[0] =  static_cast<int16_t>(data_buff[9])  << 8 | data_buff[10];
+  gyro_counts[1] =  static_cast<int16_t>(data_buff[11]) << 8 | data_buff[12];
+  gyro_counts[2] =  static_cast<int16_t>(data_buff[13]) << 8 | data_buff[14];
+  mag_counts[0] =   static_cast<int16_t>(data_buff[16]) << 8 | data_buff[15];
+  mag_counts[1] =   static_cast<int16_t>(data_buff[18]) << 8 | data_buff[17];
+  mag_counts[2] =   static_cast<int16_t>(data_buff[20]) << 8 | data_buff[19];
+  /* Convert to float values and rotate the accel / gyro axis */
+  Eigen::Vector3f accel, gyro, mag;
+  float temp;
+  accel(0) = static_cast<float>(accel_counts[1]) * accel_scale_;
+  accel(2) = static_cast<float>(accel_counts[2]) * accel_scale_ * -1.0f;
+  accel(1) = static_cast<float>(accel_counts[0]) * accel_scale_;
+  temp =    (static_cast<float>(temp_counts) - 21.0f) / temp_scale_ + 21.0f;
+  gyro(1) =  static_cast<float>(gyro_counts[0]) * gyro_scale_;
+  gyro(0) =  static_cast<float>(gyro_counts[1]) * gyro_scale_;
+  gyro(2) =  static_cast<float>(gyro_counts[2]) * gyro_scale_ * -1.0f;
+  mag(0) =   static_cast<float>(mag_counts[0]) * mag_scale_[0];
+  mag(1) =   static_cast<float>(mag_counts[1]) * mag_scale_[1];
+  mag(2) =   static_cast<float>(mag_counts[2]) * mag_scale_[2];
+  /* Apply rotation and store values */
+  imu_.accel.g(rotation_ * accel);
+  imu_.gyro.dps(rotation_ * gyro);
+  die_temperature_.c(temp);
+  mag_.t(rotation_ * mag);
+  return true;
 }
 Imu Mpu9250::imu() {
   return imu_;
@@ -431,10 +445,10 @@ bool Mpu9250::WriteAk8963Register(uint8_t reg, uint8_t data) {
   if (!WriteRegister(I2C_SLV0_DO_, data)) {
     return false;
   }
-	if (!WriteRegister(I2C_SLV0_CTRL_, I2C_SLV0_EN_ | sizeof(data))) {
+  if (!WriteRegister(I2C_SLV0_CTRL_, I2C_SLV0_EN_ | sizeof(data))) {
     return false;
   }
-	if (!ReadAk8963Registers(reg, sizeof(ret_val), &ret_val)) {
+  if (!ReadAk8963Registers(reg, sizeof(ret_val), &ret_val)) {
     return false;
   }
   if (data == ret_val) {
@@ -452,7 +466,9 @@ bool Mpu9250::ReadAk8963Registers(uint8_t reg, uint8_t count, uint8_t *data) {
   }
   if (!WriteRegister(I2C_SLV0_CTRL_, I2C_SLV0_EN_ | count)) {
     return false;
-  }  
+  }
   delay(1);
   return ReadRegisters(EXT_SENS_DATA_00_, count, data);
 }
+
+}  // namespace sensors

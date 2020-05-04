@@ -25,7 +25,6 @@ if (DEFINED MCU)
 	FetchContent_Declare(
 		core
 		GIT_REPOSITORY 	git@gitlab.com:bolderflight/software/core.git
-		GIT_TAG					v0.8.0
 	)
 	FetchContent_MakeAvailable(core)
 	# Add the library target
@@ -54,7 +53,7 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
 			GIT_REPOSITORY 	git@gitlab.com:bolderflight/utils/mcu_hil_defs.git
 		)
 		FetchContent_MakeAvailable(mcu_hil_defs)		
-		# Add the example target
+		# Add the spi example target
 		add_executable(spi_example examples/spi.cc)
 		# Add the includes
 		target_include_directories(spi_example PUBLIC 
@@ -70,6 +69,22 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
 		# Add hex and upload targets
 		include(${CMAKE_SOURCE_DIR}/cmake/flash_mcu.cmake)
 		FlashMcu(spi_example ${MCU})
+		# Add the i2c example target
+		add_executable(i2c_example examples/i2c.cc)
+		# Add the includes
+		target_include_directories(spi_example PUBLIC 
+			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+			$<INSTALL_INTERFACE:include>
+		)
+		# Link libraries to the example target
+		target_link_libraries(i2c_example
+			PRIVATE 
+				mpu9250
+				mcu_hil_defs
+		)
+		# Add hex and upload targets
+		include(${CMAKE_SOURCE_DIR}/cmake/flash_mcu.cmake)
+		FlashMcu(i2c_example ${MCU})
 		# Add the test target
 		# Fetch remote_test 
 		FetchContent_Declare(

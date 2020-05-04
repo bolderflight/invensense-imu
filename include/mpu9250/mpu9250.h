@@ -13,6 +13,8 @@
 #include "Eigen/Dense"
 #include "core/core.h"
 
+namespace sensors {
+
 class Mpu9250 {
  public:
   enum DlpfBandwidth : uint8_t {
@@ -27,7 +29,7 @@ class Mpu9250 {
     ACCEL_RANGE_2G = 0x00,
     ACCEL_RANGE_4G = 0x08,
     ACCEL_RANGE_8G = 0x10,
-    ACCEL_RANGE_16G = 0x18 
+    ACCEL_RANGE_16G = 0x18
   };
   enum GyroRange : uint8_t {
     GYRO_RANGE_250DPS = 0x00,
@@ -35,13 +37,11 @@ class Mpu9250 {
     GYRO_RANGE_1000DPS = 0x10,
     GYRO_RANGE_2000DPS = 0x18
   };
-  Mpu9250(i2c_t3 &bus, uint8_t addr);
-  Mpu9250(SPIClass &bus, uint8_t cs);
+  Mpu9250(i2c_t3 *bus, uint8_t addr);
+  Mpu9250(SPIClass *bus, uint8_t cs);
   bool Begin();
   bool EnableDrdyInt();
   bool DisableDrdyInt();
-  bool EnableMag();
-  bool DisableMag();
   void rotation(Eigen::Matrix3f c);
   Eigen::Matrix3f rotation();
   bool accel_range(AccelRange range);
@@ -57,6 +57,7 @@ class Mpu9250 {
   Imu imu();
   Temperature die_temperature();
   Mag mag();
+
  private:
   enum Interface {
     SPI,
@@ -71,7 +72,6 @@ class Mpu9250 {
   static constexpr uint32_t I2C_CLOCK_ = 400000;
   static constexpr uint8_t SPI_READ_ = 0x80;
   /* Configuration */
-  bool use_mag_ = false;
   Eigen::Matrix3f rotation_ = Eigen::Matrix3f::Identity();
   AccelRange accel_range_;
   GyroRange gyro_range_;
@@ -88,6 +88,7 @@ class Mpu9250 {
   Mag mag_;
   /* Registers */
   static constexpr uint8_t PWR_MGMNT_1_ = 0x6B;
+  static constexpr uint8_t H_RESET_ = 0x80;
   static constexpr uint8_t CLKSEL_PLL_ = 0x01;
   static constexpr uint8_t WHOAMI_ = 0x75;
   static constexpr uint8_t ACCEL_CONFIG_ = 0x1C;
@@ -115,22 +116,23 @@ class Mpu9250 {
   static constexpr uint8_t EXT_SENS_DATA_00_ = 0x49;
   /* AK8963 registers */
   static constexpr uint8_t AK8963_I2C_ADDR_ = 0x0C;
-  static constexpr uint8_t AK8963_HXL_ = 0x03; 
+  static constexpr uint8_t AK8963_HXL_ = 0x03;
   static constexpr uint8_t AK8963_CNTL1_ = 0x0A;
   static constexpr uint8_t AK8963_PWR_DOWN_ = 0x00;
   static constexpr uint8_t AK8963_CNT_MEAS1_ = 0x12;
   static constexpr uint8_t AK8963_CNT_MEAS2_ = 0x16;
   static constexpr uint8_t AK8963_FUSE_ROM_ = 0x0F;
-  // static constexpr uint8_t AK8963_CNTL2 = 0x0B;
-  // static constexpr uint8_t AK8963_RESET = 0x01;
+  static constexpr uint8_t AK8963_CNTL2_ = 0x0B;
+  static constexpr uint8_t AK8963_RESET_ = 0x01;
   static constexpr uint8_t AK8963_ASA_ = 0x10;
   static constexpr uint8_t AK8963_WHOAMI_ = 0x00;
-  
 
   bool WriteRegister(uint8_t reg, uint8_t data);
   bool ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data);
   bool WriteAk8963Register(uint8_t reg, uint8_t data);
   bool ReadAk8963Registers(uint8_t reg, uint8_t count, uint8_t *data);
 };
+
+}  // namespace sensors
 
 #endif  // INCLUDE_MPU9250_MPU9250_H_

@@ -14,7 +14,7 @@
 void yield() {}
 
 bool TestBeginSpi() {
-  Mpu9250 mpu(MPU9250_SPI, 10);
+  sensors::Mpu9250 mpu(&MPU9250_SPI, 10);
   bool status = mpu.Begin();
   return status;
 }
