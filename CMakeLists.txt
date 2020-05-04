@@ -48,21 +48,28 @@ endif()
 # Example and test if this project is built separately
 if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
 	if (DEFINED MCU)
+		# Fetch the HIL defs
+		FetchContent_Declare(
+			mcu_hil_defs
+			GIT_REPOSITORY 	git@gitlab.com:bolderflight/utils/mcu_hil_defs.git
+		)
+		FetchContent_MakeAvailable(mcu_hil_defs)		
 		# Add the example target
-		add_executable(i2c_example examples/i2c.cc)
+		add_executable(spi_example examples/spi.cc)
 		# Add the includes
-		target_include_directories(i2c_example PUBLIC 
+		target_include_directories(spi_example PUBLIC 
 			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 			$<INSTALL_INTERFACE:include>
 		)
 		# Link libraries to the example target
-		target_link_libraries(i2c_example
+		target_link_libraries(spi_example
 			PRIVATE 
 				mpu9250
+				mcu_hil_defs
 		)
 		# Add hex and upload targets
 		include(${CMAKE_SOURCE_DIR}/cmake/flash_mcu.cmake)
-		# FlashMcu(i2c_example ${MCU})
+		FlashMcu(spi_example ${MCU})
 		# Add the test target
 		# Fetch remote_test 
 		FetchContent_Declare(
@@ -81,6 +88,7 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
 			PRIVATE
 				remote_test 
 				mpu9250
+				mcu_hil_defs
 		)
 		# Add hex and upload targets
 		include(${CMAKE_SOURCE_DIR}/cmake/flash_mcu.cmake)

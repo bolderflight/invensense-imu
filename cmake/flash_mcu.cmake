@@ -1,5 +1,5 @@
 # macro that flashes a target MCU
-macro (flashMcu TARGET MCU)
+function (flashMcu TARGET MCU)
   string(APPEND HEX_TARGET ${TARGET} _hex)
   string(APPEND HEX_CMD ${TARGET} .hex)
   string(APPEND UPLOAD_TARGET ${TARGET} _upload)
@@ -31,4 +31,4 @@ macro (flashMcu TARGET MCU)
   endif (wsl GREATER -1)
   # Linker
   set_property(TARGET ${TARGET} PROPERTY LINK_DEPENDS ${LINKER_SCRIPT})
-endmacro ()
+endfunction ()

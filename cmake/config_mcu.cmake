@@ -7,6 +7,7 @@ macro (configMcu MCU)
     message("Configuring MK20DX128 build.")
     # Definitions
     add_definitions(
+      -D__MCU__
       -D__MK20DX128__
       -DF_CPU=48000000 
       -DUSB_SERIAL
@@ -53,6 +54,7 @@ macro (configMcu MCU)
     message("Configuring MK20DX256 build.")
     # Definitions
     add_definitions(
+      -D__MCU__
       -D__MK20DX256__
       -DF_CPU=72000000 
       -DUSB_SERIAL
@@ -99,6 +101,7 @@ macro (configMcu MCU)
     message("Configuring MK64FX512 build.")
     # Definitions
     add_definitions(
+      -D__MCU__
       -D__MK64FX512__
       -DF_CPU=120000000 
       -DUSB_SERIAL
@@ -149,6 +152,7 @@ macro (configMcu MCU)
     message("Configuring MK66FX1M0 build.")
     # Definitions
     add_definitions(
+      -D__MCU__
       -D__MK66FX1M0__
       -DF_CPU=180000000 
       -DUSB_SERIAL
@@ -199,6 +203,7 @@ macro (configMcu MCU)
     message("Configuring MKL26Z64 build.")
     # Definitions
     add_definitions(
+      -D__MCU__
       -D__MKL26Z64__
       -DF_CPU=48000000 
       -DUSB_SERIAL
