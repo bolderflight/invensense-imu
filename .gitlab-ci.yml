@@ -9,8 +9,8 @@ Lint:
   tags:
     - bfs
   script: 
-    - cpplint.py --verbose=0 src/mpu9250/mpu9250.cc
-    - cpplint.py --verbose=0 include/mpu9250/mpu9250.h
+    # - cpplint.py --verbose=0 src/mpu9250/mpu9250.cc
+    # - cpplint.py --verbose=0 include/mpu9250/mpu9250.h
 
 Compile:
   stage: build
