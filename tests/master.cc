@@ -19,7 +19,7 @@ TEST(Mpu9250, BeginSpi) {
   SerialLink link(serial);
   RemoteTestMaster test(link);
   /* Command test */
-  bool result = test.Test(1, 1);
+  bool result = test.Test(2, 10);
   EXPECT_TRUE(result);
 }
 

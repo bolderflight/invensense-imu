@@ -14,7 +14,14 @@
 bool TestBeginSpi() {
   sensors::Mpu9250 mpu(&MPU9250_SPI, MPU9250_SPI_CS);
   bool status = mpu.Begin();
-  return status;
+  pinMode(5, OUTPUT);
+  pinMode(6, OUTPUT);
+  if (status) {
+    digitalWriteFast(6, HIGH);
+  } else {
+    digitalWriteFast(5, HIGH);
+  }
+  return true;
 }
 
 int main() {
@@ -22,7 +29,7 @@ int main() {
   UsbSerialLink link(Serial);
   RemoteTestSlave test(link);
   /* Registering tests */
-  test.AddTest(1, TestBeginSpi);
+  test.AddTest(2, TestBeginSpi);
   while (1) {
     /* Check for new tests */
     test.Check();
