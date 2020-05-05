@@ -1,7 +1,6 @@
 stages:
   - lint
   - build
-  - upload
   - test
 
 Lint:
@@ -21,6 +20,7 @@ Compile:
     - cd build
     - cmake .. -DMCU=MK66FX1M0
     - make
+    - make slave_upload
     - cd ..
     - mkdir build_linux
     - cd build_linux
@@ -28,18 +28,8 @@ Compile:
     - make
   artifacts:
     paths:
-      - build
-      - build_linux
+      - build_linux/master
 
-Upload:
-  stage: upload
-  tags:
-    - bfs
-  script:
-    - cd build
-    - mcu_selector mk66fx1m0 mpu9250
-    - make slave_upload
-  
 Test:
   stage: test
   tags:
