@@ -336,7 +336,7 @@ void Mpu9250::DrdyCallback(uint8_t int_pin, void (*function)()) {
   pinMode(int_pin, INPUT);
   attachInterrupt(int_pin, function, RISING);
 }
-bool Mpu9250::ReadSensor() {
+bool Mpu9250::Read() {
   spi_clock_ = 20000000;
   /* Read the data registers */
   uint8_t data_buff[22];

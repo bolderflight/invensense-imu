@@ -13,7 +13,7 @@ sensors::Mpu9250 mpu9250(&MPU9250_I2C, MPU9250_I2C_ADDR);
 /* Data acquisition ISR */
 void imu_isr() {
   /* Check if data read */
-  if (mpu9250.ReadSensor()) {
+  if (mpu9250.Read()) {
     /* Print data */
     Imu imu = mpu9250.imu();
     Mag mag = mpu9250.mag();

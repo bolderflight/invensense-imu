@@ -53,7 +53,7 @@ class Mpu9250 {
   bool dlpf_bandwidth(DlpfBandwidth dlpf);
   DlpfBandwidth dlpf_bandwidth();
   void DrdyCallback(uint8_t int_pin, void (*function)());
-  bool ReadSensor();
+  bool Read();
   Imu imu();
   Temperature die_temperature();
   Mag mag();
