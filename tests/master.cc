@@ -14,7 +14,7 @@ TEST(Mpu9250, BeginSpi) {
   /* Reset mcu */
   system("mcu_reset");
   /* Remote Test setup */
-  HardwareSerial serial("/dev/ttyACM0");
+  HardwareSerial serial("/dev/uart");
   SerialLink link(serial);
   RemoteTestMaster test(link);
   /* Command test */
