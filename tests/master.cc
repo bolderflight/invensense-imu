@@ -13,6 +13,7 @@
 TEST(Mpu9250, BeginSpi) {
   /* Reset mcu */
   system("mcu_reset");
+  sleep(4);
   /* Remote Test setup */
   HardwareSerial serial("/dev/uart");
   SerialLink link(serial);
