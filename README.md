@@ -14,7 +14,7 @@ The InvenSense MPU-9250 is a System in Package (SiP) that combines two chips: th
 | +/- 1000 deg/s | +/- 8g  | |
 | +/- 2000 deg/s | +/- 16g | |
 
-The MPU-9250 samples the gyroscopes, accelerometers, and magnetometers with 16 bit analog to digital converters. It also features programmable digital filters, a precision clock, an embedded temperature sensor, and programmable interrupts.
+The MPU-9250 samples the gyros, accelerometers, and magnetometers with 16 bit analog to digital converters. It also features programmable digital filters, a precision clock, an embedded temperature sensor, and programmable interrupts.
 
 ## Installation
 CMake is used to build this library, which is exported as a library target called *mpu9250*. The header is added as:
