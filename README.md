@@ -4,6 +4,18 @@ This library communicates with [InvenSense MPU-9250 and MPU-9255](https://invens
    * [Changelog](CHANGELOG.md)
    * [Contributing guide](CONTRIBUTING.md)
 
+# Description
+The InvenSense MPU-9250 is a System in Package (SiP) that combines two chips: the MPU-6500 three-axis gyroscope and three-axis accelerometer; and the AK8963 three-axis magnetometer. The MPU-9250 supports I2C, up to 400 kHz, and SPI communication, up to 1 MHz for register setup and 20 MHz for data reading. The following selectable full scale sensor ranges are available:
+
+| Gyroscope Full Scale Range | Accelerometer Full Scale Range | Magnetometer Full Scale Range |
+| --- | --- | ---  |
+| +/- 250 deg/s  | +/- 2g  | +/- 4800 uT |
+| +/- 500 deg/s  | +/- 4g  | |
+| +/- 1000 deg/s | +/- 8g  | |
+| +/- 2000 deg/s | +/- 16g | |
+
+The MPU-9250 samples the gyroscopes, accelerometers, and magnetometers with 16 bit analog to digital converters. It also features programmable digital filters, a precision clock, an embedded temperature sensor, and programmable interrupts.
+
 ## Installation
 CMake is used to build this library, which is exported as a library target called *mpu9250*. The header is added as:
 
@@ -56,7 +68,7 @@ sensors::Mpu9250 mpu9250(&SPI, 2);
 ```C++
 bool status = mpu9250.Begin();
 if (!status) {
-   // ERROR
+  // ERROR
 }
 ```
 
@@ -65,7 +77,7 @@ if (!status) {
 ```C++
 bool status = mpu9250.EnableDrdyInt();
 if (!status) {
-   // ERROR
+  // ERROR
 }
 ```
 
@@ -74,7 +86,7 @@ if (!status) {
 ```C++
 bool status = mpu9250.DisableDrdyInt();
 if (!status) {
-   // ERROR
+  // ERROR
 }
 ```
 
@@ -90,30 +102,167 @@ x_{u} = c * x_{b}
 
 Where $`x_{u}`$ is the output, $`c`$ is the rotation matrix, and $`x_{b}`$ are the measurements in the sensor reference frame.
 
-**Eigen::Matrix3f rotation()**
+```C++
+/*
+* c =   0 1 0
+*       1 0 0
+*       0 0 1
+*/
+Eigen::Matrix3f c = Eigen::Matrix3f::Zero();
+c(0, 1) = 1.0f;
+c(1, 0) = 1.0f;
+c(2, 2) = 1.0f;
+mpu9250.rotation(c);
+```
 
-**bool accel_range(AccelRange range)**
+**Eigen::Matrix3f rotation()** Returns the current rotation matrix.
 
-**AccelRange accel_range()**
+```C++
+Eigen::Matrix3f c = mpu9250.rotation();
+```
 
-**bool gyro_range(GyroRange range)**
+**bool accel_range(AccelRange range)** Sets the accelerometer full scale range. Options are:
 
-**GyroRange gyro_range()**
+| Range | Enum Value |
+| --- | --- |
+| +/- 2g | ACCEL_RANGE_2G |
+| +/- 4g | ACCEL_RANGE_4G |
+| +/- 8g | ACCEL_RANGE_8G |
+| +/- 16g | ACCEL_RANGE_16G |
 
-**bool sample_rate_divider(uint8_t srd)**
+True is returned on succesfully setting the accelerometer range, otherwise, false is returned. The default range is +/-16g.
 
-**uint8_t sample_rate_divider()**
+```C++
+bool status = mpu9250.accel_range(Mpu9250::ACCEL_RANGE_4G);
+if (!status) {
+  // ERROR
+}
+```
 
-**bool dlpf_bandwidth(DlpfBandwidth dlpf)**
+**AccelRange accel_range()** Returns the current accelerometer range.
 
-**DlpfBandwidth dlpf_bandwidth()**
+```C++
+AccelRange range = mpu9250.accel_range();
+```
 
-**void DrdyCallback(uint8_t int_pin, void (&ast;function)())**
+**bool gyro_range(GyroRange range)** Sets the gyro full scale range. Options are:
 
-**bool Read()**
+| Range | Enum Value |
+| --- | --- |
+| +/- 250 deg/s | GYRO_RANGE_250DPS |
+| +/- 500 deg/s | GYRO_RANGE_500DPS |
+| +/- 1000 deg/s | GYRO_RANGE_1000DPS |
+| +/- 2000 deg/s | GYRO_RANGE_2000DPS |
 
-**Imu imu()**
+True is returned on succesfully setting the gyro range, otherwise, false is returned. The default range is +/-2000 deg/s.
 
-**Temperature die_temperature()**
+```C++
+bool status = mpu9250.gyro_range(Mpu9250::GYRO_RANGE_1000DPS);
+if (!status) {
+  // ERROR
+}
+```
 
-**Mag mag()**
+**GyroRange gyro_range()** Returns the current gyro range.
+
+```C++
+GyroRange range = mpu9250.gyro_range();
+```
+
+**bool sample_rate_divider(uint8_t srd)** Sets the sensor sample rate divider. The MPU-9250 samples the accelerometer and gyro at a rate in Hz defined by:
+
+```math
+rate = 1000 / (srd + 1)
+```
+
+A *srd* setting of 0 means the MPU-9250 samples the accelerometer and gyro at 1000 Hz. A *srd* setting of 4 would set the sampling at 200 Hz. The IMU data ready interrupt is tied to the rate defined by the sample rate divider. The magnetometer is sampled at 100 Hz for sample rate divider values corresponding to 100 Hz or greater. Otherwise, the magnetometer is sampled at 8 Hz.
+
+True is returned on succesfully setting the sample rate divider, otherwise, false is returned. The default sample rate divider value is 0, resulting in a 1000 Hz sample rate.
+
+```C++
+/* Set sample rate divider for 50 Hz */
+bool status = mpu9250.sample_rate_divider(19);
+if (!status) {
+  // ERROR
+}
+```
+
+**uint8_t sample_rate_divider()** Returns the current sample rate divider value.
+
+```C++
+uint8_t srd = mpu9250.sample_rate_divider();
+```
+
+**bool dlpf_bandwidth(DlpfBandwidth dlpf)** Sets the cutoff frequency of the digital low pass filter for the accelerometer, gyro, and temperature sensor. Available bandwidths are:
+
+| DLPF Bandwidth | Enum Value |
+| --- | --- |
+| 184 Hz | DLPF_BANDWIDTH_184HZ |
+| 92 Hz | DLPF_BANDWIDTH_92HZ |
+| 41 Hz | DLPF_BANDWIDTH_41HZ |
+| 20 Hz | DLPF_BANDWIDTH_20HZ |
+| 10 Hz | DLPF_BANDWIDTH_10HZ |
+| 5 Hz | DLPF_BANDWIDTH_5HZ |
+
+True is returned on succesfully setting the digital low pass filters, otherwise, false is returned. The default bandwidth is 184 Hz.
+
+```C++
+bool status = mpu9250.dlpf_bandwidth(Mpu9250::DLPF_BANDWIDTH_20HZ);
+if (!status) {
+  // ERROR
+}
+```
+
+**DlpfBandwidth dlpf_bandwidth()** Returns the current digital low pass filter bandwidth setting.
+
+```C++
+DlpfBandwidth dlpf = mpu9250.dlpf_bandwidth();
+```
+
+**void DrdyCallback(uint8_t int_pin, void (&ast;function)())** Assigns a callback function to be called on the MPU-9250 data ready interrupt. Input parameters are the microcontroller pin number connected to the MPU-9250 interrupt pin and the function name.
+
+```C++
+void imu_isr() {
+  /* Read the IMU data */
+  if (mpu9250.Read()) {
+  }
+}
+
+void main() {
+  /* Setup callback for data ready interrupt */
+  mpu9250.DrdyCallback(MPU9250_I2C_INT, imu_isr);
+}
+```
+
+**bool Read()** Reads data from the MPU-9250 and stores the data in the Mpu9250 object. Returns true if data is successfully read, otherwise, returns false.
+
+```C++
+/* Read the IMU data */
+if (mpu9250.Read()) {
+}
+```
+
+**Imu imu()** Returns the IMU (accelerometer and gyro) data from the Mpu9250 object.
+
+```C++
+/* Read the IMU data */
+if (mpu9250.Read()) {
+  Imu imu = mpu9250.imu();
+}
+```
+
+**Temperature die_temperature()** Returns the IMU die temperature from the Mpu9250 object. Note that this is the temperature of the sensor die and is not a good indicator of ambient temperature.
+```C++
+/* Read the IMU data */
+if (mpu9250.Read()) {
+  Temperature t = mpu9250.die_temperature();
+}
+```
+
+**Mag mag()** Returns the magnetometer data from the Mpu9250 object.
+```C++
+/* Read the IMU data */
+if (mpu9250.Read()) {
+  Mag mag = mpu9250.mag();
+}
+```
