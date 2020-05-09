@@ -34,3 +34,27 @@ TEST(Mpu9250, BeginI2c) {
   EXPECT_TRUE(result);
 }
 
+TEST(Mpu9250,AccelRangeSpi) {
+  /* Reset mcu */
+  system("mcu_reset");
+  /* Remote Test setup */
+  HardwareSerial serial("/dev/uart");
+  SerialLink link(serial);
+  RemoteTestMaster test(link);
+  /* Command test */
+  bool result = test.Test(5, 10);
+  EXPECT_TRUE(result);
+}
+
+TEST(Mpu9250, AccelRangeI2c) {
+  /* Reset mcu */
+  system("mcu_reset");
+  /* Remote Test setup */
+  HardwareSerial serial("/dev/uart");
+  SerialLink link(serial);
+  RemoteTestMaster test(link);
+  /* Command test */
+  bool result = test.Test(6, 10);
+  EXPECT_TRUE(result);
+}
+

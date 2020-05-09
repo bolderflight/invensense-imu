@@ -28,7 +28,7 @@ bool TestBeginI2c() {
 
 /* Test data collection over I2C */
 
-/* Test accel range */
+/* Test accel range, x and y near 0, z near -1 */
 bool CheckAccel(Accel accel) {
   float thresh = 0.5f;
   if (fabs(accel.x_g()) > thresh) {
@@ -37,14 +37,15 @@ bool CheckAccel(Accel accel) {
   if (fabs(accel.y_g()) > thresh) {
     return false;
   }
-  if (fabs(accel.z_g()) > (1.0f + thresh)) {
+  if (fabs(accel.z_g()) > (-1.0f + thresh)) {
     return false;
   }
-  if (fabs(accel.z_g()) < (1.0f - thresh)) {
+  if (fabs(accel.z_g()) < (-1.0f - thresh)) {
     return false;
   }
   return true;
 }
+/* Test all available accel full scale ranges */
 bool TestAccelRange(sensors::Mpu9250 &mpu) {
   delay(2);
   if (!mpu.accel_range(sensors::Mpu9250::ACCEL_RANGE_2G)) {
