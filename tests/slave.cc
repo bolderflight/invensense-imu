@@ -30,7 +30,7 @@ bool TestBeginI2c() {
 
 /* Test accel range, x and y near 0, z near -1 */
 bool CheckAccel(Accel accel) {
-  float thresh = 0.1f;
+  float thresh = 0.05f;
   if (fabs(accel.x_g()) > thresh) {
     return false;
   }
@@ -40,9 +40,9 @@ bool CheckAccel(Accel accel) {
   if (fabs(accel.z_g()) > (1.0f + thresh)) {
     return false;
   }
-  // if (fabs(accel.z_g()) < (-1.0f - thresh)) {
-  //   return false;
-  // }
+  if (fabs(accel.z_g()) < (-1.0f - thresh)) {
+    return false;
+  }
   return true;
 }
 /* Test all available accel full scale ranges */
