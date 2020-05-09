@@ -100,7 +100,7 @@ bool TestAccelRangeSpi() {
   if (!status) {
     return false;
   }
-  return TestAccelRange(mpu);
+  return true;
 }
 /* Test accel range I2C */
 bool TestAccelRangeI2c() {
@@ -109,8 +109,13 @@ bool TestAccelRangeI2c() {
   if (!status) {
     return false;
   }
-  return TestAccelRange(mpu);
+  return true;
 }
+// /* Test gyro, all channels near zero */
+// bool TestGyro(Gyro gyro) {
+//   float thresh
+// }
+
 
 /* Test gyro range SPI */
 
