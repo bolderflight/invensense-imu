@@ -55,10 +55,10 @@ bool TestAccelRange(sensors::Mpu9250 *mpu) {
     return false;
   }
   Imu imu = mpu->imu();
-  return true;
   if (!CheckAccel(imu.accel)) {
     return false;
   }
+  return true;
   delay(2);
   if (!mpu->accel_range(sensors::Mpu9250::ACCEL_RANGE_4G)) {
     return false;
