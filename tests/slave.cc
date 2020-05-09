@@ -37,7 +37,7 @@ bool CheckAccel(Accel accel) {
   if (fabs(accel.y_g()) > thresh) {
     return false;
   }
-  if (fabs(accel.z_g()) > (-1.0f + thresh)) {
+  if (fabs(accel.z_g()) > (1.0f + thresh)) {
     return false;
   }
   // if (fabs(accel.z_g()) < (-1.0f - thresh)) {
