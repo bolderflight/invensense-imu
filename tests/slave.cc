@@ -30,7 +30,7 @@ bool TestBeginI2c() {
 
 /* Test accel range, x and y near 0, z near -1 */
 bool CheckAccel(Accel accel) {
-  float thresh = 0.5f;
+  float thresh = 0.05f;
   if (fabs(accel.x_g()) > thresh) {
     return false;
   }
@@ -46,48 +46,49 @@ bool CheckAccel(Accel accel) {
   return true;
 }
 /* Test all available accel full scale ranges */
-bool TestAccelRange(sensors::Mpu9250 &mpu) {
+bool TestAccelRange(sensors::Mpu9250 *mpu) {
   delay(2);
-  if (!mpu.accel_range(sensors::Mpu9250::ACCEL_RANGE_2G)) {
+  if (!mpu->accel_range(sensors::Mpu9250::ACCEL_RANGE_2G)) {
     return false;
   }
-  if (!mpu.Read()) {
+  if (!mpu->Read()) {
     return false;
   }
-  Imu imu = mpu.imu();
+  Imu imu = mpu->imu();
+  return true;
   if (!CheckAccel(imu.accel)) {
     return false;
   }
   delay(2);
-  if (!mpu.accel_range(sensors::Mpu9250::ACCEL_RANGE_4G)) {
+  if (!mpu->accel_range(sensors::Mpu9250::ACCEL_RANGE_4G)) {
     return false;
   }
-  if (!mpu.Read()) {
+  if (!mpu->Read()) {
     return false;
   }
-  imu = mpu.imu();
+  imu = mpu->imu();
   if (!CheckAccel(imu.accel)) {
     return false;
   }
   delay(2);
-  if (!mpu.accel_range(sensors::Mpu9250::ACCEL_RANGE_8G)) {
+  if (!mpu->accel_range(sensors::Mpu9250::ACCEL_RANGE_8G)) {
     return false;
   }
-  if (!mpu.Read()) {
+  if (!mpu->Read()) {
     return false;
   }
-  imu = mpu.imu();
+  imu = mpu->imu();
   if (!CheckAccel(imu.accel)) {
     return false;
   }
   delay(2);
-  if (!mpu.accel_range(sensors::Mpu9250::ACCEL_RANGE_16G)) {
+  if (!mpu->accel_range(sensors::Mpu9250::ACCEL_RANGE_16G)) {
     return false;
   }
-  if (!mpu.Read()) {
+  if (!mpu->Read()) {
     return false;
   }
-  imu = mpu.imu();
+  imu = mpu->imu();
   if (!CheckAccel(imu.accel)) {
     return false;
   }
@@ -100,7 +101,7 @@ bool TestAccelRangeSpi() {
   if (!status) {
     return false;
   }
-  return true;
+  return TestAccelRange(&mpu);
 }
 /* Test accel range I2C */
 bool TestAccelRangeI2c() {
@@ -109,11 +110,21 @@ bool TestAccelRangeI2c() {
   if (!status) {
     return false;
   }
-  return true;
+  return TestAccelRange(&mpu);
 }
 // /* Test gyro, all channels near zero */
 // bool TestGyro(Gyro gyro) {
-//   float thresh
+//   float thresh = 0.05f;
+//   if (fabs(gyro.x_dps()) > thresh) {
+//     return false;
+//   }
+//   if (fabs(gyro.y_gps()) > thresh) {
+//     return false;
+//   }
+//   if (fabs(gyro.z_dps()) > thresh) {
+//     return false;
+//   }
+//   return true;
 // }
 
 
