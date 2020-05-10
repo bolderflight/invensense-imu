@@ -271,26 +271,26 @@ bool TestRotation(sensors::Mpu9250 *mpu) {
   if (fabs(imu.accel.z_g()) < (1.0f - thresh)) {
     return false;
   }
-  // /* Negate Z */
-  // rot(0, 0) = 1.0f;
-  // rot(1, 1) = 1.0f;
-  // rot(2, 2) = -1.0f;
-  // if (!mpu->Read()) {
-  //   return false;
-  // }
-  // imu = mpu->imu();
-  // if (fabs(imu.accel.x_g()) > thresh) {
-  //   return false;
-  // }
-  // if (fabs(imu.accel.y_g()) > thresh) {
-  //   return false;
-  // }
-  // if (fabs(imu.accel.z_g()) > (-1.0f + thresh)) {
-  //   return false;
-  // }
-  // if (fabs(imu.accel.z_g()) < (-1.0f - thresh)) {
-  //   return false;
-  // }
+  /* Negate Z */
+  rot(0, 0) = 1.0f;
+  rot(1, 1) = 1.0f;
+  rot(2, 2) = -1.0f;
+  if (!mpu->Read()) {
+    return false;
+  }
+  imu = mpu->imu();
+  if (fabs(imu.accel.x_g()) > thresh) {
+    return false;
+  }
+  if (fabs(imu.accel.y_g()) > thresh) {
+    return false;
+  }
+  if (fabs(imu.accel.z_g()) > (-1.0f + thresh)) {
+    return false;
+  }
+  if (fabs(imu.accel.z_g()) < (-1.0f - thresh)) {
+    return false;
+  }
   /* Swap X and Z */
   delay(2);
   rot = Eigen::Matrix3f::Zero();
