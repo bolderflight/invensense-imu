@@ -58,7 +58,6 @@ bool TestAccelRange(sensors::Mpu9250 *mpu) {
   if (!CheckAccel(imu.accel)) {
     return false;
   }
-  return true;
   delay(2);
   if (!mpu->accel_range(sensors::Mpu9250::ACCEL_RANGE_4G)) {
     return false;
@@ -112,26 +111,86 @@ bool TestAccelRangeI2c() {
   }
   return TestAccelRange(&mpu);
 }
-// /* Test gyro, all channels near zero */
-// bool TestGyro(Gyro gyro) {
-//   float thresh = 0.05f;
-//   if (fabs(gyro.x_dps()) > thresh) {
-//     return false;
-//   }
-//   if (fabs(gyro.y_gps()) > thresh) {
-//     return false;
-//   }
-//   if (fabs(gyro.z_dps()) > thresh) {
-//     return false;
-//   }
-//   return true;
-// }
-
-
+/* Test gyro, all channels near zero */
+bool CheckGyro(Gyro gyro) {
+  float thresh = 0.05f;
+  if (fabs(gyro.x_dps()) > thresh) {
+    return false;
+  }
+  if (fabs(gyro.y_dps()) > thresh) {
+    return false;
+  }
+  if (fabs(gyro.z_dps()) > thresh) {
+    return false;
+  }
+  return true;
+}
+/* Test all available gyro full scale ranges */
+bool TestGyroRange(sensors::Mpu9250 *mpu) {
+  delay(2);
+  if (!mpu->gyro_range(sensors::Mpu9250::GYRO_RANGE_250DPS)) {
+    return false;
+  }
+  if (!mpu->Read()) {
+    return false;
+  }
+  Imu imu = mpu->imu();
+  if (!CheckGyro(imu.gyro)) {
+    return false;
+  }
+  delay(2);
+  if (!mpu->gyro_range(sensors::Mpu9250::GYRO_RANGE_500DPS)) {
+    return false;
+  }
+  if (!mpu->Read()) {
+    return false;
+  }
+  imu = mpu->imu();
+  if (!CheckGyro(imu.gyro)) {
+    return false;
+  }
+  delay(2);
+  if (!mpu->gyro_range(sensors::Mpu9250::GYRO_RANGE_1000DPS)) {
+    return false;
+  }
+  if (!mpu->Read()) {
+    return false;
+  }
+  imu = mpu->imu();
+  if (!CheckGyro(imu.gyro)) {
+    return false;
+  }
+  delay(2);
+  if (!mpu->gyro_range(sensors::Mpu9250::GYRO_RANGE_2000DPS)) {
+    return false;
+  }
+  if (!mpu->Read()) {
+    return false;
+  }
+  imu = mpu->imu();
+  if (!CheckGyro(imu.gyro)) {
+    return false;
+  }
+  return true; 
+}
 /* Test gyro range SPI */
-
+bool TestGyroRangeSpi() {
+  sensors::Mpu9250 mpu(&MPU9250_SPI, MPU9250_SPI_CS);
+  bool status = mpu.Begin();
+  if (!status) {
+    return false;
+  }
+  return TestGyroRange(&mpu);
+}
 /* Test gyro range I2C */
-
+bool TestGyroRangeI2c() {
+  sensors::Mpu9250 mpu(&MPU9250_I2C, MPU9250_I2C_ADDR);
+  bool status = mpu.Begin();
+  if (!status) {
+    return false;
+  }
+  return TestGyroRange(&mpu);
+}
 /* Test SRD SPI */
 
 /* Test SRD I2C */
@@ -154,6 +213,8 @@ int main() {
   test.AddTest(2, TestBeginI2c);
   test.AddTest(5, TestAccelRangeSpi);
   test.AddTest(6, TestAccelRangeI2c);
+  test.AddTest(7, TestGyroRangeSpi);
+  test.AddTest(8, TestGyroRangeI2c);
   while (1) {
     /* Check for new tests */
     test.Check();
