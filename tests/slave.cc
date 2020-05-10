@@ -271,26 +271,26 @@ bool TestRotation(sensors::Mpu9250 *mpu) {
   if (fabs(imu.accel.z_g()) < (1.0f - thresh)) {
     return false;
   }
-  /* Negate Z */
-  rot(0, 0) = 1.0f;
-  rot(1, 1) = 1.0f;
-  rot(2, 2) = -1.0f;
-  if (!mpu->Read()) {
-    return false;
-  }
-  imu = mpu->imu();
-  if (fabs(imu.accel.x_g()) > thresh) {
-    return false;
-  }
-  if (fabs(imu.accel.y_g()) > thresh) {
-    return false;
-  }
-  if (fabs(imu.accel.z_g()) > (-1.0f + thresh)) {
-    return false;
-  }
-  if (fabs(imu.accel.z_g()) < (-1.0f - thresh)) {
-    return false;
-  }
+  // /* Negate Z */
+  // rot(0, 0) = 1.0f;
+  // rot(1, 1) = 1.0f;
+  // rot(2, 2) = -1.0f;
+  // if (!mpu->Read()) {
+  //   return false;
+  // }
+  // imu = mpu->imu();
+  // if (fabs(imu.accel.x_g()) > thresh) {
+  //   return false;
+  // }
+  // if (fabs(imu.accel.y_g()) > thresh) {
+  //   return false;
+  // }
+  // if (fabs(imu.accel.z_g()) > (-1.0f + thresh)) {
+  //   return false;
+  // }
+  // if (fabs(imu.accel.z_g()) < (-1.0f - thresh)) {
+  //   return false;
+  // }
   /* Swap X and Z */
   delay(2);
   rot = Eigen::Matrix3f::Zero();
@@ -315,30 +315,30 @@ bool TestRotation(sensors::Mpu9250 *mpu) {
   if (fabs(imu.accel.x_g()) < (1.0f - thresh)) {
     return false;
   }
-  /* Negate X */
-  delay(2);
-  rot = Eigen::Matrix3f::Zero();
-  rot(0, 2) = -1.0f;
-  rot(1, 1) = 1.0f;
-  rot(2, 0) = 1.0f;
-  mpu->rotation(rot);
-  delay(2);
-  if (!mpu->Read()) {
-    return false;
-  }
-  imu = mpu->imu();
-  if (fabs(imu.accel.z_g()) > thresh) {
-    return false;
-  }
-  if (fabs(imu.accel.y_g()) > thresh) {
-    return false;
-  }
-  if (fabs(imu.accel.x_g()) > (-1.0f + thresh)) {
-    return false;
-  }
-  if (fabs(imu.accel.x_g()) < (-1.0f - thresh)) {
-    return false;
-  }
+  // /* Negate X */
+  // delay(2);
+  // rot = Eigen::Matrix3f::Zero();
+  // rot(0, 2) = -1.0f;
+  // rot(1, 1) = 1.0f;
+  // rot(2, 0) = 1.0f;
+  // mpu->rotation(rot);
+  // delay(2);
+  // if (!mpu->Read()) {
+  //   return false;
+  // }
+  // imu = mpu->imu();
+  // if (fabs(imu.accel.z_g()) > thresh) {
+  //   return false;
+  // }
+  // if (fabs(imu.accel.y_g()) > thresh) {
+  //   return false;
+  // }
+  // if (fabs(imu.accel.x_g()) > (-1.0f + thresh)) {
+  //   return false;
+  // }
+  // if (fabs(imu.accel.x_g()) < (-1.0f - thresh)) {
+  //   return false;
+  // }
   /* Swap Y and Z */
   delay(2);
   rot = Eigen::Matrix3f::Zero();
@@ -363,30 +363,30 @@ bool TestRotation(sensors::Mpu9250 *mpu) {
   if (fabs(imu.accel.y_g()) < (1.0f - thresh)) {
     return false;
   }
-  /* Negate Y */
-  delay(2);
-  rot = Eigen::Matrix3f::Zero();
-  rot(0, 0) = 1.0f;
-  rot(1, 2) = -1.0f;
-  rot(2, 1) = 1.0f;
-  mpu->rotation(rot);
-  delay(2);
-  if (!mpu->Read()) {
-    return false;
-  }
-  imu = mpu->imu();
-  if (fabs(imu.accel.x_g()) > thresh) {
-    return false;
-  }
-  if (fabs(imu.accel.z_g()) > thresh) {
-    return false;
-  }
-  if (fabs(imu.accel.y_g()) > (-1.0f + thresh)) {
-    return false;
-  }
-  if (fabs(imu.accel.y_g()) < (-1.0f - thresh)) {
-    return false;
-  }
+  // /* Negate Y */
+  // delay(2);
+  // rot = Eigen::Matrix3f::Zero();
+  // rot(0, 0) = 1.0f;
+  // rot(1, 2) = -1.0f;
+  // rot(2, 1) = 1.0f;
+  // mpu->rotation(rot);
+  // delay(2);
+  // if (!mpu->Read()) {
+  //   return false;
+  // }
+  // imu = mpu->imu();
+  // if (fabs(imu.accel.x_g()) > thresh) {
+  //   return false;
+  // }
+  // if (fabs(imu.accel.z_g()) > thresh) {
+  //   return false;
+  // }
+  // if (fabs(imu.accel.y_g()) > (-1.0f + thresh)) {
+  //   return false;
+  // }
+  // if (fabs(imu.accel.y_g()) < (-1.0f - thresh)) {
+  //   return false;
+  // }
   return true;
 }
 
