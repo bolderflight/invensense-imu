@@ -51,6 +51,7 @@ bool TestAccelRange(sensors::Mpu9250 *mpu) {
   if (!mpu->accel_range(sensors::Mpu9250::ACCEL_RANGE_2G)) {
     return false;
   }
+  delay(2);
   if (!mpu->Read()) {
     return false;
   }
@@ -62,6 +63,7 @@ bool TestAccelRange(sensors::Mpu9250 *mpu) {
   if (!mpu->accel_range(sensors::Mpu9250::ACCEL_RANGE_4G)) {
     return false;
   }
+  delay(2);
   if (!mpu->Read()) {
     return false;
   }
@@ -73,6 +75,7 @@ bool TestAccelRange(sensors::Mpu9250 *mpu) {
   if (!mpu->accel_range(sensors::Mpu9250::ACCEL_RANGE_8G)) {
     return false;
   }
+  delay(2);
   if (!mpu->Read()) {
     return false;
   }
@@ -84,6 +87,7 @@ bool TestAccelRange(sensors::Mpu9250 *mpu) {
   if (!mpu->accel_range(sensors::Mpu9250::ACCEL_RANGE_16G)) {
     return false;
   }
+  delay(2);
   if (!mpu->Read()) {
     return false;
   }
@@ -131,6 +135,7 @@ bool TestGyroRange(sensors::Mpu9250 *mpu) {
   if (!mpu->gyro_range(sensors::Mpu9250::GYRO_RANGE_250DPS)) {
     return false;
   }
+  delay(2);
   if (!mpu->Read()) {
     return false;
   }
@@ -142,6 +147,7 @@ bool TestGyroRange(sensors::Mpu9250 *mpu) {
   if (!mpu->gyro_range(sensors::Mpu9250::GYRO_RANGE_500DPS)) {
     return false;
   }
+  delay(2);
   if (!mpu->Read()) {
     return false;
   }
@@ -153,6 +159,7 @@ bool TestGyroRange(sensors::Mpu9250 *mpu) {
   if (!mpu->gyro_range(sensors::Mpu9250::GYRO_RANGE_1000DPS)) {
     return false;
   }
+  delay(2);
   if (!mpu->Read()) {
     return false;
   }
@@ -164,6 +171,7 @@ bool TestGyroRange(sensors::Mpu9250 *mpu) {
   if (!mpu->gyro_range(sensors::Mpu9250::GYRO_RANGE_2000DPS)) {
     return false;
   }
+  delay(2);
   if (!mpu->Read()) {
     return false;
   }
@@ -242,10 +250,71 @@ bool TestDlpfI2c() {
   }
   return TestDlpf(&mpu);
 }
+/* Test rotation */
+bool TestRotation(sensors::Mpu9250 *mpu) {
+  float thresh = 0.05f;
+  /* Check the default rotation */
+  if (!mpu->Read()) {
+    return false;
+  }
+  Imu imu = mpu->imu();
+  if (fabs(imu.accel.x_g()) > thresh) {
+    return false;
+  }
+  if (fabs(imu.accel.y_g()) > thresh) {
+    return false;
+  }
+  if (fabs(imu.accel.z_g()) > (1.0f + thresh)) {
+    return false;
+  }
+  if (fabs(imu.accel.z_g()) < (1.0f - thresh)) {
+    return false;
+  }
+  /* Swap X and Z */
+  delay(2);
+  Eigen::Matrix3f rot = Eigen::Matrix3f::Zero();
+  rot(0, 2) = 1.0f;
+  rot(1, 1) = 1.0f;
+  rot(2, 0) = 1.0f;
+  mpu->rotation(rot);
+  delay(2);
+  if (!mpu->Read()) {
+    return false;
+  }
+  imu = mpu->imu();
+  if (fabs(imu.accel.z_g()) > thresh) {
+    return false;
+  }
+  if (fabs(imu.accel.y_g()) > thresh) {
+    return false;
+  }
+  if (fabs(imu.accel.x_g()) > (1.0f + thresh)) {
+    return false;
+  }
+  if (fabs(imu.accel.x_g()) < (1.0f - thresh)) {
+    return false;
+  }
+  return true;
+}
+
 /* Test rotation SPI */
-
+bool TestRotSpi() {
+  sensors::Mpu9250 mpu(&MPU9250_SPI, MPU9250_SPI_CS);
+  bool status = mpu.Begin();
+  if (!status) {
+    return false;
+  }
+  return TestRotation(&mpu);
+}
 /* Test rotation I2C */
-
+bool TestRotSpi() {
+  sensors::Mpu9250 mpu(&MPU9250_SPI, MPU9250_SPI_CS);
+  bool status = mpu.Begin();
+  if (!status) {
+    return false;
+  }
+  return TestRotation(&mpu);
+}
 
 int main() {
   /* Starting the remote test interface */
@@ -260,6 +329,8 @@ int main() {
   test.AddTest(8, TestGyroRangeI2c);
   test.AddTest(11, TestDlpfSpi);
   test.AddTest(12, TestDlpfI2c);
+  test.AddTest(13, TestRotSpi);
+  test.AddTest(14, TestRotI2c);
   while (1) {
     /* Check for new tests */
     test.Check();

@@ -105,3 +105,27 @@ TEST(Mpu9250, DlpfI2c) {
   bool result = test.Test(12, 10);
   EXPECT_TRUE(result);
 }
+
+TEST(Mpu9250,RotSpi) {
+  /* Reset mcu */
+  system("mcu_reset");
+  /* Remote Test setup */
+  HardwareSerial serial("/dev/uart");
+  SerialLink link(serial);
+  RemoteTestMaster test(link);
+  /* Command test */
+  bool result = test.Test(13, 10);
+  EXPECT_TRUE(result);
+}
+
+TEST(Mpu9250, RotI2c) {
+  /* Reset mcu */
+  system("mcu_reset");
+  /* Remote Test setup */
+  HardwareSerial serial("/dev/uart");
+  SerialLink link(serial);
+  RemoteTestMaster test(link);
+  /* Command test */
+  bool result = test.Test(14, 10);
+  EXPECT_TRUE(result);
+}
