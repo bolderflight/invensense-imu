@@ -113,7 +113,7 @@ bool TestAccelRangeI2c() {
 }
 /* Test gyro, all channels near zero */
 bool CheckGyro(Gyro gyro) {
-  float thresh = 0.05f;
+  float thresh = 3.0f;
   if (fabs(gyro.x_dps()) > thresh) {
     return false;
   }
