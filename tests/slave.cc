@@ -195,10 +195,53 @@ bool TestGyroRangeI2c() {
 
 /* Test SRD I2C */
 
+/* Test DLPF */
+bool TestDlpf(sensors::Mpu9250 *mpu) {
+  delay(2);
+  if (!mpu->dlpf_bandwidth(sensors::Mpu9250::DLPF_BANDWIDTH_184HZ)) {
+    return false;
+  }
+  delay(2);
+  if (!mpu->dlpf_bandwidth(sensors::Mpu9250::DLPF_BANDWIDTH_92HZ)) {
+    return false;
+  }
+  delay(2);
+  if (!mpu->dlpf_bandwidth(sensors::Mpu9250::DLPF_BANDWIDTH_41HZ)) {
+    return false;
+  }
+  delay(2);
+  if (!mpu->dlpf_bandwidth(sensors::Mpu9250::DLPF_BANDWIDTH_20HZ)) {
+    return false;
+  }
+  delay(2);
+  if (!mpu->dlpf_bandwidth(sensors::Mpu9250::DLPF_BANDWIDTH_10HZ)) {
+    return false;
+  }
+  delay(2);
+  if (!mpu->dlpf_bandwidth(sensors::Mpu9250::DLPF_BANDWIDTH_5HZ)) {
+    return false;
+  }
+  return true;
+}
+
 /* Test DLPF SPI */
-
+bool TestDlpfSpi() {
+  sensors::Mpu9250 mpu(&MPU9250_SPI, MPU9250_SPI_CS);
+  bool status = mpu.Begin();
+  if (!status) {
+    return false;
+  }
+  return TestDlpf(&mpu);
+}
 /* Test DLPF I2C */
-
+bool TestDlpfI2c() {
+  sensors::Mpu9250 mpu(&MPU9250_I2C, MPU9250_I2C_ADDR);
+  bool status = mpu.Begin();
+  if (!status) {
+    return false;
+  }
+  return TestDlpf(&mpu);
+}
 /* Test rotation SPI */
 
 /* Test rotation I2C */
@@ -215,6 +258,8 @@ int main() {
   test.AddTest(6, TestAccelRangeI2c);
   test.AddTest(7, TestGyroRangeSpi);
   test.AddTest(8, TestGyroRangeI2c);
+  test.AddTest(11, TestDlpfSpi);
+  test.AddTest(12, TestDlpfI2c);
   while (1) {
     /* Check for new tests */
     test.Check();

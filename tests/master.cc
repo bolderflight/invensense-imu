@@ -82,3 +82,26 @@ TEST(Mpu9250, GyroRangeI2c) {
   EXPECT_TRUE(result);
 }
 
+TEST(Mpu9250,DlpfSpi) {
+  /* Reset mcu */
+  system("mcu_reset");
+  /* Remote Test setup */
+  HardwareSerial serial("/dev/uart");
+  SerialLink link(serial);
+  RemoteTestMaster test(link);
+  /* Command test */
+  bool result = test.Test(11, 10);
+  EXPECT_TRUE(result);
+}
+
+TEST(Mpu9250, DlpfI2c) {
+  /* Reset mcu */
+  system("mcu_reset");
+  /* Remote Test setup */
+  HardwareSerial serial("/dev/uart");
+  SerialLink link(serial);
+  RemoteTestMaster test(link);
+  /* Command test */
+  bool result = test.Test(12, 10);
+  EXPECT_TRUE(result);
+}
