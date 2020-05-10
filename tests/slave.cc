@@ -307,8 +307,8 @@ bool TestRotSpi() {
   return TestRotation(&mpu);
 }
 /* Test rotation I2C */
-bool TestRotSpi() {
-  sensors::Mpu9250 mpu(&MPU9250_SPI, MPU9250_SPI_CS);
+bool TestRotI2c() {
+  sensors::Mpu9250 mpu(&MPU9250_I2C, MPU9250_I2C_ADDR);
   bool status = mpu.Begin();
   if (!status) {
     return false;
