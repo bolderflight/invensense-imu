@@ -52,15 +52,18 @@ void IntIsr() {
 }
 bool TestInterrupt(sensors::Mpu9250 *mpu) {
   int_count = 0;
+  if (!mpu->sample_rate_divider(19)) {
+    return false;
+  }
   if (!mpu->EnableDrdyInt()) {
     return false;
   }
-  /* wait 10 milliseconds */
-  delay(10);
+  /* wait 200 milliseconds */
+  delay(200);
   if (!mpu->DisableDrdyInt()) {
     return false;
   }
-  delay(10);
+  delay(200);
   if (int_count != 10) {
     return false;
   }
@@ -638,14 +641,9 @@ bool SpiSrd() {
 }
 /* Test DLPF */
 bool TestDlpf(sensors::Mpu9250 *mpu) {
-  /* Let's do this at 50 Hz */
-  bool status = mpu->sample_rate_divider(19);
-  if (!status) {
-    return false;
-  }
   /* 184Hz DLPF */
   sensors::Mpu9250::DlpfBandwidth set_bandwidth = sensors::Mpu9250::DLPF_BANDWIDTH_184HZ;
-  status = mpu->dlpf_bandwidth(set_bandwidth);
+  bool status = mpu->dlpf_bandwidth(set_bandwidth);
   if (!status) {
     return false;
   }
@@ -653,23 +651,6 @@ bool TestDlpf(sensors::Mpu9250 *mpu) {
   if (set_bandwidth != ret_bandwidth) {
     return false;
   }
-  unsigned int i = 0;
-  float accel[10];
-  while (i < 10) {
-    if (mpu->Read()) {
-      Imu imu = mpu->imu();
-      accel[i++] = imu.accel.z_g();
-    }
-  }
-  float mean = 0;
-  for (unsigned int i = 0; i < 10; i++) {
-    mean += accel[i] / 10.0f;
-  }
-  float var = 0;
-  for (unsigned int i = 0; i < 10; i++) {
-    var += ((accel[i] - mean) * (accel[i] - mean)) / 10.0f;
-  }
-  float prev_var = var;
   /* 92Hz DLPF */
   set_bandwidth = sensors::Mpu9250::DLPF_BANDWIDTH_92HZ;
   status = mpu->dlpf_bandwidth(set_bandwidth);
@@ -680,25 +661,6 @@ bool TestDlpf(sensors::Mpu9250 *mpu) {
   if (set_bandwidth != ret_bandwidth) {
     return false;
   }
-  i = 0;
-  while (i < 10) {
-    if (mpu->Read()) {
-      Imu imu = mpu->imu();
-      accel[i++] = imu.accel.z_g();
-    }
-  }
-  mean = 0;
-  for (unsigned int i = 0; i < 10; i++) {
-    mean += accel[i] / 10.0f;
-  }
-  var = 0;
-  for (unsigned int i = 0; i < 10; i++) {
-    var += ((accel[i] - mean) * (accel[i] - mean)) / 10.0f;
-  }
-  if (var > prev_var) {
-    return false;
-  }
-  prev_var = var;
   /* 41Hz DLPF */
   set_bandwidth = sensors::Mpu9250::DLPF_BANDWIDTH_41HZ;
   status = mpu->dlpf_bandwidth(set_bandwidth);
@@ -709,25 +671,6 @@ bool TestDlpf(sensors::Mpu9250 *mpu) {
   if (set_bandwidth != ret_bandwidth) {
     return false;
   }
-  i = 0;
-  while (i < 10) {
-    if (mpu->Read()) {
-      Imu imu = mpu->imu();
-      accel[i++] = imu.accel.z_g();
-    }
-  }
-  mean = 0;
-  for (unsigned int i = 0; i < 10; i++) {
-    mean += accel[i] / 10.0f;
-  }
-  var = 0;
-  for (unsigned int i = 0; i < 10; i++) {
-    var += ((accel[i] - mean) * (accel[i] - mean)) / 10.0f;
-  }
-  if (var > prev_var) {
-    return false;
-  }
-  prev_var = var;
   /* 20Hz DLPF */
   set_bandwidth = sensors::Mpu9250::DLPF_BANDWIDTH_20HZ;
   status = mpu->dlpf_bandwidth(set_bandwidth);
@@ -738,25 +681,6 @@ bool TestDlpf(sensors::Mpu9250 *mpu) {
   if (set_bandwidth != ret_bandwidth) {
     return false;
   }
-  i = 0;
-  while (i < 10) {
-    if (mpu->Read()) {
-      Imu imu = mpu->imu();
-      accel[i++] = imu.accel.z_g();
-    }
-  }
-  mean = 0;
-  for (unsigned int i = 0; i < 10; i++) {
-    mean += accel[i] / 10.0f;
-  }
-  var = 0;
-  for (unsigned int i = 0; i < 10; i++) {
-    var += ((accel[i] - mean) * (accel[i] - mean)) / 10.0f;
-  }
-  if (var > prev_var) {
-    return false;
-  }
-  prev_var = var;
   /* 10Hz DLPF */
   set_bandwidth = sensors::Mpu9250::DLPF_BANDWIDTH_10HZ;
   status = mpu->dlpf_bandwidth(set_bandwidth);
@@ -767,25 +691,6 @@ bool TestDlpf(sensors::Mpu9250 *mpu) {
   if (set_bandwidth != ret_bandwidth) {
     return false;
   }
-  i = 0;
-  while (i < 10) {
-    if (mpu->Read()) {
-      Imu imu = mpu->imu();
-      accel[i++] = imu.accel.z_g();
-    }
-  }
-  mean = 0;
-  for (unsigned int i = 0; i < 10; i++) {
-    mean += accel[i] / 10.0f;
-  }
-  var = 0;
-  for (unsigned int i = 0; i < 10; i++) {
-    var += ((accel[i] - mean) * (accel[i] - mean)) / 10.0f;
-  }
-  if (var > prev_var) {
-    return false;
-  }
-  prev_var = var;
   /* 5Hz DLPF */
   set_bandwidth = sensors::Mpu9250::DLPF_BANDWIDTH_5HZ;
   status = mpu->dlpf_bandwidth(set_bandwidth);
@@ -796,25 +701,6 @@ bool TestDlpf(sensors::Mpu9250 *mpu) {
   if (set_bandwidth != ret_bandwidth) {
     return false;
   }
-  i = 0;
-  while (i < 10) {
-    if (mpu->Read()) {
-      Imu imu = mpu->imu();
-      accel[i++] = imu.accel.z_g();
-    }
-  }
-  mean = 0;
-  for (unsigned int i = 0; i < 10; i++) {
-    mean += accel[i] / 10.0f;
-  }
-  var = 0;
-  for (unsigned int i = 0; i < 10; i++) {
-    var += ((accel[i] - mean) * (accel[i] - mean)) / 10.0f;
-  }
-  if (var > prev_var) {
-    return false;
-  }
-  prev_var = var;
   return true;
 }
 /* DLPF test I2C */
