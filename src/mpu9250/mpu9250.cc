@@ -245,6 +245,10 @@ Mpu9250::GyroRange Mpu9250::gyro_range() {
 }
 bool Mpu9250::sample_rate_divider(uint8_t srd) {
   spi_clock_ = 1000000;
+  /* Changing the SRD to allow us to set the magnetometer successfully */
+  if (!WriteRegister(SMPLRT_DIV_, 19)) {
+    return false;
+  }
   /* Set the magnetometer sample rate */
   if (srd > 9) {
     /* Set AK8963 to power down */
