@@ -51,6 +51,9 @@ void IntIsr() {
   int_count++;
 }
 bool TestInterrupt(sensors::Mpu9250 *mpu) {
+  if (!mpu->DisableDrdyInt()) {
+    return false;
+  }
   int_count = 0;
   if (!mpu->sample_rate_divider(19)) {
     return false;
