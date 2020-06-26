@@ -381,7 +381,7 @@ bool Mpu9250::Read() {
   imu_.accel.g(rotation_ * accel);
   imu_.gyro.dps(rotation_ * gyro);
   die_temperature_.c(temp);
-  mag_.t(rotation_ * mag);
+  mag_.ut(rotation_ * mag);
   return true;
 }
 Imu Mpu9250::imu() {
