@@ -31,7 +31,7 @@ cmake .. -DMCU=MK66FX1M0
 make
 ```
 
-This will build the library, example executables called *i2c_example* and *spi_example*, and executables for testing using the Google Test framework. The example executable source files are located at *examples/i2c.cc* and *examples/spi.cc*. This code is built and tested on an AMD64 system running Linux and is likely to build on AMD64 systems running the Windows Subsystem for Linux (WSL). The [arm-none-eabi](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm/downloads) toolchain must be installed in your Linux environment.
+This will build the library, example executables called *i2c_example* and *spi_example*, and executables for testing using the Google Test framework. The example executable source files are located at *examples/i2c.cc* and *examples/spi.cc*. This code is built and tested on AARCH64 and AMD64 systems running Linux and AMD64 systems running the Windows Subsystem for Linux (WSL). The [arm-none-eabi](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm/downloads) toolchain must be installed in your Linux environment.
 
 Notice that the *cmake* command includes a define specifying the microcontroller the code is being compiled for. This is required to correctly configure the code, CPU frequency, and compile/linker options. The available MCUs are:
    * MK20DX128
@@ -242,27 +242,27 @@ if (mpu9250.Read()) {
 }
 ```
 
-**Imu imu()** Returns the IMU (accelerometer and gyro) data from the Mpu9250 object.
+**types::Imu imu()** Returns the IMU (accelerometer and gyro) data from the Mpu9250 object.
 
 ```C++
 /* Read the IMU data */
 if (mpu9250.Read()) {
-  Imu imu = mpu9250.imu();
+  types::Imu imu = mpu9250.imu();
 }
 ```
 
-**Temperature die_temperature()** Returns the IMU die temperature from the Mpu9250 object. Note that this is the temperature of the sensor die and is not a good indicator of ambient temperature.
+**types::Temperature die_temperature()** Returns the IMU die temperature from the Mpu9250 object. Note that this is the temperature of the sensor die and is not a good indicator of ambient temperature.
 ```C++
 /* Read the IMU data */
 if (mpu9250.Read()) {
-  Temperature t = mpu9250.die_temperature();
+  types::Temperature t = mpu9250.die_temperature();
 }
 ```
 
-**Mag mag()** Returns the magnetometer data from the Mpu9250 object.
+**types::Mag mag()** Returns the magnetometer data from the Mpu9250 object.
 ```C++
 /* Read the IMU data */
 if (mpu9250.Read()) {
-  Mag mag = mpu9250.mag();
+  types::Mag mag = mpu9250.mag();
 }
 ```
