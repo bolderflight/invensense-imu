@@ -15,20 +15,9 @@ Further detail is provided below for each step.
 All development should occur on a separate branch from master. Software should be developed following our [Style Guide](#style). 
 
 #### Style Guide<a name="style"></a>
-Follow the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html). Any parameter or variable names, which contain unit specific data should be appended with an underscore and the units (i.e. accel_z_mss). Several common units are listed below; as a general rule SI units should be used.
-   * _c: Celsius
-   * _pa: Pascal
-   * _m: meter
-   * _rad: radian
-   * _ut: micro-tesla
-   * _s: seconds
-   * _ms: milliseconds
-   * _us: microseconds
-   * _ms: meters/second
-   * _rads: radians/s
-   * _mss: meters/second/second
+Follow the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html). Any parameter or variable names, which contain unit specific data should be appended with an underscore and the units (i.e. accel_z_mps2). Units should be named by their common abbreviation. For derived units, use _p_ to indicate _"per"_ and append exponents. So, m/s/s would be _mps2_ and kg/m^3 would be _kgpm3_. If a common abbreviation already exists for the unit, use that instead (i.e. _psi_ instead of _lbpin2_).
 
-Prefer to use _float_ instead of _double_ unless there is a specific need for improved accuracy. Specify integer size in all cases where a certain number of bytes are expected (i.e. uint16_t where 2 bytes is assumed); otherwise use unsigned or signed int. Typically, we are not concerned with program size and unsigned or signed int work well for integers and index values. If a certain number of bytes are needed they need to be called out directly since different compilers and platforms can change the number of bytes stored in a short, for instance.
+Prefer to use _float_ instead of _double_ unless there is a specific need for improved accuracy. Specify integer size in all cases where a certain number of bytes are expected (i.e. uint16_t where 2 bytes is assumed); otherwise use unsigned or signed int. Typically, we are not concerned with program size and unsigned or signed int work well for integers and index values. If a certain number of bytes are needed they need to be called out directly since different compilers and platforms can change the number of bytes stored in a short, for instance. Do not assume that using unsigned int will prevent a negative input, instead use signed int and check for negative values (see the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) for more details on why).
 
 #### External sources licensing
 If you use external sources, ensure they are licensed MIT, BSD, or a similarly permissive license. We would like to limit the amount of LGPL code in our code base and need to avoid all GPL and unlicensed code.
@@ -51,9 +40,7 @@ Tests are run using the [Google Test framework](https://github.com/google/google
 Linting tests check for conformance to the style guide - analyzing the code for potential errors and leading to better readibility. [cpplint](https://raw.githubusercontent.com/google/styleguide/gh-pages/cpplint/cpplint.py) should be used to conduct linting tests with verbosity level 0.
 
 #### Build
-Libraries, example code, and tests should be compiled with CMake without error. We typically use CMake with an AMD64 Linux target for general libraries. CMake should be [built from source](https://github.com/Kitware/CMake) and gcc compilers available on the target system. A [Docker](https://hub.docker.com/r/flybrianfly/gcc-cmake) is available to ease this process.
-
-Executables targetting embedded hardware should use the [core library](https://gitlab.com/bolderflight/software/core) as a dependency, which includes microprocessor startup code and CMake cross-compile toolchain instructions. The [GNU ARM Embedded Toolchain](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm/downloads) needs to be installed to build embedded software. Again, a [Docker](https://hub.docker.com/r/flybrianfly/gcc-cmake) is available to ease this process.
+Libraries, example code, and tests should be compiled with CMake without error. We typically use CMake with an AMD64 Linux target for general libraries. CMake should be [built from source](https://github.com/Kitware/CMake) and gcc compilers available on the target system. 
 
 #### Inputs
 Test all parameters against unexpected values, such as NULL inputs, buffer overflows, and zero or negative values. Try to capture all potential combinations of malformed inputs to ensure that your code is protecting against these. Assume that your fellow developers will not read your documentation and will try to use your code with incorrect parameters.

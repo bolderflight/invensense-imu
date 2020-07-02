@@ -384,13 +384,13 @@ bool Mpu9250::Read() {
   mag_.ut(rotation_ * mag);
   return true;
 }
-Imu Mpu9250::imu() {
+types::Imu Mpu9250::imu() {
   return imu_;
 }
-Temperature Mpu9250::die_temperature() {
+types::Temperature Mpu9250::die_temperature() {
   return die_temperature_;
 }
-Mag Mpu9250::mag() {
+types::Mag Mpu9250::mag() {
   return mag_;
 }
 bool Mpu9250::WriteRegister(uint8_t reg, uint8_t data) {

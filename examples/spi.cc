@@ -6,18 +6,17 @@
 */
 
 #include "mpu9250/mpu9250.h"
-#include "mcu_hil_defs/mcu_hil_defs.h"
 
 /* Mpu9250 object using SPI */
-sensors::Mpu9250 mpu9250(&MPU9250_SPI, MPU9250_SPI_CS);
+sensors::Mpu9250 mpu9250(&SPI, 2);
 /* Data acquisition ISR */
 void imu_isr() {
   /* Check if data read */
   if (mpu9250.Read()) {
     /* Print data */
-    Imu imu = mpu9250.imu();
-    Mag mag = mpu9250.mag();
-    Temperature t = mpu9250.die_temperature();
+    types::Imu imu = mpu9250.imu();
+    types::Mag mag = mpu9250.mag();
+    types::Temperature t = mpu9250.die_temperature();
     Serial.print(imu.accel.x_mps2());
     Serial.print("\t");
     Serial.print(imu.accel.y_mps2());
@@ -64,7 +63,7 @@ int main() {
     while(1) {}
   }
   /* Setup callback for data ready interrupt */
-  mpu9250.DrdyCallback(MPU9250_SPI_INT, imu_isr);
+  mpu9250.DrdyCallback(3, imu_isr);
   while (1) {}
 }
 

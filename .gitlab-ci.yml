@@ -1,41 +1,11 @@
 stages:
   - lint
-  # - build
-  # - test
 
 Lint:
   stage: lint
   tags:
     - bfs
-    - mk66fx1m0
   script: 
     - cpplint.py --verbose=0 src/mpu9250/mpu9250.cc
     - cpplint.py --verbose=0 include/mpu9250/mpu9250.h
   
-# Compile:
-#   stage: build
-#   tags:
-#     - bfs
-#     - mk66fx1m0
-#   script:
-#     - mkdir build
-#     - cd build
-#     - cmake .. -DMCU=MK66FX1M0
-#     - make
-#     - make slave_upload
-#     - cd ..
-#     - mkdir build_linux
-#     - cd build_linux
-#     - cmake ..
-#     - make
-#   artifacts:
-#     paths:
-#       - build_linux/master
-
-# Test:
-#   stage: test
-#   tags:
-#     - bfs
-#     - mk66fx1m0
-#   script:
-#     - ./build_linux/master
