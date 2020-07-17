@@ -394,7 +394,7 @@ bool Mpu9250::Read() {
   mag_.z.ut(rotated_mag(2));
   return true;
 }
- types::Imu<types::Accel3D<float>, types::Gyro3D<float>> Mpu9250::imu() {
+types::Imu<types::Accel3D<float>, types::Gyro3D<float>> Mpu9250::imu() {
   return imu_;
 }
 types::Temperature<float> Mpu9250::die_temperature() {
