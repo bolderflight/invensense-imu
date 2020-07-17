@@ -56,7 +56,7 @@ class Mpu9250 {
   bool Read();
   types::Imu<types::Accel3D<float>, types::Gyro3D<float>> imu();
   types::Temperature<float> die_temperature();
-  // types::Mag3D<float> mag();
+  types::Mag3D<float> mag();
 
  private:
   enum Interface {
@@ -83,9 +83,9 @@ class Mpu9250 {
   /* Data */
   float accel_scale_, gyro_scale_, mag_scale_[3];
   float temp_scale_ = 333.87f;
-   types::Imu<types::Accel3D<float>, types::Gyro3D<float>> imu_;
+  types::Imu<types::Accel3D<float>, types::Gyro3D<float>> imu_;
   types::Temperature<float> die_temperature_;
-  // types::Mag3D<float> mag_;
+  types::Mag3D<float> mag_;
   /* Registers */
   static constexpr uint8_t PWR_MGMNT_1_ = 0x6B;
   static constexpr uint8_t H_RESET_ = 0x80;

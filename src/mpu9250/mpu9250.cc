@@ -390,9 +390,9 @@ bool Mpu9250::Read() {
 types::Temperature<float> Mpu9250::die_temperature() {
   return die_temperature_;
 }
-// types::Mag Mpu9250::mag() {
-//   return mag_;
-// }
+types::Mag3D<float> Mpu9250::mag() {
+  return mag_;
+}
 bool Mpu9250::WriteRegister(uint8_t reg, uint8_t data) {
   uint8_t ret_val;
   if (iface_ == I2C) {
