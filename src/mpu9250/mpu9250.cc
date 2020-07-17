@@ -377,11 +377,21 @@ bool Mpu9250::Read() {
   mag(0) =   static_cast<float>(mag_counts[0]) * mag_scale_[0];
   mag(1) =   static_cast<float>(mag_counts[1]) * mag_scale_[1];
   mag(2) =   static_cast<float>(mag_counts[2]) * mag_scale_[2];
-  /* Apply rotation and store values */
-  // imu_.accel.g(rotation_ * accel);
-  // imu_.gyro.dps(rotation_ * gyro);
-  // die_temperature_.c(temp);
-  // mag_.ut(rotation_ * mag);
+  /* Apply rotation */
+  Eigen::Vector3f rotated_accel, rotated_gyro, rotated_mag;
+  rotated_accel = rotation_ * accel;
+  rotated_gyro = rotation_ * gyro;
+  rotated_mag = rotation_ * mag;
+  /* Output */
+  imu_.accel.x.g(rotated_accel(0));
+  imu_.accel.y.g(rotated_accel(1));
+  imu_.accel.z.g(rotated_accel(2));
+  imu_.gyro.x.dps(rotated_gyro(0));
+  imu_.gyro.y.dps(rotated_gyro(1));
+  imu_.gyro.z.dps(rotated_gyro(2));
+  mag_.x.ut(rotated_mag(0));
+  mag_.y.ut(rotated_mag(1));
+  mag_.z.ut(rotated_mag(2));
   return true;
 }
  types::Imu<types::Accel3D<float>, types::Gyro3D<float>> Mpu9250::imu() {
