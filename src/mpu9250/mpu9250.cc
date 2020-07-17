@@ -378,21 +378,21 @@ bool Mpu9250::Read() {
   mag(1) =   static_cast<float>(mag_counts[1]) * mag_scale_[1];
   mag(2) =   static_cast<float>(mag_counts[2]) * mag_scale_[2];
   /* Apply rotation and store values */
-  imu_.accel.g(rotation_ * accel);
-  imu_.gyro.dps(rotation_ * gyro);
-  die_temperature_.c(temp);
-  mag_.ut(rotation_ * mag);
+  // imu_.accel.g(rotation_ * accel);
+  // imu_.gyro.dps(rotation_ * gyro);
+  // die_temperature_.c(temp);
+  // mag_.ut(rotation_ * mag);
   return true;
 }
-types::Imu Mpu9250::imu() {
+ types::Imu<types::Accel3D<float>, types::Gyro3D<float>> Mpu9250::imu() {
   return imu_;
 }
-types::Temperature Mpu9250::die_temperature() {
+types::Temperature<float> Mpu9250::die_temperature() {
   return die_temperature_;
 }
-types::Mag Mpu9250::mag() {
-  return mag_;
-}
+// types::Mag Mpu9250::mag() {
+//   return mag_;
+// }
 bool Mpu9250::WriteRegister(uint8_t reg, uint8_t data) {
   uint8_t ret_val;
   if (iface_ == I2C) {

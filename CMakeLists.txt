@@ -18,7 +18,6 @@ if (DEFINED MCU)
 	FetchContent_Declare(
 		types
 		GIT_REPOSITORY 	git@gitlab.com:bolderflight/software/types.git
-		GIT_TAG					v4.0.0
 	)
 	FetchContent_MakeAvailable(types)
 	# Fetch core
@@ -28,6 +27,13 @@ if (DEFINED MCU)
 		GIT_TAG					v1.0.0
 	)
 	FetchContent_MakeAvailable(core)
+	# Fetch eigen
+	FetchContent_Declare(
+		eigen
+		GIT_REPOSITORY 	git@gitlab.com:bolderflight/software/eigen.git
+		GIT_TAG					v1.0.0
+	)
+	FetchContent_MakeAvailable(eigen)
 	# Add the library target
 	add_library(mpu9250
 		src/mpu9250/mpu9250.cc
@@ -38,6 +44,7 @@ if (DEFINED MCU)
 		PUBLIC
 			core
 			types
+			eigen
 	)
 	# Setup include directories 
 	target_include_directories(mpu9250 PUBLIC 

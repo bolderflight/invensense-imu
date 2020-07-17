@@ -54,9 +54,9 @@ class Mpu9250 {
   DlpfBandwidth dlpf_bandwidth();
   void DrdyCallback(uint8_t int_pin, void (*function)());
   bool Read();
-  types::Imu imu();
-  types::Temperature die_temperature();
-  types::Mag mag();
+  types::Imu<types::Accel3D<float>, types::Gyro3D<float>> imu();
+  types::Temperature<float> die_temperature();
+  // types::Mag3D<float> mag();
 
  private:
   enum Interface {
@@ -83,9 +83,9 @@ class Mpu9250 {
   /* Data */
   float accel_scale_, gyro_scale_, mag_scale_[3];
   float temp_scale_ = 333.87f;
-  types::Imu imu_;
-  types::Temperature die_temperature_;
-  types::Mag mag_;
+   types::Imu<types::Accel3D<float>, types::Gyro3D<float>> imu_;
+  types::Temperature<float> die_temperature_;
+  // types::Mag3D<float> mag_;
   /* Registers */
   static constexpr uint8_t PWR_MGMNT_1_ = 0x6B;
   static constexpr uint8_t H_RESET_ = 0x80;
