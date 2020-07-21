@@ -54,9 +54,9 @@ class Mpu9250 {
   DlpfBandwidth dlpf_bandwidth();
   void DrdyCallback(uint8_t int_pin, void (*function)());
   bool Read();
-  types::Imu<types::Accel3D<float>, types::Gyro3D<float>> imu();
-  types::Temperature<float> die_temperature();
-  types::Mag3D<float> mag();
+  types::Imuf imu();
+  types::Temperaturef die_temperature();
+  types::Mag3f mag();
 
  private:
   enum Interface {
@@ -83,9 +83,9 @@ class Mpu9250 {
   /* Data */
   float accel_scale_, gyro_scale_, mag_scale_[3];
   float temp_scale_ = 333.87f;
-  types::Imu<types::Accel3D<float>, types::Gyro3D<float>> imu_;
-  types::Temperature<float> die_temperature_;
-  types::Mag3D<float> mag_;
+  types::Imuf imu_;
+  types::Temperaturef die_temperature_;
+  types::Mag3f mag_;
   /* Registers */
   static constexpr uint8_t PWR_MGMNT_1_ = 0x6B;
   static constexpr uint8_t H_RESET_ = 0x80;
@@ -126,7 +126,6 @@ class Mpu9250 {
   static constexpr uint8_t AK8963_RESET_ = 0x01;
   static constexpr uint8_t AK8963_ASA_ = 0x10;
   static constexpr uint8_t AK8963_WHOAMI_ = 0x00;
-
   bool WriteRegister(uint8_t reg, uint8_t data);
   bool ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data);
   bool WriteAk8963Register(uint8_t reg, uint8_t data);
