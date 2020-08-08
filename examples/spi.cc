@@ -14,7 +14,7 @@ void imu_isr() {
   /* Check if data read */
   if (mpu9250.Read()) {
     /* Print data */
-     types::Imuf imu = mpu9250.imu();
+     types::Imu9f imu = mpu9250.imu();
     // types::Mag<float> mag = mpu9250.mag();
     types::Temperaturef t = mpu9250.die_temperature();
     Serial.print(imu.accel.x.mps2());

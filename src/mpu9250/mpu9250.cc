@@ -378,20 +378,28 @@ bool Mpu9250::Read() {
   mag(1) =   static_cast<float>(mag_counts[1]) * mag_scale_[1];
   mag(2) =   static_cast<float>(mag_counts[2]) * mag_scale_[2];
   /* Apply rotation */
-  imu_.accel.g(rotation_ * accel);
-  imu_.gyro.dps(rotation_ * gyro);
-  mag_.ut(rotation_ * mag);
+  Eigen::Vector3f rot_accel, rot_gyro, rot_mag;
+  rot_accel = rotation_ * accel;
+  rot_gyro = rotation_ * gyro;
+  rot_mag = rotation_ * mag;
+  /* Store data */
+  imu_.accel.x.g(rot_accel(0));
+  imu_.accel.y.g(rot_accel(1));
+  imu_.accel.z.g(rot_accel(2));
+  imu_.gyro.x.dps(rot_gyro(0));
+  imu_.gyro.y.dps(rot_gyro(1));
+  imu_.gyro.z.dps(rot_gyro(2));
+  imu_.mag.x.ut(rot_mag(0));
+  imu_.mag.y.ut(rot_mag(1));
+  imu_.mag.z.ut(rot_mag(2));
   die_temperature_.c(temp);
   return true;
 }
-types::Imuf Mpu9250::imu() {
+types::Imu9f Mpu9250::imu() {
   return imu_;
 }
 types::Temperaturef Mpu9250::die_temperature() {
   return die_temperature_;
-}
-types::Mag3f Mpu9250::mag() {
-  return mag_;
 }
 bool Mpu9250::WriteRegister(uint8_t reg, uint8_t data) {
   uint8_t ret_val;
