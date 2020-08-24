@@ -6,8 +6,10 @@
 */
 
 #include "mpu9250/mpu9250.h"
-#include "types/types.h"
+#include "Eigen/Core"
+#include "Eigen/Dense"
 #include "core/core.h"
+#include "global_defs/global_defs.h"
 
 namespace sensors {
 
@@ -367,43 +369,61 @@ bool Mpu9250::Read() {
   /* Convert to float values and rotate the accel / gyro axis */
   Eigen::Vector3f accel, gyro, mag;
   float temp;
-  accel(0) = static_cast<float>(accel_counts[1]) * accel_scale_;
-  accel(2) = static_cast<float>(accel_counts[2]) * accel_scale_ * -1.0f;
-  accel(1) = static_cast<float>(accel_counts[0]) * accel_scale_;
-  temp =    (static_cast<float>(temp_counts) - 21.0f) / temp_scale_ + 21.0f;
-  gyro(1) =  static_cast<float>(gyro_counts[0]) * gyro_scale_;
-  gyro(0) =  static_cast<float>(gyro_counts[1]) * gyro_scale_;
-  gyro(2) =  static_cast<float>(gyro_counts[2]) * gyro_scale_ * -1.0f;
+  accel(0) = global::conversions::G_to_Mps2(static_cast<float>(accel_counts[1]) * accel_scale_);
+  accel(2) = global::conversions::G_to_Mps2(static_cast<float>(accel_counts[2]) * accel_scale_ * -1.0f);
+  accel(1) = global::conversions::G_to_Mps2(static_cast<float>(accel_counts[0]) * accel_scale_);
+  die_temperature_c_ = (static_cast<float>(temp_counts) - 21.0f) / temp_scale_ + 21.0f;
+  gyro(1) =  global::conversions::Deg_to_Rad(static_cast<float>(gyro_counts[0]) * gyro_scale_);
+  gyro(0) =  global::conversions::Deg_to_Rad(static_cast<float>(gyro_counts[1]) * gyro_scale_);
+  gyro(2) =  global::conversions::Deg_to_Rad(static_cast<float>(gyro_counts[2]) * gyro_scale_ * -1.0f);
   mag(0) =   static_cast<float>(mag_counts[0]) * mag_scale_[0];
   mag(1) =   static_cast<float>(mag_counts[1]) * mag_scale_[1];
   mag(2) =   static_cast<float>(mag_counts[2]) * mag_scale_[2];
   /* Apply rotation */
-  Eigen::Vector3f rot_accel, rot_gyro, rot_mag;
-  rot_accel = rotation_ * accel;
-  rot_gyro = rotation_ * gyro;
-  rot_mag = rotation_ * mag;
-  /* Store data */
-  imu_.accel.x().g(rot_accel(0));
-  imu_.accel.y().g(rot_accel(1));
-  imu_.accel.z().g(rot_accel(2));
-  imu_.gyro.x().dps(rot_gyro(0));
-  imu_.gyro.y().dps(rot_gyro(1));
-  imu_.gyro.z().dps(rot_gyro(2));
-  mag_.x().ut(rot_mag(0));
-  mag_.y().ut(rot_mag(1));
-  mag_.z().ut(rot_mag(2));
-  die_temperature_.c(temp);
+  accel_mps2_ = rotation_ * accel;
+  gyro_radps_ = rotation_ * gyro;
+  mag_ut_ = rotation_ * mag;
   return true;
 }
-types::Imu Mpu9250::imu() {
-  return imu_;
-}
-types::Mag3D Mpu9250::mag() {
-  return mag_;
-}
-types::DieTemperature Mpu9250::die_temperature() {
-  return die_temperature_;
-}
+  float Mpu9250::accel_x_mps2() {
+    return accel_mps2_(0);
+  }
+  float Mpu9250::accel_y_mps2() {
+    return accel_mps2_(1);
+  }
+  float Mpu9250::accel_z_mps2() {
+    return accel_mps2_(2);
+  }
+  Eigen::Vector3f Mpu9250::accel_mps2() {
+    return accel_mps2_;
+  }
+  float Mpu9250::gyro_x_radps() {
+    return gyro_radps_(0);
+  }
+  float Mpu9250::gyro_y_radps() {
+    return gyro_radps_(1);
+  }
+  float Mpu9250::gyro_z_radps() {
+    return gyro_radps_(2);
+  }
+  Eigen::Vector3f Mpu9250::gyro_radps() {
+    return gyro_radps_;
+  }
+  float Mpu9250::mag_x_ut() {
+    return mag_ut_(0);
+  }
+  float Mpu9250::mag_y_ut() {
+    return mag_ut_(1);
+  }
+  float Mpu9250::mag_z_ut() {
+    return mag_ut_(2);
+  }
+  Eigen::Vector3f Mpu9250::mag_ut() {
+    return mag_ut_;
+  }
+  float Mpu9250::die_temperature_c() {
+    return die_temperature_c_;
+  }
 bool Mpu9250::WriteRegister(uint8_t reg, uint8_t data) {
   uint8_t ret_val;
   if (iface_ == I2C) {

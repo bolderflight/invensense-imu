@@ -8,7 +8,6 @@
 #ifndef INCLUDE_MPU9250_MPU9250_H_
 #define INCLUDE_MPU9250_MPU9250_H_
 
-#include "types/types.h"
 #include "Eigen/Core"
 #include "Eigen/Dense"
 #include "core/core.h"
@@ -54,9 +53,19 @@ class Mpu9250 {
   DlpfBandwidth dlpf_bandwidth();
   void DrdyCallback(uint8_t int_pin, void (*function)());
   bool Read();
-  types::Imu imu();
-  types::Mag3D mag();
-  types::DieTemperature die_temperature();
+  float accel_x_mps2();
+  float accel_y_mps2();
+  float accel_z_mps2();
+  Eigen::Vector3f accel_mps2();
+  float gyro_x_radps();
+  float gyro_y_radps();
+  float gyro_z_radps();
+  Eigen::Vector3f gyro_radps();
+  float mag_x_ut();
+  float mag_y_ut();
+  float mag_z_ut();
+  Eigen::Vector3f mag_ut();
+  float die_temperature_c();
 
  private:
   enum Interface {
@@ -83,9 +92,10 @@ class Mpu9250 {
   /* Data */
   float accel_scale_, gyro_scale_, mag_scale_[3];
   float temp_scale_ = 333.87f;
-  types::Imu imu_;
-  types::Mag3D mag_;
-  types::DieTemperature die_temperature_;
+  Eigen::Vector3f accel_mps2_;
+  Eigen::Vector3f gyro_radps_;
+  Eigen::Vector3f mag_ut_;
+  float die_temperature_c_;
   /* Registers */
   static constexpr uint8_t PWR_MGMNT_1_ = 0x6B;
   static constexpr uint8_t H_RESET_ = 0x80;

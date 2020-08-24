@@ -5,7 +5,7 @@ if (DEFINED MCU)
 endif()
 # Project information
 project(Mpu9250
-	VERSION 1.1.0
+	VERSION 1.0.0
 	DESCRIPTION "MPU-9250 sensor driver"
 	LANGUAGES CXX
 )
@@ -13,27 +13,25 @@ if (DEFINED MCU)
 	# Grab the processor and set up definitions and compile options
 	include(${CMAKE_SOURCE_DIR}/cmake/config_mcu.cmake)
 	configMcu(${MCU})
-	# Fetch types
 	include(FetchContent)
-	FetchContent_Declare(
-		types
-		GIT_REPOSITORY 	git@gitlab.com:bolderflight/software/types.git
-	)
-	FetchContent_MakeAvailable(types)
 	# Fetch core
 	FetchContent_Declare(
 		core
 		GIT_REPOSITORY 	git@gitlab.com:bolderflight/software/core.git
-		GIT_TAG					v1.0.0
 	)
 	FetchContent_MakeAvailable(core)
 	# Fetch eigen
 	FetchContent_Declare(
 		eigen
 		GIT_REPOSITORY 	git@gitlab.com:bolderflight/software/eigen.git
-		GIT_TAG					v1.0.0
 	)
 	FetchContent_MakeAvailable(eigen)
+	# Fetch global defs
+	FetchContent_Declare(
+		global_defs
+		GIT_REPOSITORY 	git@gitlab.com:bolderflight/software/global_defs.git
+	)
+	FetchContent_MakeAvailable(global_defs)
 	# Add the library target
 	add_library(mpu9250
 		src/mpu9250/mpu9250.cc
@@ -43,8 +41,8 @@ if (DEFINED MCU)
 	target_link_libraries(mpu9250
 		PUBLIC
 			core
-			types
 			eigen
+			global_defs
 	)
 	# Setup include directories 
 	target_include_directories(mpu9250 PUBLIC 
@@ -52,6 +50,7 @@ if (DEFINED MCU)
 		$<INSTALL_INTERFACE:include>
 	)
 endif()
+
 # Example and test if this project is built separately
 if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
 	if (DEFINED MCU)		

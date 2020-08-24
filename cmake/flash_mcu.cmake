@@ -17,7 +17,8 @@ function (flashMcu TARGET MCU)
   # Add 'make upload' target to upload binary
   # Check whether we are using WSL or linux to determine loader to use
   file(READ "/proc/version" linux_version)
-  string(FIND ${linux_version} "Microsoft" wsl)
+  string(TOLOWER ${linux_version} linux_version_lower)
+  string(FIND ${linux_version_lower} "microsoft" wsl)
   if (wsl GREATER -1)
     add_custom_target(${UPLOAD_TARGET}
       COMMAND ${CMAKE_SOURCE_DIR}/tools/teensy_loader_cli.exe ${MCU_CMD} -w ${HEX_CMD} -v

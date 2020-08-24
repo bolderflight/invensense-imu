@@ -31,7 +31,7 @@ cmake .. -DMCU=MK66FX1M0
 make
 ```
 
-This will build the library, example executables called *i2c_example* and *spi_example*, and executables for testing using the Google Test framework. The example executable source files are located at *examples/i2c.cc* and *examples/spi.cc*. This code is built and tested on AARCH64 and AMD64 systems running Linux and AMD64 systems running the Windows Subsystem for Linux (WSL). The [arm-none-eabi](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm/downloads) toolchain must be installed in your Linux environment.
+This will build the library and example executables called *i2c_example* and *spi_example*. The example executable source files are located at *examples/i2c.cc* and *examples/spi.cc*. This code is built and tested on AARCH64 and AMD64 systems running Linux and AMD64 systems running the Windows Subsystem for Linux (WSL). The [arm-none-eabi](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm/downloads) toolchain must be installed in your Linux environment.
 
 Notice that the *cmake* command includes a define specifying the microcontroller the code is being compiled for. This is required to correctly configure the code, CPU frequency, and compile/linker options. The available MCUs are:
    * MK20DX128
@@ -43,8 +43,6 @@ Notice that the *cmake* command includes a define specifying the microcontroller
 These are known to work with the same packages used in Teensy products. Also switching the MK66FX1M0 or MK64FX512 from BGA to LQFP packages is known to work well. Swapping packages of other chips is probably fine, as long as it's only a package change.
 
 The *i2c_example* and *spi_example* targets create executables for communicating with the sensor using I2C or SPI communication, respectively. Each target also has a *_hex* for creating the hex file and a *_upload* to upload the software to the microcontroller. 
-
-Testing is done using a lightweight Remote Command Protocol (RCP) between a Linux *master* and the microcontroller *slave*. The *slave* registers tests, which the *master* can call and receive a boolean status on the test results. A definition file utility, [mcu_hil_defs](https://gitlab.com/bolderflight/utils/mcu_hil_defs) defines the pins and ports for each sensor and communication method. A seperate utility, *mcu_reset*, cycles power to the microcontroller and sensors to provide a clean environment; it should be used before each test. See *tests/master.cc* and *tests/slave.cc* for how the tests are defined for the Mpu9250.
 
 ## Namespace
 This library is within the namespace *sensors*.
@@ -169,7 +167,7 @@ if (!status) {
 GyroRange range = mpu9250.gyro_range();
 ```
 
-**bool sample_rate_divider(uint8_t srd)** Sets the sensor sample rate divider. The MPU-9250 samples the accelerometer and gyro at a rate in Hz defined by:
+**bool sample_rate_divider(uint8_t srd)** Sets the sensor sample rate divider. The MPU-9250 samples the accelerometer and gyro at a rate, in Hz, defined by:
 
 ```math
 rate = 1000 / (srd + 1)
@@ -242,27 +240,71 @@ if (mpu9250.Read()) {
 }
 ```
 
-**types::Imu imu()** Returns the IMU (accelerometer and gyro) data from the Mpu9250 object.
+**float accel_x_mps2()** Returns the x accelerometer data from the Mpu9250 object in units of m/s/s. Similar methods exist for the y and z axis data.
 
 ```C++
 /* Read the IMU data */
 if (mpu9250.Read()) {
-  types::Imu imu = mpu9250.imu();
+  float ax = mpu9250.accel_x_mps2();
+  float ay = mpu9250.accel_y_mps2();
+  float az = mpu9250.accel_z_mps2();
 }
 ```
 
-**types::Temperature die_temperature()** Returns the IMU die temperature from the Mpu9250 object. Note that this is the temperature of the sensor die and is not a good indicator of ambient temperature.
+**Eigen::Vector3f accel_mps2()** Returns the accelerometer data from the Mpu9250 objects as a 3-dimensional vector in units of m/s/s.
+
 ```C++
 /* Read the IMU data */
 if (mpu9250.Read()) {
-  types::Temperature t = mpu9250.die_temperature();
+  Eigen::Vector3f accel = mpu9250.accel_mps2();
 }
 ```
 
-**types::Mag mag()** Returns the magnetometer data from the Mpu9250 object.
+**float gyro_x_radps()** Returns the x gyro data from the Mpu9250 object in units of rad/s. Similar methods exist for the y and z axis data.
+
 ```C++
 /* Read the IMU data */
 if (mpu9250.Read()) {
-  types::Mag mag = mpu9250.mag();
+  float gx = mpu9250.gyro_x_radps();
+  float gy = mpu9250.gyro_y_radps();
+  float gz = mpu9250.gyro_z_radps();
+}
+```
+
+**Eigen::Vector3f gyro_radps()** Returns the gyro data from the Mpu9250 objects as a 3-dimensional vector in units of rad/s.
+
+```C++
+/* Read the IMU data */
+if (mpu9250.Read()) {
+  Eigen::Vector3f gyro = mpu9250.gyro_radps();
+}
+```
+
+**float mag_x_ut()** Returns the x magnetometer data from the Mpu9250 object in units of uT. Similar methods exist for the y and z axis data.
+
+```C++
+/* Read the IMU data */
+if (mpu9250.Read()) {
+  float hx = mpu9250.mag_x_ut();
+  float hy = mpu9250.mag_y_ut();
+  float hz = mpu9250.mag_z_ut();
+}
+```
+
+**Eigen::Vector3f mag_ut()** Returns the magnetometer data from the Mpu9250 objects as a 3-dimensional vector in units of uT.
+
+```C++
+/* Read the IMU data */
+if (mpu9250.Read()) {
+  Eigen::Vector3f mag = mpu9250.mag_ut();
+}
+```
+
+**float die_temperature_c()** Returns the die temperature of the sensor in units of C.
+
+```C++
+/* Read the IMU data */
+if (mpu9250.Read()) {
+  float temp = mpu9250.die_temperature_c();
 }
 ```

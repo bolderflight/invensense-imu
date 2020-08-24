@@ -14,28 +14,25 @@ void imu_isr() {
   /* Check if data read */
   if (mpu9250.Read()) {
     /* Print data */
-    types::Imu imu = mpu9250.imu();
-    types::Mag3D mag = mpu9250.mag();
-    types::DieTemperature t = mpu9250.die_temperature();
-    Serial.print(imu.accel.x().mps2());
+    Serial.print(mpu9250.accel_x_mps2());
     Serial.print("\t");
-    Serial.print(imu.accel.y().mps2());
+    Serial.print(mpu9250.accel_y_mps2());
     Serial.print("\t");
-    Serial.print(imu.accel.z().mps2());
+    Serial.print(mpu9250.accel_z_mps2());
     Serial.print("\t");
-    Serial.print(imu.gyro.x().radps());
+    Serial.print(mpu9250.gyro_x_radps());
     Serial.print("\t");
-    Serial.print(imu.gyro.y().radps());
+    Serial.print(mpu9250.gyro_y_radps());
     Serial.print("\t");
-    Serial.print(imu.gyro.z().radps());
+    Serial.print(mpu9250.gyro_z_radps());
     Serial.print("\t");
-    Serial.print(mag.x().ut());
+    Serial.print(mpu9250.mag_x_ut());
     Serial.print("\t");
-    Serial.print(mag.y().ut());
+    Serial.print(mpu9250.mag_y_ut());
     Serial.print("\t");
-    Serial.print(mag.z().ut());
+    Serial.print(mpu9250.mag_z_ut());
     Serial.print("\t");
-    Serial.print(t.c());
+    Serial.print(mpu9250.die_temperature_c());
     Serial.print("\n");
   }
 }
