@@ -6,6 +6,6 @@ Lint:
   tags:
     - bfs
   script: 
-    - cpplint.py --verbose=0 src/mpu9250/mpu9250.cc
+    - cpplint.py --verbose=0 --filter=-whitespace,-line_length src/mpu9250/mpu9250.cc
     - cpplint.py --verbose=0 include/mpu9250/mpu9250.h
   
