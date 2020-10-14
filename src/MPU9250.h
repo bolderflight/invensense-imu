@@ -51,6 +51,16 @@ class MPU9250{
       DLPF_BANDWIDTH_10HZ,
       DLPF_BANDWIDTH_5HZ
     };
+    enum DlpfAccBandwidth
+    {
+      DLPF_ACC_BANDWIDTH_420HZ,
+      DLPF_ACC_BANDWIDTH_218HZ,
+      DLPF_ACC_BANDWIDTH_99HZ,
+      DLPF_ACC_BANDWIDTH_45HZ,
+      DLPF_ACC_BANDWIDTH_21HZ,
+      DLPF_ACC_BANDWIDTH_10HZ,
+      DLPF_ACC_BANDWIDTH_5HZ
+    };
     enum LpAccelOdr
     {
       LP_ACCEL_ODR_0_24HZ = 0,
@@ -72,49 +82,73 @@ class MPU9250{
     int setAccelRange(AccelRange range);
     int setGyroRange(GyroRange range);
     int setDlpfBandwidth(DlpfBandwidth bandwidth);
+    int setDlpfAccBandwidth(DlpfAccBandwidth bandwidth);
     int setSrd(uint8_t srd);
     int enableDataReadyInterrupt();
     int disableDataReadyInterrupt();
     int enableWakeOnMotion(float womThresh_mg,LpAccelOdr odr);
     int readSensor();
-    float getAccelX_mss();
-    float getAccelY_mss();
-    float getAccelZ_mss();
-    float getGyroX_rads();
-    float getGyroY_rads();
-    float getGyroZ_rads();
-    float getMagX_uT();
-    float getMagY_uT();
-    float getMagZ_uT();
-    float getTemperature_C();
+
+    float getAccelX_mss() const;
+    float getAccelY_mss() const;
+    float getAccelZ_mss() const;
+    float getGyroX_rads() const;
+    float getGyroY_rads() const;
+    float getGyroZ_rads() const;
+    float getMagX_uT() const;
+    float getMagY_uT() const;
+    float getMagZ_uT() const;
+    float getTemperature_C() const;
+    
+    int16_t getAccelX_counts() const;
+    int16_t getAccelY_counts() const;
+    int16_t getAccelZ_counts() const;
+    int16_t getGyroX_counts() const;
+    int16_t getGyroY_counts() const;
+    int16_t getGyroZ_counts() const;
+    int16_t getMagX_counts() const;
+    int16_t getMagY_counts() const;
+    int16_t getMagZ_counts() const;
+    int16_t getTemperature_counts() const;
     
     int calibrateGyro();
-    float getGyroBiasX_rads();
-    float getGyroBiasY_rads();
-    float getGyroBiasZ_rads();
+    float getGyroBiasX_rads() const;
+    float getGyroBiasY_rads() const;
+    float getGyroBiasZ_rads() const;
     void setGyroBiasX_rads(float bias);
     void setGyroBiasY_rads(float bias);
     void setGyroBiasZ_rads(float bias);
+
     int calibrateAccel();
-    float getAccelBiasX_mss();
-    float getAccelScaleFactorX();
-    float getAccelBiasY_mss();
-    float getAccelScaleFactorY();
-    float getAccelBiasZ_mss();
-    float getAccelScaleFactorZ();
+    float getAccelBiasX_mss() const;
+    float getAccelScaleFactorX() const;
+    float getAccelBiasY_mss() const;
+    float getAccelScaleFactorY() const;
+    float getAccelBiasZ_mss() const;
+    float getAccelScaleFactorZ() const;
     void setAccelCalX(float bias,float scaleFactor);
     void setAccelCalY(float bias,float scaleFactor);
     void setAccelCalZ(float bias,float scaleFactor);
+
     int calibrateMag();
-    float getMagBiasX_uT();
-    float getMagScaleFactorX();
-    float getMagBiasY_uT();
-    float getMagScaleFactorY();
-    float getMagBiasZ_uT();
-    float getMagScaleFactorZ();
+    float getMagBiasX_uT() const;
+    float getMagScaleFactorX() const;
+    float getMagBiasY_uT() const;
+    float getMagScaleFactorY() const;
+    float getMagBiasZ_uT() const;
+    float getMagScaleFactorZ() const;
     void setMagCalX(float bias,float scaleFactor);
     void setMagCalY(float bias,float scaleFactor);
     void setMagCalZ(float bias,float scaleFactor);
+
+    float getAccelRangeScale() const;
+    float getGyroRangeScale() const;
+    float getMagRangeScaleX() const;
+    float getMagRangeScaleY() const;
+    float getMagRangeScaleZ() const;
+    float getTemperatureScale() const;
+    float getTemperatureOffset() const;
+    
   protected:
     // i2c
     uint8_t _address;
@@ -155,6 +189,7 @@ class MPU9250{
     AccelRange _accelRange;
     GyroRange _gyroRange;
     DlpfBandwidth _bandwidth;
+    DlpfAccBandwidth _acc_bandwidth;
     uint8_t _srd;
     // gyro bias estimation
     size_t _numSamples = 100;
@@ -206,12 +241,13 @@ class MPU9250{
     const uint8_t GYRO_FS_SEL_1000DPS = 0x10;
     const uint8_t GYRO_FS_SEL_2000DPS = 0x18;
     const uint8_t ACCEL_CONFIG2 = 0x1D;
-    const uint8_t ACCEL_DLPF_184 = 0x01;
-    const uint8_t ACCEL_DLPF_92 = 0x02;
-    const uint8_t ACCEL_DLPF_41 = 0x03;
-    const uint8_t ACCEL_DLPF_20 = 0x04;
+    const uint8_t ACCEL_DLPF_218 = 0x01;
+    const uint8_t ACCEL_DLPF_99 = 0x02;
+    const uint8_t ACCEL_DLPF_45 = 0x03;
+    const uint8_t ACCEL_DLPF_21 = 0x04;
     const uint8_t ACCEL_DLPF_10 = 0x05;
     const uint8_t ACCEL_DLPF_5 = 0x06;
+    const uint8_t ACCEL_DLPF_420 = 0x07;
     const uint8_t CONFIG = 0x1A;
     const uint8_t GYRO_DLPF_184 = 0x01;
     const uint8_t GYRO_DLPF_92 = 0x02;
@@ -282,16 +318,16 @@ class MPU9250FIFO: public MPU9250 {
     using MPU9250::MPU9250;
     int enableFifo(bool accel,bool gyro,bool mag,bool temp);
     int readFifo();
-    void getFifoAccelX_mss(size_t *size,float* data);
-    void getFifoAccelY_mss(size_t *size,float* data);
-    void getFifoAccelZ_mss(size_t *size,float* data);
-    void getFifoGyroX_rads(size_t *size,float* data);
-    void getFifoGyroY_rads(size_t *size,float* data);
-    void getFifoGyroZ_rads(size_t *size,float* data);
-    void getFifoMagX_uT(size_t *size,float* data);
-    void getFifoMagY_uT(size_t *size,float* data);
-    void getFifoMagZ_uT(size_t *size,float* data);
-    void getFifoTemperature_C(size_t *size,float* data);
+    void getFifoAccelX_mss(size_t *size,float* data) const;
+    void getFifoAccelY_mss(size_t *size,float* data) const;
+    void getFifoAccelZ_mss(size_t *size,float* data) const;
+    void getFifoGyroX_rads(size_t *size,float* data) const;
+    void getFifoGyroY_rads(size_t *size,float* data) const;
+    void getFifoGyroZ_rads(size_t *size,float* data) const;
+    void getFifoMagX_uT(size_t *size,float* data) const;
+    void getFifoMagY_uT(size_t *size,float* data) const;
+    void getFifoMagZ_uT(size_t *size,float* data) const;
+    void getFifoTemperature_C(size_t *size,float* data) const;
   protected:
     // fifo
     bool _enFifoAccel,_enFifoGyro,_enFifoMag,_enFifoTemp;

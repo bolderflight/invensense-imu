@@ -47,6 +47,8 @@ void setup() {
   IMU.setGyroRange(MPU9250::GYRO_RANGE_500DPS);
   // setting DLPF bandwidth to 20 Hz
   IMU.setDlpfBandwidth(MPU9250::DLPF_BANDWIDTH_20HZ);
+  // setting accelerometer DLPF bandwidth to 21 Hz
+  IMU.setDlpfAccBandwidth(MPU9250::DLPF_ACC_BANDWIDTH_21HZ);
   // setting SRD to 19 for a 50 Hz update rate
   IMU.setSrd(19);
 }

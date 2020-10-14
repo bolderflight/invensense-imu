@@ -98,13 +98,14 @@ int MPU9250::begin(){
   _gyroScale = 2000.0f/32767.5f * _d2r; // setting the gyro scale to 2000DPS
   _gyroRange = GYRO_RANGE_2000DPS;
   // setting bandwidth to 184Hz as default
-  if(writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_184) < 0){ 
+  if(writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_218) < 0){ 
     return -9;
   } 
   if(writeRegister(CONFIG,GYRO_DLPF_184) < 0){ // setting gyro bandwidth to 184Hz
     return -10;
   }
   _bandwidth = DLPF_BANDWIDTH_184HZ;
+  _acc_bandwidth = DLPF_ACC_BANDWIDTH_218HZ;
   // setting the sample rate divider to 0 as default
   if(writeRegister(SMPDIV,0x00) < 0){ 
     return -11;
@@ -250,41 +251,46 @@ int MPU9250::setGyroRange(GyroRange range) {
 int MPU9250::setDlpfBandwidth(DlpfBandwidth bandwidth) {
   // use low speed SPI for register setting
   _useSPIHS = false;
+  DlpfAccBandwidth acc_bandwidth = _acc_bandwidth;
   switch(bandwidth) {
     case DLPF_BANDWIDTH_184HZ: {
-      if(writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_184) < 0){ // setting accel bandwidth to 184Hz
+      if(writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_218) < 0){ // setting accel bandwidth to 184Hz
         return -1;
       } 
       if(writeRegister(CONFIG,GYRO_DLPF_184) < 0){ // setting gyro bandwidth to 184Hz
         return -2;
       }
+      acc_bandwidth = DLPF_ACC_BANDWIDTH_218HZ;
       break;
     }
     case DLPF_BANDWIDTH_92HZ: {
-      if(writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_92) < 0){ // setting accel bandwidth to 92Hz
+      if(writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_99) < 0){ // setting accel bandwidth to 92Hz
         return -1;
       } 
       if(writeRegister(CONFIG,GYRO_DLPF_92) < 0){ // setting gyro bandwidth to 92Hz
         return -2;
       }
+      acc_bandwidth = DLPF_ACC_BANDWIDTH_99HZ;
       break;
     }
     case DLPF_BANDWIDTH_41HZ: {
-      if(writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_41) < 0){ // setting accel bandwidth to 41Hz
+      if(writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_45) < 0){ // setting accel bandwidth to 41Hz
         return -1;
       } 
       if(writeRegister(CONFIG,GYRO_DLPF_41) < 0){ // setting gyro bandwidth to 41Hz
         return -2;
       }
+      acc_bandwidth = DLPF_ACC_BANDWIDTH_45HZ;
       break;
     }
     case DLPF_BANDWIDTH_20HZ: {
-      if(writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_20) < 0){ // setting accel bandwidth to 20Hz
+      if(writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_21) < 0){ // setting accel bandwidth to 20Hz
         return -1;
       } 
       if(writeRegister(CONFIG,GYRO_DLPF_20) < 0){ // setting gyro bandwidth to 20Hz
         return -2;
       }
+      acc_bandwidth = DLPF_ACC_BANDWIDTH_21HZ;
       break;
     }
     case DLPF_BANDWIDTH_10HZ: {
@@ -294,6 +300,7 @@ int MPU9250::setDlpfBandwidth(DlpfBandwidth bandwidth) {
       if(writeRegister(CONFIG,GYRO_DLPF_10) < 0){ // setting gyro bandwidth to 10Hz
         return -2;
       }
+      acc_bandwidth = DLPF_ACC_BANDWIDTH_10HZ;
       break;
     }
     case DLPF_BANDWIDTH_5HZ: {
@@ -303,10 +310,65 @@ int MPU9250::setDlpfBandwidth(DlpfBandwidth bandwidth) {
       if(writeRegister(CONFIG,GYRO_DLPF_5) < 0){ // setting gyro bandwidth to 5Hz
         return -2;
       }
+      acc_bandwidth = DLPF_ACC_BANDWIDTH_5HZ;
       break;
     }
   }
   _bandwidth = bandwidth;
+  _acc_bandwidth = acc_bandwidth;
+  return 1;
+}
+
+
+/* sets the DLPF bandwidth to values other than default */
+int MPU9250::setDlpfAccBandwidth(DlpfAccBandwidth bandwidth) {
+  // use low speed SPI for register setting
+  _useSPIHS = false;
+  switch(bandwidth) {
+    case DLPF_ACC_BANDWIDTH_420HZ: {
+      if(writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_420) < 0){ // setting accel bandwidth to 184Hz
+        return -1;
+      }
+      break;
+    }
+    case DLPF_ACC_BANDWIDTH_218HZ: {
+      if(writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_218) < 0){ // setting accel bandwidth to 184Hz
+        return -1;
+      }
+      break;
+    }
+    case DLPF_ACC_BANDWIDTH_99HZ: {
+      if(writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_99) < 0){ // setting accel bandwidth to 92Hz
+        return -1;
+      }
+      break;
+    }
+    case DLPF_ACC_BANDWIDTH_45HZ: {
+      if(writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_45) < 0){ // setting accel bandwidth to 41Hz
+        return -1;
+      }
+      break;
+    }
+    case DLPF_ACC_BANDWIDTH_21HZ: {
+      if(writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_21) < 0){ // setting accel bandwidth to 20Hz
+        return -1;
+      }
+      break;
+    }
+    case DLPF_ACC_BANDWIDTH_10HZ: {
+      if(writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_10) < 0){ // setting accel bandwidth to 10Hz
+        return -1;
+      }
+      break;
+    }
+    case DLPF_ACC_BANDWIDTH_5HZ: {
+      if(writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_5) < 0){ // setting accel bandwidth to 5Hz
+        return -1;
+      }
+      break;
+    }
+  }
+  _acc_bandwidth = bandwidth;
   return 1;
 }
 
@@ -393,7 +455,7 @@ int MPU9250::enableWakeOnMotion(float womThresh_mg,LpAccelOdr odr) {
   if(writeRegister(PWR_MGMNT_2,DIS_GYRO) < 0){ // disable gyro measurements
     return -2;
   } 
-  if(writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_184) < 0){ // setting accel bandwidth to 184Hz
+  if(writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_218) < 0){ // setting accel bandwidth to 184Hz
     return -3;
   } 
   if(writeRegister(INT_ENABLE,INT_WOM_EN) < 0){ // enabling interrupt to wake on motion
@@ -466,53 +528,103 @@ int MPU9250::readSensor() {
 }
 
 /* returns the accelerometer measurement in the x direction, m/s/s */
-float MPU9250::getAccelX_mss() {
+float MPU9250::getAccelX_mss() const {
   return _ax;
 }
 
 /* returns the accelerometer measurement in the y direction, m/s/s */
-float MPU9250::getAccelY_mss() {
+float MPU9250::getAccelY_mss() const {
   return _ay;
 }
 
 /* returns the accelerometer measurement in the z direction, m/s/s */
-float MPU9250::getAccelZ_mss() {
+float MPU9250::getAccelZ_mss() const {
   return _az;
 }
 
 /* returns the gyroscope measurement in the x direction, rad/s */
-float MPU9250::getGyroX_rads() {
+float MPU9250::getGyroX_rads() const {
   return _gx;
 }
 
 /* returns the gyroscope measurement in the y direction, rad/s */
-float MPU9250::getGyroY_rads() {
+float MPU9250::getGyroY_rads() const {
   return _gy;
 }
 
 /* returns the gyroscope measurement in the z direction, rad/s */
-float MPU9250::getGyroZ_rads() {
+float MPU9250::getGyroZ_rads() const {
   return _gz;
 }
 
 /* returns the magnetometer measurement in the x direction, uT */
-float MPU9250::getMagX_uT() {
+float MPU9250::getMagX_uT() const {
   return _hx;
 }
 
 /* returns the magnetometer measurement in the y direction, uT */
-float MPU9250::getMagY_uT() {
+float MPU9250::getMagY_uT() const {
   return _hy;
 }
 
 /* returns the magnetometer measurement in the z direction, uT */
-float MPU9250::getMagZ_uT() {
+float MPU9250::getMagZ_uT() const {
   return _hz;
 }
 
 /* returns the die temperature, C */
-float MPU9250::getTemperature_C() {
+float MPU9250::getTemperature_C() const {
   return _t;
+}
+
+/* returns the accelerometer measurement in the x direction, counts */
+int16_t MPU9250::getAccelX_counts() const {
+  return _axcounts;
+}
+
+/* returns the accelerometer measurement in the y direction, counts */
+int16_t MPU9250::getAccelY_counts() const {
+  return _aycounts;
+}
+
+/* returns the accelerometer measurement in the z direction, counts */
+int16_t MPU9250::getAccelZ_counts() const {
+  return _azcounts;
+}
+
+/* returns the gyroscope measurement in the x direction, counts */
+int16_t MPU9250::getGyroX_counts() const {
+  return _gxcounts;
+}
+
+/* returns the gyroscope measurement in the y direction, counts */
+int16_t MPU9250::getGyroY_counts() const {
+  return _gycounts;
+}
+
+/* returns the gyroscope measurement in the z direction, counts */
+int16_t MPU9250::getGyroZ_counts() const {
+  return _gzcounts;
+}
+
+/* returns the magnetometer measurement in the x direction, counts */
+int16_t MPU9250::getMagX_counts() const {
+  return _hxcounts;
+}
+
+/* returns the magnetometer measurement in the y direction, counts */
+int16_t MPU9250::getMagY_counts() const {
+  return _hycounts;
+}
+
+/* returns the magnetometer measurement in the z direction, uT */
+int16_t MPU9250::getMagZ_counts() const {
+  return _hzcounts;
+}
+
+/* returns the die temperature, counts */
+int16_t MPU9250::getTemperature_counts() const {
+  return _tcounts;
 }
 
 /* reads data from the MPU9250 FIFO and stores in buffer */
@@ -572,67 +684,74 @@ int MPU9250FIFO::readFifo() {
 }
 
 /* returns the accelerometer FIFO size and data in the x direction, m/s/s */
-void MPU9250FIFO::getFifoAccelX_mss(size_t *size,float* data) {
+void MPU9250FIFO::getFifoAccelX_mss(size_t *size,float* data) const {
   *size = _aSize;
   memcpy(data,_axFifo,_aSize*sizeof(float));
 }
 
 /* returns the accelerometer FIFO size and data in the y direction, m/s/s */
-void MPU9250FIFO::getFifoAccelY_mss(size_t *size,float* data) {
+void MPU9250FIFO::getFifoAccelY_mss(size_t *size,float* data) const {
   *size = _aSize;
   memcpy(data,_ayFifo,_aSize*sizeof(float));
 }
 
 /* returns the accelerometer FIFO size and data in the z direction, m/s/s */
-void MPU9250FIFO::getFifoAccelZ_mss(size_t *size,float* data) {
+void MPU9250FIFO::getFifoAccelZ_mss(size_t *size,float* data) const {
   *size = _aSize;
   memcpy(data,_azFifo,_aSize*sizeof(float));
 }
 
 /* returns the gyroscope FIFO size and data in the x direction, rad/s */
-void MPU9250FIFO::getFifoGyroX_rads(size_t *size,float* data) {
+void MPU9250FIFO::getFifoGyroX_rads(size_t *size,float* data) const {
   *size = _gSize;
   memcpy(data,_gxFifo,_gSize*sizeof(float));
 }
 
 /* returns the gyroscope FIFO size and data in the y direction, rad/s */
-void MPU9250FIFO::getFifoGyroY_rads(size_t *size,float* data) {
+void MPU9250FIFO::getFifoGyroY_rads(size_t *size,float* data) const {
   *size = _gSize;
   memcpy(data,_gyFifo,_gSize*sizeof(float));
 }
 
 /* returns the gyroscope FIFO size and data in the z direction, rad/s */
-void MPU9250FIFO::getFifoGyroZ_rads(size_t *size,float* data) {
+void MPU9250FIFO::getFifoGyroZ_rads(size_t *size,float* data) const {
   *size = _gSize;
   memcpy(data,_gzFifo,_gSize*sizeof(float));
 }
 
 /* returns the magnetometer FIFO size and data in the x direction, uT */
-void MPU9250FIFO::getFifoMagX_uT(size_t *size,float* data) {
+void MPU9250FIFO::getFifoMagX_uT(size_t *size,float* data) const {
   *size = _hSize;
   memcpy(data,_hxFifo,_hSize*sizeof(float));
 }
 
 /* returns the magnetometer FIFO size and data in the y direction, uT */
-void MPU9250FIFO::getFifoMagY_uT(size_t *size,float* data) {
+void MPU9250FIFO::getFifoMagY_uT(size_t *size,float* data) const {
   *size = _hSize;
   memcpy(data,_hyFifo,_hSize*sizeof(float));
 }
 
 /* returns the magnetometer FIFO size and data in the z direction, uT */
-void MPU9250FIFO::getFifoMagZ_uT(size_t *size,float* data) {
+void MPU9250FIFO::getFifoMagZ_uT(size_t *size,float* data) const {
   *size = _hSize;
   memcpy(data,_hzFifo,_hSize*sizeof(float));
 }
 
 /* returns the die temperature FIFO size and data, C */
-void MPU9250FIFO::getFifoTemperature_C(size_t *size,float* data) {
+void MPU9250FIFO::getFifoTemperature_C(size_t *size,float* data) const {
   *size = _tSize;
   memcpy(data,_tFifo,_tSize*sizeof(float));  
 }
 
 /* estimates the gyro biases */
 int MPU9250::calibrateGyro() {
+
+  // save to reset after calibration
+  const GyroRange saved_gyro_range = _gyroRange;
+  const DlpfBandwidth saved_bandwidth = _bandwidth;
+  const DlpfAccBandwidth saved_acc_bandwidth = _acc_bandwidth;
+  const uint8_t saved_srd = _srd;
+
   // set the range, bandwidth, and srd
   if (setGyroRange(GYRO_RANGE_250DPS) < 0) {
     return -1;
@@ -660,30 +779,33 @@ int MPU9250::calibrateGyro() {
   _gzb = (float)_gzbD;
 
   // set the range, bandwidth, and srd back to what they were
-  if (setGyroRange(_gyroRange) < 0) {
+  if (setGyroRange(saved_gyro_range) < 0) {
     return -4;
   }
-  if (setDlpfBandwidth(_bandwidth) < 0) {
+  if (setDlpfBandwidth(saved_bandwidth) < 0) {
     return -5;
   }
-  if (setSrd(_srd) < 0) {
+  if (setDlpfAccBandwidth(saved_acc_bandwidth) < 0) {
+    return -5;
+  }
+  if (setSrd(saved_srd) < 0) {
     return -6;
   }
   return 1;
 }
 
 /* returns the gyro bias in the X direction, rad/s */
-float MPU9250::getGyroBiasX_rads() {
+float MPU9250::getGyroBiasX_rads() const {
   return _gxb;
 }
 
 /* returns the gyro bias in the Y direction, rad/s */
-float MPU9250::getGyroBiasY_rads() {
+float MPU9250::getGyroBiasY_rads() const {
   return _gyb;
 }
 
 /* returns the gyro bias in the Z direction, rad/s */
-float MPU9250::getGyroBiasZ_rads() {
+float MPU9250::getGyroBiasZ_rads() const {
   return _gzb;
 }
 
@@ -706,6 +828,13 @@ void MPU9250::setGyroBiasZ_rads(float bias) {
 this should be run for each axis in each direction (6 total) to find
 the min and max values along each */
 int MPU9250::calibrateAccel() {
+
+  // save to reset after calibration
+  const AccelRange saved_accel_range = _accelRange;
+  const DlpfBandwidth saved_bandwidth = _bandwidth;
+  const DlpfAccBandwidth saved_acc_bandwidth = _acc_bandwidth;
+  const uint8_t saved_srd = _srd;
+
   // set the range, bandwidth, and srd
   if (setAccelRange(ACCEL_RANGE_2G) < 0) {
     return -1;
@@ -762,45 +891,48 @@ int MPU9250::calibrateAccel() {
   }
 
   // set the range, bandwidth, and srd back to what they were
-  if (setAccelRange(_accelRange) < 0) {
+  if (setAccelRange(saved_accel_range) < 0) {
     return -4;
   }
-  if (setDlpfBandwidth(_bandwidth) < 0) {
+  if (setDlpfBandwidth(saved_bandwidth) < 0) {
     return -5;
   }
-  if (setSrd(_srd) < 0) {
+  if (setDlpfAccBandwidth(saved_acc_bandwidth) < 0) {
+    return -5;
+  }
+  if (setSrd(saved_srd) < 0) {
     return -6;
   }
   return 1;  
 }
 
 /* returns the accelerometer bias in the X direction, m/s/s */
-float MPU9250::getAccelBiasX_mss() {
+float MPU9250::getAccelBiasX_mss() const {
   return _axb;
 }
 
 /* returns the accelerometer scale factor in the X direction */
-float MPU9250::getAccelScaleFactorX() {
+float MPU9250::getAccelScaleFactorX() const {
   return _axs;
 }
 
 /* returns the accelerometer bias in the Y direction, m/s/s */
-float MPU9250::getAccelBiasY_mss() {
+float MPU9250::getAccelBiasY_mss() const {
   return _ayb;
 }
 
 /* returns the accelerometer scale factor in the Y direction */
-float MPU9250::getAccelScaleFactorY() {
+float MPU9250::getAccelScaleFactorY() const {
   return _ays;
 }
 
 /* returns the accelerometer bias in the Z direction, m/s/s */
-float MPU9250::getAccelBiasZ_mss() {
+float MPU9250::getAccelBiasZ_mss() const {
   return _azb;
 }
 
 /* returns the accelerometer scale factor in the Z direction */
-float MPU9250::getAccelScaleFactorZ() {
+float MPU9250::getAccelScaleFactorZ() const {
   return _azs;
 }
 
@@ -825,6 +957,10 @@ void MPU9250::setAccelCalZ(float bias,float scaleFactor) {
 /* finds bias and scale factor calibration for the magnetometer,
 the sensor should be rotated in a figure 8 motion until complete */
 int MPU9250::calibrateMag() {
+  
+  // save to reset after calibration
+  const uint8_t saved_srd = _srd;
+
   // set the srd
   if (setSrd(19) < 0) {
     return -1;
@@ -913,39 +1049,39 @@ int MPU9250::calibrateMag() {
   _hzs = _avgs/_hzs;
 
   // set the srd back to what it was
-  if (setSrd(_srd) < 0) {
+  if (setSrd(saved_srd) < 0) {
     return -2;
   }
   return 1;
 }
 
 /* returns the magnetometer bias in the X direction, uT */
-float MPU9250::getMagBiasX_uT() {
+float MPU9250::getMagBiasX_uT() const {
   return _hxb;
 }
 
 /* returns the magnetometer scale factor in the X direction */
-float MPU9250::getMagScaleFactorX() {
+float MPU9250::getMagScaleFactorX() const {
   return _hxs;
 }
 
 /* returns the magnetometer bias in the Y direction, uT */
-float MPU9250::getMagBiasY_uT() {
+float MPU9250::getMagBiasY_uT() const {
   return _hyb;
 }
 
 /* returns the magnetometer scale factor in the Y direction */
-float MPU9250::getMagScaleFactorY() {
+float MPU9250::getMagScaleFactorY() const {
   return _hys;
 }
 
 /* returns the magnetometer bias in the Z direction, uT */
-float MPU9250::getMagBiasZ_uT() {
+float MPU9250::getMagBiasZ_uT() const {
   return _hzb;
 }
 
 /* returns the magnetometer scale factor in the Z direction */
-float MPU9250::getMagScaleFactorZ() {
+float MPU9250::getMagScaleFactorZ() const {
   return _hzs;
 }
 
@@ -965,6 +1101,41 @@ void MPU9250::setMagCalY(float bias,float scaleFactor) {
 void MPU9250::setMagCalZ(float bias,float scaleFactor) {
   _hzb = bias;
   _hzs = scaleFactor;
+}
+
+/* returns the accelerometer scale setting */
+float MPU9250::getAccelRangeScale() const {
+  return _accelScale;
+}
+
+/* returns the temperature scale factor */
+float MPU9250::getGyroRangeScale() const {
+  return _gyroScale;
+}
+
+/* returns the temperature scale factor */
+float MPU9250::getMagRangeScaleX() const {
+  return _magScaleX;
+}
+
+/* returns the temperature scale factor */
+float MPU9250::getMagRangeScaleY() const {
+  return _magScaleX;
+}
+
+/* returns the temperature scale factor */
+float MPU9250::getMagRangeScaleZ() const {
+  return _magScaleX;
+}
+
+/* returns the temperature scale factor */
+float MPU9250::getTemperatureScale() const {
+  return _tempScale;
+}
+
+/* returns the temperature offset factor */
+float MPU9250::getTemperatureOffset() const {
+  return _tempOffset;
 }
 
 /* writes a byte to MPU9250 register given a register address and data */
