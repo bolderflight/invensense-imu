@@ -19,6 +19,7 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <math.h>
 #include "Arduino.h"
 #include "MPU9250.h"
 
@@ -877,17 +878,17 @@ int MPU9250::calibrateAccel() {
   }
 
   // find bias and scale factor
-  if ((abs(_axmin) > 9.0f) && (abs(_axmax) > 9.0f)) {
+  if ((fabs(_axmin) > 9.0f) && (fabs(_axmax) > 9.0f)) {
     _axb = (_axmin + _axmax) / 2.0f;
-    _axs = G/((abs(_axmin) + abs(_axmax)) / 2.0f);
+    _axs = G/((fabs(_axmin) + fabs(_axmax)) / 2.0f);
   }
-  if ((abs(_aymin) > 9.0f) && (abs(_aymax) > 9.0f)) {
+  if ((fabs(_aymin) > 9.0f) && (fabs(_aymax) > 9.0f)) {
     _ayb = (_aymin + _aymax) / 2.0f;
-    _ays = G/((abs(_aymin) + abs(_aymax)) / 2.0f);
+    _ays = G/((fabs(_aymin) + fabs(_aymax)) / 2.0f);
   }
-  if ((abs(_azmin) > 9.0f) && (abs(_azmax) > 9.0f)) {
+  if ((fabs(_azmin) > 9.0f) && (fabs(_azmax) > 9.0f)) {
     _azb = (_azmin + _azmax) / 2.0f;
-    _azs = G/((abs(_azmin) + abs(_azmax)) / 2.0f);
+    _azs = G/((fabs(_azmin) + fabs(_azmax)) / 2.0f);
   }
 
   // set the range, bandwidth, and srd back to what they were
@@ -1006,21 +1007,21 @@ int MPU9250::calibrateMag() {
       _framedelta = _delta;
     }
     if (_hxfilt < _hxmin) {
-      _delta = abs(_hxfilt - _hxmin);
+      _delta = fabs(_hxfilt - _hxmin);
       _hxmin = _hxfilt;
     }
     if (_delta > _framedelta) {
       _framedelta = _delta;
     }
     if (_hyfilt < _hymin) {
-      _delta = abs(_hyfilt - _hymin);
+      _delta = fabs(_hyfilt - _hymin);
       _hymin = _hyfilt;
     }
     if (_delta > _framedelta) {
       _framedelta = _delta;
     }
     if (_hzfilt < _hzmin) {
-      _delta = abs(_hzfilt - _hzmin);
+      _delta = fabs(_hzfilt - _hzmin);
       _hzmin = _hzfilt;
     }
     if (_delta > _framedelta) {

@@ -199,7 +199,9 @@ class MPU9250{
     double _axbD, _aybD, _azbD;
     float _axmax, _aymax, _azmax;
     float _axmin, _aymin, _azmin;
-    float _axb, _ayb, _azb;
+    float _axb = 0.0f;
+    float _ayb = 0.0f;
+    float _azb = 0.0f;
     float _axs = 1.0f;
     float _ays = 1.0f;
     float _azs = 1.0f;
