@@ -5,7 +5,7 @@ if (DEFINED MCU)
 endif()
 # Project information
 project(Mpu9250
-	VERSION 1.0.1
+	VERSION 1.0.2
 	DESCRIPTION "MPU-9250 sensor driver"
 	LANGUAGES CXX
 )
@@ -17,22 +17,22 @@ if (DEFINED MCU)
 	# Fetch core
 	FetchContent_Declare(
 		core
-		GIT_REPOSITORY 	git@gitlab.com:bolderflight/software/core.git
-		GIT_TAG v1.0.1
+		GIT_REPOSITORY 	https://gitlab.com/bolderflight/software/core.git
+		GIT_TAG v1.0.3
 	)
 	FetchContent_MakeAvailable(core)
 	# Fetch eigen
 	FetchContent_Declare(
 		eigen
-		GIT_REPOSITORY 	git@gitlab.com:bolderflight/software/eigen.git
+		GIT_REPOSITORY 	https://gitlab.com/bolderflight/software/eigen.git
 		GIT_TAG v1.0.0
 	)
 	FetchContent_MakeAvailable(eigen)
 	# Fetch global defs
 	FetchContent_Declare(
 		global_defs
-		GIT_REPOSITORY 	git@gitlab.com:bolderflight/software/global_defs.git
-		GIT_TAG v1.1.1
+		GIT_REPOSITORY 	https://gitlab.com/bolderflight/software/global_defs.git
+		GIT_TAG v1.1.2
 	)
 	FetchContent_MakeAvailable(global_defs)
 	# Add the library target

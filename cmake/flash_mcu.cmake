@@ -26,7 +26,7 @@ function (flashMcu TARGET MCU)
     )
   else (wsl GREATER -1)
     add_custom_target(${UPLOAD_TARGET}
-      COMMAND teensy_loader_cli ${MCU_CMD} -s ${HEX_CMD} -v
+      COMMAND ${CMAKE_SOURCE_DIR}/tools/teensy_loader_cli ${MCU_CMD} -s ${HEX_CMD} -v
       DEPENDS ${HEX_CMD}
     )
   endif (wsl GREATER -1)
