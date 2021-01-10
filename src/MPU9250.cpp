@@ -549,9 +549,11 @@ int MPU9250FIFO::readFifo() {
     }
     if (_enFifoGyro) {
       // combine into 16 bit values
-      _gxcounts = (((int16_t)_buffer[0 + _enFifoAccel*6 + _enFifoTemp*2]) << 8) | _buffer[1 + _enFifoAccel*6 + _enFifoTemp*2];
-      _gycounts = (((int16_t)_buffer[2 + _enFifoAccel*6 + _enFifoTemp*2]) << 8) | _buffer[3 + _enFifoAccel*6 + _enFifoTemp*2];
-      _gzcounts = (((int16_t)_buffer[4 + _enFifoAccel*6 + _enFifoTemp*2]) << 8) | _buffer[5 + _enFifoAccel*6 + _enFifoTemp*2];
+	  uint16_t tmp;
+	  tmp = _enFifoAccel*6 + _enFifoTemp*2;
+      _gxcounts = (((int16_t)_buffer[0 + tmp]) << 8) | _buffer[1 + tmp];
+      _gycounts = (((int16_t)_buffer[2 + tmp]) << 8) | _buffer[3 + tmp];
+      _gzcounts = (((int16_t)_buffer[4 + tmp]) << 8) | _buffer[5 + tmp];
       // transform and convert to float values
       _gxFifo[i] = ((float)(tX[0]*_gxcounts + tX[1]*_gycounts + tX[2]*_gzcounts) * _gyroScale) - _gxb;
       _gyFifo[i] = ((float)(tY[0]*_gxcounts + tY[1]*_gycounts + tY[2]*_gzcounts) * _gyroScale) - _gyb;
