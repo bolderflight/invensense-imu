@@ -3,8 +3,7 @@ function (flashMcu TARGET MCU)
   string(APPEND HEX_TARGET ${TARGET} _hex)
   string(APPEND HEX_CMD ${TARGET} .hex)
   string(APPEND UPLOAD_TARGET ${TARGET} _upload)
-  string(TOLOWER ${MCU} MCU_LOWER)
-  string(APPEND MCU_CMD -mmcu= ${MCU_LOWER})
+  string(APPEND MCU_CMD -mmcu= ${MCU_LOAD})
   # Add 'make hex' target
   add_custom_command(OUTPUT ${HEX_CMD}
     DEPENDS ${TARGET}
