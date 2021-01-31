@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.0.3
+- Updated cmake, lib, and ld to support Teensy4.x
+
 ## v1.0.2
 - Updated CONTRIBUTING
 - Updated *fetch_content* from ssh to https to enable public access

@@ -13,7 +13,11 @@
 
 namespace sensors {
 
-Mpu9250::Mpu9250(i2c_t3 *bus, uint8_t addr) {
+#if defined(__MK20DX128__) 	|| defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__) || defined(__MKL26Z64__)
+  Mpu9250::Mpu9250(i2c_t3 *bus, uint8_t addr) {
+#else
+  Mpu9250::Mpu9250(TwoWire *bus, uint8_t addr) {
+#endif
   iface_ = I2C;
   i2c_ = bus;
   conn_ = addr;
@@ -434,9 +438,15 @@ bool Mpu9250::WriteRegister(uint8_t reg, uint8_t data) {
   } else {
     spi_->beginTransaction(SPISettings(spi_clock_, MSBFIRST, SPI_MODE3));
     digitalWriteFast(conn_, LOW);
+    #if defined(__IMXRT1062__)
+      delayNanoseconds(50);
+    #endif
     spi_->transfer(reg);
     spi_->transfer(data);
     digitalWriteFast(conn_, HIGH);
+    #if defined(__IMXRT1062__)
+      delayNanoseconds(50);
+    #endif
     spi_->endTransaction();
   }
   delay(10);
@@ -454,7 +464,13 @@ bool Mpu9250::ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data) {
     i2c_->endTransmission(false);
     uint8_t bytes_rx = i2c_->requestFrom(conn_, count);
     if (bytes_rx == count) {
-      i2c_->read(data, count);
+      #if defined(__IMXRT1062__)
+        for (std::size_t i = 0; i < count; i++) {
+          data[i] = i2c_->read();
+        }
+      #else
+        i2c_->read(data, count);
+      #endif
       return true;
     } else {
       return false;
@@ -462,9 +478,15 @@ bool Mpu9250::ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data) {
   } else {
     spi_->beginTransaction(SPISettings(spi_clock_, MSBFIRST, SPI_MODE3));
     digitalWriteFast(conn_, LOW);
+    #if defined(__IMXRT1062__)
+      delayNanoseconds(50);
+    #endif    
     spi_->transfer(reg | SPI_READ_);
     spi_->transfer(data, count);
     digitalWriteFast(conn_, HIGH);
+    #if defined(__IMXRT1062__)
+      delayNanoseconds(50);
+    #endif    
     spi_->endTransaction();
     return true;
   }

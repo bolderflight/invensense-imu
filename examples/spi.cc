@@ -8,7 +8,7 @@
 #include "mpu9250/mpu9250.h"
 
 /* Mpu9250 object using SPI */
-sensors::Mpu9250 mpu9250(&SPI, 2);
+sensors::Mpu9250 mpu9250(&SPI, 10);
 /* Data acquisition ISR */
 void imu_isr() {
   /* Check if data read */
