@@ -36,10 +36,10 @@ class Mpu9250 {
     GYRO_RANGE_1000DPS = 0x10,
     GYRO_RANGE_2000DPS = 0x18
   };
-  #if defined(__MK20DX128__) 	|| defined(__MK20DX256__) || defined(__MK64FX512__) ||	defined(__MK66FX1M0__) || defined(__MKL26Z64__)
-    Mpu9250(i2c_t3 *bus, uint8_t addr);
-  #else
+  #if defined(__IMXRT1062__)
     Mpu9250(TwoWire *bus, uint8_t addr);
+  #else
+    Mpu9250(i2c_t3 *bus, uint8_t addr);
   #endif
   Mpu9250(SPIClass *bus, uint8_t cs);
   bool Begin();
@@ -78,10 +78,10 @@ class Mpu9250 {
   };
   /* Communications interface */
   Interface iface_;
-  #if defined(__MK20DX128__) 	|| defined(__MK20DX256__) || defined(__MK64FX512__) ||	defined(__MK66FX1M0__) || defined(__MKL26Z64__)
-    i2c_t3 *i2c_;
-  #else
+  #if defined(__IMXRT1062__)
     TwoWire *i2c_;
+  #else
+    i2c_t3 *i2c_;
   #endif
   SPIClass *spi_;
   uint8_t conn_;
