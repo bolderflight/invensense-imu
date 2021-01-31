@@ -5,6 +5,8 @@ macro (configMcu MCU)
   # MCU specific config
   if (MCU STREQUAL "MK20DX128")
     message("Configuring MK20DX128 build.")
+    # Setup def for the loader
+    set(MCU_LOAD mk20dx128)
     # Definitions
     add_definitions(
       -D__MCU__
@@ -52,6 +54,8 @@ macro (configMcu MCU)
     )
   elseif (MCU STREQUAL "MK20DX256")
     message("Configuring MK20DX256 build.")
+    # Setup def for the loader
+    set(MCU_LOAD mk20dx256)
     # Definitions
     add_definitions(
       -D__MCU__
@@ -99,6 +103,8 @@ macro (configMcu MCU)
     )
   elseif (MCU STREQUAL "MK64FX512")
     message("Configuring MK64FX512 build.")
+    # Setup def for the loader
+    set(MCU_LOAD mk64fx512)
     # Definitions
     add_definitions(
       -D__MCU__
@@ -150,6 +156,8 @@ macro (configMcu MCU)
     )
   elseif (MCU STREQUAL "MK66FX1M0")
     message("Configuring MK66FX1M0 build.")
+    # Setup def for the loader
+    set(MCU_LOAD mk66fx1m0)
     # Definitions
     add_definitions(
       -D__MCU__
@@ -201,6 +209,8 @@ macro (configMcu MCU)
     )
   elseif (MCU STREQUAL "MKL26Z64")
     message("Configuring MKL26Z64 build.")
+    # Setup def for the loader
+    set(MCU_LOAD mkl26z64)
     # Definitions
     add_definitions(
       -D__MCU__
@@ -242,6 +252,114 @@ macro (configMcu MCU)
     # Link libraries
     link_libraries(
       -larm_cortexM0l_math
+      -lm 
+      -lc
+      -lstdc++
+    )
+  elseif (MCU STREQUAL "IMXRT1062_T40")
+    message("Configuring IMXRT1062 T4.0 build.")
+    # Setup def for the loader
+    set(MCU_LOAD imxrt1062)
+    # Definitions
+    add_definitions(
+      -D__MCU__
+      -D__IMXRT1062__
+      -DF_CPU=528000000 
+      -DUSB_SERIAL
+      -DTEENSYDUINO=153
+      -DARDUINO=10810
+      -DARDUINO_TEENSY40
+    )
+    # Compile options
+    add_compile_options(
+      $<$<COMPILE_LANGUAGE:C>:-std=gnu11>
+      $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>
+      $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
+      $<$<COMPILE_LANGUAGE:CXX>:-felide-constructors>
+      $<$<COMPILE_LANGUAGE:CXX>:-Wno-error=narrowing>
+      $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>
+      -g 
+      -Os 
+      -Wno-psabi 
+      -mthumb 
+      -ffunction-sections 
+      -fdata-sections 
+      -nostdlib 
+      -MMD
+      -mcpu=cortex-m7
+      -mfloat-abi=hard 
+      -mfpu=fpv5-d16
+    )
+    # Linker script
+    set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/ld/imxrt1062.ld")
+    # Link options
+    add_link_options(
+      -Os 
+      --specs=nano.specs
+      LINKER:--defsym=__rtc_localtime=0
+      -Wl,--gc-sections,--relax
+      -mcpu=cortex-m7 
+      -mfloat-abi=hard 
+      -mfpu=fpv5-d16
+      -T${LINKER_SCRIPT}
+    )
+    # Link libraries
+    link_libraries(
+      -larm_cortexM7lfsp_math
+      -lm 
+      -lc
+      -lstdc++
+    )
+  elseif (MCU STREQUAL "IMXRT1062_T41")
+    message("Configuring IMXRT1062 T4.1 build.")
+    # Setup def for the loader
+    set(MCU_LOAD imxrt1062)
+    # Definitions
+    add_definitions(
+      -D__MCU__
+      -D__IMXRT1062__
+      -DF_CPU=528000000 
+      -DUSB_SERIAL
+      -DTEENSYDUINO=153
+      -DARDUINO=10810
+      -DARDUINO_TEENSY40
+    )
+    # Compile options
+    add_compile_options(
+      $<$<COMPILE_LANGUAGE:C>:-std=gnu11>
+      $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>
+      $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
+      $<$<COMPILE_LANGUAGE:CXX>:-felide-constructors>
+      $<$<COMPILE_LANGUAGE:CXX>:-Wno-error=narrowing>
+      $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>
+      -g 
+      -Os 
+      -Wno-psabi 
+      -mthumb 
+      -ffunction-sections 
+      -fdata-sections 
+      -nostdlib 
+      -MMD
+      -mcpu=cortex-m7
+      -mfloat-abi=hard 
+      -mfpu=fpv5-d16
+    )
+    # Linker script
+    set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/ld/imxrt1062_t41.ld")
+    # Link options
+    add_link_options(
+      -Os 
+      --specs=nano.specs
+      LINKER:--defsym=__rtc_localtime=0
+      -Wl,--gc-sections,--relax
+      -mcpu=cortex-m7 
+      -mfloat-abi=hard 
+      -mfpu=fpv5-d16
+      -T${LINKER_SCRIPT}
+    )
+    # Link libraries
+    link_libraries(
+      -larm_cortexM7lfsp_math
       -lm 
       -lc
       -lstdc++

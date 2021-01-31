@@ -36,7 +36,11 @@ class Mpu9250 {
     GYRO_RANGE_1000DPS = 0x10,
     GYRO_RANGE_2000DPS = 0x18
   };
-  Mpu9250(i2c_t3 *bus, uint8_t addr);
+  #if defined(__IMXRT1062__)
+    Mpu9250(TwoWire *bus, uint8_t addr);
+  #else
+    Mpu9250(i2c_t3 *bus, uint8_t addr);
+  #endif
   Mpu9250(SPIClass *bus, uint8_t cs);
   bool Begin();
   bool EnableDrdyInt();
@@ -74,7 +78,11 @@ class Mpu9250 {
   };
   /* Communications interface */
   Interface iface_;
-  i2c_t3 *i2c_;
+  #if defined(__IMXRT1062__)
+    TwoWire *i2c_;
+  #else
+    i2c_t3 *i2c_;
+  #endif
   SPIClass *spi_;
   uint8_t conn_;
   uint32_t spi_clock_;
