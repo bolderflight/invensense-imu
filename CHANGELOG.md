@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.0.4
+- Updated to support core v2.0.3 which switches Teensy 3.x I2C to TwoWire instead of i2c_t3
+
 ## v1.0.3
 - Updated cmake, lib, and ld to support Teensy4.x
 
