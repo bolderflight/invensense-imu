@@ -2,7 +2,25 @@
 * Brian R Taylor
 * brian.taylor@bolderflight.com
 * 
-* Copyright (c) 2020 Bolder Flight Systems
+* Copyright (c) 2021 Bolder Flight Systems Inc
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the “Software”), to
+* deal in the Software without restriction, including without limitation the
+* rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+* sell copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in
+* all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+* FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+* IN THE SOFTWARE.
 */
 
 #include "mpu9250/mpu9250.h"
@@ -13,11 +31,7 @@
 
 namespace sensors {
 
-#if defined(__MK20DX128__) 	|| defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__) || defined(__MKL26Z64__)
-  Mpu9250::Mpu9250(i2c_t3 *bus, uint8_t addr) {
-#else
-  Mpu9250::Mpu9250(TwoWire *bus, uint8_t addr) {
-#endif
+Mpu9250::Mpu9250(TwoWire *bus, uint8_t addr) {
   iface_ = I2C;
   i2c_ = bus;
   conn_ = addr;
@@ -125,19 +139,19 @@ bool Mpu9250::Begin() {
     return false;
   }
   /* Set the accel range to 16G by default */
-  if (!accel_range(ACCEL_RANGE_16G)) {
+  if (!ConfigAccelRange(ACCEL_RANGE_16G)) {
     return false;
   }
   /* Set the gyro range to 2000DPS by default*/
-  if (!gyro_range(GYRO_RANGE_2000DPS)) {
+  if (!ConfigGyroRange(GYRO_RANGE_2000DPS)) {
     return false;
   }
   /* Set the DLPF to 20HZ by default */
-  if (!dlpf_bandwidth(DLPF_BANDWIDTH_20HZ)) {
+  if (!ConfigDlpf(DLPF_BANDWIDTH_20HZ)) {
     return false;
   }
   /* Set the SRD to 0 by default */
-  if (!sample_rate_divider(0)) {
+  if (!ConfigSrd(0)) {
     return false;
   }
   return true;
@@ -159,13 +173,7 @@ bool Mpu9250::DisableDrdyInt() {
   }
   return true;
 }
-void Mpu9250::rotation(Eigen::Matrix3f c) {
-  rotation_ = c;
-}
-Eigen::Matrix3f Mpu9250::rotation() {
-  return rotation_;
-}
-bool Mpu9250::accel_range(AccelRange range) {
+bool Mpu9250::ConfigAccelRange(const AccelRange range) {
   AccelRange requested_range;
   float requested_scale;
   spi_clock_ = 1000000;
@@ -204,10 +212,7 @@ bool Mpu9250::accel_range(AccelRange range) {
   accel_scale_ = requested_scale;
   return true;
 }
-Mpu9250::AccelRange Mpu9250::accel_range() {
-  return accel_range_;
-}
-bool Mpu9250::gyro_range(GyroRange range) {
+bool Mpu9250::ConfigGyroRange(const GyroRange range) {
   GyroRange requested_range;
   float requested_scale;
   spi_clock_ = 1000000;
@@ -246,10 +251,7 @@ bool Mpu9250::gyro_range(GyroRange range) {
   gyro_scale_ = requested_scale;
   return true;
 }
-Mpu9250::GyroRange Mpu9250::gyro_range() {
-  return gyro_range_;
-}
-bool Mpu9250::sample_rate_divider(uint8_t srd) {
+bool Mpu9250::ConfigSrd(const uint8_t srd) {
   spi_clock_ = 1000000;
   /* Changing the SRD to allow us to set the magnetometer successfully */
   if (!WriteRegister(SMPLRT_DIV_, 19)) {
@@ -292,10 +294,7 @@ bool Mpu9250::sample_rate_divider(uint8_t srd) {
   srd_ = srd;
   return true;
 }
-uint8_t Mpu9250::sample_rate_divider() {
-  return srd_;
-}
-bool Mpu9250::dlpf_bandwidth(DlpfBandwidth dlpf) {
+bool Mpu9250::ConfigDlpf(const DlpfBandwidth dlpf) {
   DlpfBandwidth requested_dlpf;
   spi_clock_ = 1000000;
   /* Check input is valid and set requested dlpf */
@@ -339,9 +338,6 @@ bool Mpu9250::dlpf_bandwidth(DlpfBandwidth dlpf) {
   dlpf_bandwidth_ = requested_dlpf;
   return true;
 }
-Mpu9250::DlpfBandwidth Mpu9250::dlpf_bandwidth() {
-  return dlpf_bandwidth_;
-}
 void Mpu9250::DrdyCallback(uint8_t int_pin, void (*function)()) {
   pinMode(int_pin, INPUT);
   attachInterrupt(int_pin, function, RISING);
@@ -373,13 +369,20 @@ bool Mpu9250::Read() {
   /* Convert to float values and rotate the accel / gyro axis */
   Eigen::Vector3f accel, gyro, mag;
   float temp;
-  accel(0) = global::conversions::G_to_Mps2(static_cast<float>(accel_counts[1]) * accel_scale_);
-  accel(2) = global::conversions::G_to_Mps2(static_cast<float>(accel_counts[2]) * accel_scale_ * -1.0f);
-  accel(1) = global::conversions::G_to_Mps2(static_cast<float>(accel_counts[0]) * accel_scale_);
-  die_temperature_c_ = (static_cast<float>(temp_counts) - 21.0f) / temp_scale_ + 21.0f;
-  gyro(1) =  global::conversions::Deg_to_Rad(static_cast<float>(gyro_counts[0]) * gyro_scale_);
-  gyro(0) =  global::conversions::Deg_to_Rad(static_cast<float>(gyro_counts[1]) * gyro_scale_);
-  gyro(2) =  global::conversions::Deg_to_Rad(static_cast<float>(gyro_counts[2]) * gyro_scale_ * -1.0f);
+  accel(0) = global::conversions::G_to_Mps2(static_cast<float>(accel_counts[1])
+             * accel_scale_);
+  accel(2) = global::conversions::G_to_Mps2(static_cast<float>(accel_counts[2])
+             * accel_scale_ * -1.0f);
+  accel(1) = global::conversions::G_to_Mps2(static_cast<float>(accel_counts[0])
+             * accel_scale_);
+  die_temperature_c_ = (static_cast<float>(temp_counts) - 21.0f) / temp_scale_
+                     + 21.0f;
+  gyro(1) =  global::conversions::Deg_to_Rad(static_cast<float>(gyro_counts[0])
+             * gyro_scale_);
+  gyro(0) =  global::conversions::Deg_to_Rad(static_cast<float>(gyro_counts[1])
+             * gyro_scale_);
+  gyro(2) =  global::conversions::Deg_to_Rad(static_cast<float>(gyro_counts[2])
+             * gyro_scale_ * -1.0f);
   mag(0) =   static_cast<float>(mag_counts[0]) * mag_scale_[0];
   mag(1) =   static_cast<float>(mag_counts[1]) * mag_scale_[1];
   mag(2) =   static_cast<float>(mag_counts[2]) * mag_scale_[2];
@@ -389,45 +392,6 @@ bool Mpu9250::Read() {
   mag_ut_ = rotation_ * mag;
   return true;
 }
-  float Mpu9250::accel_x_mps2() {
-    return accel_mps2_(0);
-  }
-  float Mpu9250::accel_y_mps2() {
-    return accel_mps2_(1);
-  }
-  float Mpu9250::accel_z_mps2() {
-    return accel_mps2_(2);
-  }
-  Eigen::Vector3f Mpu9250::accel_mps2() {
-    return accel_mps2_;
-  }
-  float Mpu9250::gyro_x_radps() {
-    return gyro_radps_(0);
-  }
-  float Mpu9250::gyro_y_radps() {
-    return gyro_radps_(1);
-  }
-  float Mpu9250::gyro_z_radps() {
-    return gyro_radps_(2);
-  }
-  Eigen::Vector3f Mpu9250::gyro_radps() {
-    return gyro_radps_;
-  }
-  float Mpu9250::mag_x_ut() {
-    return mag_ut_(0);
-  }
-  float Mpu9250::mag_y_ut() {
-    return mag_ut_(1);
-  }
-  float Mpu9250::mag_z_ut() {
-    return mag_ut_(2);
-  }
-  Eigen::Vector3f Mpu9250::mag_ut() {
-    return mag_ut_;
-  }
-  float Mpu9250::die_temperature_c() {
-    return die_temperature_c_;
-  }
 bool Mpu9250::WriteRegister(uint8_t reg, uint8_t data) {
   uint8_t ret_val;
   if (iface_ == I2C) {
@@ -464,13 +428,9 @@ bool Mpu9250::ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data) {
     i2c_->endTransmission(false);
     uint8_t bytes_rx = i2c_->requestFrom(conn_, count);
     if (bytes_rx == count) {
-      #if defined(__IMXRT1062__)
-        for (std::size_t i = 0; i < count; i++) {
-          data[i] = i2c_->read();
-        }
-      #else
-        i2c_->read(data, count);
-      #endif
+      for (std::size_t i = 0; i < count; i++) {
+        data[i] = i2c_->read();
+      }
       return true;
     } else {
       return false;
@@ -480,13 +440,13 @@ bool Mpu9250::ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data) {
     digitalWriteFast(conn_, LOW);
     #if defined(__IMXRT1062__)
       delayNanoseconds(50);
-    #endif    
+    #endif
     spi_->transfer(reg | SPI_READ_);
     spi_->transfer(data, count);
     digitalWriteFast(conn_, HIGH);
     #if defined(__IMXRT1062__)
       delayNanoseconds(50);
-    #endif    
+    #endif
     spi_->endTransaction();
     return true;
   }

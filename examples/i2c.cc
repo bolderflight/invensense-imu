@@ -48,7 +48,7 @@ int main() {
     while(1) {}
   }
   /* Set sample rate divider for 50 Hz */
-  status = mpu9250.sample_rate_divider(19);
+  status = mpu9250.ConfigSrd(19);
   if (!status) {
     Serial.println("ERROR: unable to setup sample rate divider");
     while(1) {}

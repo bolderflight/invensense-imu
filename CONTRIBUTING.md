@@ -111,38 +111,6 @@ This builds the software. To upload to the flight computer, the command would be
 $ make flight_upload
 ```
 
-### Project Organization<a name="organization"></a>
-The project is organized into many small repos. This approach enhances the code readability, re-use, and unit testing. CMake's *fetch_content* is used to grab dependencies. A summary of the relevant repos is below:
-
-* [flight](https://gitlab.com/bolderflight/software/flight): flight software template, overarching project vision and direction.
-* [core](https://gitlab.com/bolderflight/software/core): microcontroller startup code and Hardware Abstraction Layer (HAL).
-* [global_defs](https://gitlab.com/bolderflight/software/global_defs): definitions of constants and unit conversions.
-* [eigen](https://gitlab.com/bolderflight/software/eigen): matrix math library.
-* [mpu9250](https://gitlab.com/bolderflight/software/mpu9250): driver for the MPU-9250 9 axis IMU.
-* [bme280](https://gitlab.com/bolderflight/software/bme280): driver for the BME280 static pressure sensor.
-* [ams5812](https://gitlab.com/bolderflight/software/ams5812): driver for the AMS-5812 static and differential pressure transducers.
-* [ams5915](https://gitlab.com/bolderflight/software/ams5915): driver for the AMS-5915 static and differential pressure transducers.
-* [ublox](https://gitlab.com/bolderflight/software/ublox): driver for uBlox GNSS receivers. Parses the UBX binary format.
-* [sbus](https://gitlab.com/bolderflight/software/sbus): driver for reading SBUS inputs from SBUS capable RC receivers and writing SBUS commands to SBUS capable servos.
-* [pwm](https://gitlab.com/bolderflight/software/pwm): driver for writing PWM commands to servos.
-* [actuator](https://gitlab.com/bolderflight/software/actuator): library for converting actuator commands from angles to SBUS or PWM commands and controlling throttle safety and lost-link actions.
-* [sd](https://gitlab.com/bolderflight/software/sd): SD card driver.
-* [circle_buf](https://gitlab.com/bolderflight/software/circle_buf): circular buffer with templated type and size.
-* [logger](https://gitlab.com/bolderflight/software/logger): generic data logger, buffers and writes data to SD card.
-* [checksum](https://gitlab.com/bolderflight/software/checksum): library of checksum algorithms.
-* [framing](https://gitlab.com/bolderflight/software/framing): frames data with a start bit, end bit, and checksum. Includes encoder, for writing messages, and a decoder for parsing messages from a data stream.
-* [mat_v4](https://gitlab.com/bolderflight/software/mat_v4): functions to write data in MATLAB v4 format.
-* [statistics](https://gitlab.com/bolderflight/software/statistics): running estimation of mean, variance, and standard deviation.
-* [polytools](https://gitlab.com/bolderflight/software/polytools): polynomial fitting and evaluation.
-* [airdata](https://gitlab.com/bolderflight/software/airdata): functions to compute airspeeds and altitudes. Estimations for temperature and density.
-* [filter](https://gitlab.com/bolderflight/software/filter): library of digital filters
-* [navigation](https://gitlab.com/bolderflight/software/navigation): navigation filters (i.e. EKF to estimate attitude, position, and velocity) and transforms between LLA, ECEF, and NED frames.
-* [control](https://gitlab.com/bolderflight/software/control): library of control laws.
-* [mavlink_c_library_v1](https://gitlab.com/bolderflight/software/mavlink_c_library_v1): C header files for MAV Link v1.
-* [mavlink_c_library_v2](https://gitlab.com/bolderflight/software/mavlink_c_library_v2): C header files for MAV Link v2.
-* [mavlink](https://gitlab.com/bolderflight/software/mavlink): wrapper to ease sending MAV Link telemetry.
-* [mat_converter](https://gitlab.com/bolderflight/software/mat_converter): program to convert BFS data log files to MATLAB mat files given a Google Protocol Buffer description of the data log message layout.
-
 ### Contributing<a name="contributing"></a>
 We welcome code contributions, bug reports, suggested enhancements, and assistance with documentation or testing. Use the repo's issue tracking system to identify potential bugs and suggested enhancements. Issue pull requests for making code contributions and assisting with documentation. If you have an idea to contribute and are unsure of the best approach, please contact us at support@bolderflight.com to discuss.
 
