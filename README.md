@@ -39,6 +39,8 @@ Notice that the *cmake* command includes a define specifying the microcontroller
    * MK64FX512
    * MK66FX1M0
    * MKL26Z64
+   * IMXRT1062_T40
+   * IMXRT1062_T41
 
 These are known to work with the same packages used in Teensy products. Also switching the MK66FX1M0 or MK64FX512 from BGA to LQFP packages is known to work well. Swapping packages of other chips is probably fine, as long as it's only a package change.
 
@@ -88,7 +90,7 @@ if (!status) {
 }
 ```
 
-**void rotation(Eigen::Matrix3f c)** Applies a rotation matrix to the sensor measurements. The default value for $`c`$ is the identity matrix and the default sensor reference frame is shown below:
+**void ApplyRotation(const Eigen::Matrix3f &c)** Applies a rotation matrix to the sensor measurements. The default value for $`c`$ is the identity matrix and the default sensor reference frame is shown below:
 
 ![MPU-9250 Reference Frame](docs/MPU-9250-AXIS.png "MPU-9250 Reference Frame")
 
@@ -110,7 +112,7 @@ Eigen::Matrix3f c = Eigen::Matrix3f::Zero();
 c(0, 1) = 1.0f;
 c(1, 0) = 1.0f;
 c(2, 2) = 1.0f;
-mpu9250.rotation(c);
+mpu9250.ApplyRotation(c);
 ```
 
 **Eigen::Matrix3f rotation()** Returns the current rotation matrix.
@@ -119,7 +121,7 @@ mpu9250.rotation(c);
 Eigen::Matrix3f c = mpu9250.rotation();
 ```
 
-**bool accel_range(AccelRange range)** Sets the accelerometer full scale range. Options are:
+**bool ConfigAccelRange(const AccelRange range)** Sets the accelerometer full scale range. Options are:
 
 | Range | Enum Value |
 | --- | --- |
@@ -131,7 +133,7 @@ Eigen::Matrix3f c = mpu9250.rotation();
 True is returned on succesfully setting the accelerometer range, otherwise, false is returned. The default range is +/-16g.
 
 ```C++
-bool status = mpu9250.accel_range(Mpu9250::ACCEL_RANGE_4G);
+bool status = mpu9250.ConfigAccelRange(Mpu9250::ACCEL_RANGE_4G);
 if (!status) {
   // ERROR
 }
@@ -143,7 +145,7 @@ if (!status) {
 AccelRange range = mpu9250.accel_range();
 ```
 
-**bool gyro_range(GyroRange range)** Sets the gyro full scale range. Options are:
+**bool ConfigGyroRange(const GyroRange range)** Sets the gyro full scale range. Options are:
 
 | Range | Enum Value |
 | --- | --- |
@@ -155,7 +157,7 @@ AccelRange range = mpu9250.accel_range();
 True is returned on succesfully setting the gyro range, otherwise, false is returned. The default range is +/-2000 deg/s.
 
 ```C++
-bool status = mpu9250.gyro_range(Mpu9250::GYRO_RANGE_1000DPS);
+bool status = mpu9250.ConfigGyroRange(Mpu9250::GYRO_RANGE_1000DPS);
 if (!status) {
   // ERROR
 }
@@ -167,7 +169,7 @@ if (!status) {
 GyroRange range = mpu9250.gyro_range();
 ```
 
-**bool sample_rate_divider(uint8_t srd)** Sets the sensor sample rate divider. The MPU-9250 samples the accelerometer and gyro at a rate, in Hz, defined by:
+**bool ConfigSrd(const uint8_t srd)** Sets the sensor sample rate divider. The MPU-9250 samples the accelerometer and gyro at a rate, in Hz, defined by:
 
 ```math
 rate = 1000 / (srd + 1)
@@ -185,13 +187,13 @@ if (!status) {
 }
 ```
 
-**uint8_t sample_rate_divider()** Returns the current sample rate divider value.
+**uint8_t srd()** Returns the current sample rate divider value.
 
 ```C++
-uint8_t srd = mpu9250.sample_rate_divider();
+uint8_t srd = mpu9250.srd();
 ```
 
-**bool dlpf_bandwidth(DlpfBandwidth dlpf)** Sets the cutoff frequency of the digital low pass filter for the accelerometer, gyro, and temperature sensor. Available bandwidths are:
+**bool ConfigDlpf(const DlpfBandwidth dlpf)** Sets the cutoff frequency of the digital low pass filter for the accelerometer, gyro, and temperature sensor. Available bandwidths are:
 
 | DLPF Bandwidth | Enum Value |
 | --- | --- |
@@ -205,16 +207,16 @@ uint8_t srd = mpu9250.sample_rate_divider();
 True is returned on succesfully setting the digital low pass filters, otherwise, false is returned. The default bandwidth is 184 Hz.
 
 ```C++
-bool status = mpu9250.dlpf_bandwidth(Mpu9250::DLPF_BANDWIDTH_20HZ);
+bool status = mpu9250.ConfigDlpf(Mpu9250::DLPF_BANDWIDTH_20HZ);
 if (!status) {
   // ERROR
 }
 ```
 
-**DlpfBandwidth dlpf_bandwidth()** Returns the current digital low pass filter bandwidth setting.
+**DlpfBandwidth dlpf()** Returns the current digital low pass filter bandwidth setting.
 
 ```C++
-DlpfBandwidth dlpf = mpu9250.dlpf_bandwidth();
+DlpfBandwidth dlpf = mpu9250.dlpf();
 ```
 
 **void DrdyCallback(uint8_t int_pin, void (&ast;function)())** Assigns a callback function to be called on the MPU-9250 data ready interrupt. Input parameters are the microcontroller pin number connected to the MPU-9250 interrupt pin and the function name.

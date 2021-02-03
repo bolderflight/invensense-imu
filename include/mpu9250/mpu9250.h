@@ -2,7 +2,25 @@
 * Brian R Taylor
 * brian.taylor@bolderflight.com
 * 
-* Copyright (c) 2020 Bolder Flight Systems
+* Copyright (c) 2021 Bolder Flight Systems Inc
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the “Software”), to
+* deal in the Software without restriction, including without limitation the
+* rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+* sell copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in
+* all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+* FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+* IN THE SOFTWARE.
 */
 
 #ifndef INCLUDE_MPU9250_MPU9250_H_
@@ -41,31 +59,31 @@ class Mpu9250 {
   bool Begin();
   bool EnableDrdyInt();
   bool DisableDrdyInt();
-  void rotation(Eigen::Matrix3f c);
-  Eigen::Matrix3f rotation();
-  bool accel_range(AccelRange range);
-  AccelRange accel_range();
-  bool gyro_range(GyroRange range);
-  GyroRange gyro_range();
-  bool sample_rate_divider(uint8_t srd);
-  uint8_t sample_rate_divider();
-  bool dlpf_bandwidth(DlpfBandwidth dlpf);
-  DlpfBandwidth dlpf_bandwidth();
+  void ApplyRotation(const Eigen::Matrix3f &c) {rotation_ = c;}
+  inline Eigen::Matrix3f rotation() const {return rotation_;}
+  bool ConfigAccelRange(const AccelRange range);
+  inline AccelRange accel_range() const {return accel_range_;}
+  bool ConfigGyroRange(const GyroRange range);
+  inline GyroRange gyro_range() const {return gyro_range_;}
+  bool ConfigSrd(const uint8_t srd);
+  inline uint8_t srd() const {return srd_;}
+  bool ConfigDlpf(const DlpfBandwidth dlpf);
+  inline DlpfBandwidth dlpf() const {return dlpf_bandwidth_;}
   void DrdyCallback(uint8_t int_pin, void (*function)());
   bool Read();
-  float accel_x_mps2();
-  float accel_y_mps2();
-  float accel_z_mps2();
-  Eigen::Vector3f accel_mps2();
-  float gyro_x_radps();
-  float gyro_y_radps();
-  float gyro_z_radps();
-  Eigen::Vector3f gyro_radps();
-  float mag_x_ut();
-  float mag_y_ut();
-  float mag_z_ut();
-  Eigen::Vector3f mag_ut();
-  float die_temperature_c();
+  inline float accel_x_mps2() const {return accel_mps2_(0);}
+  inline float accel_y_mps2() const {return accel_mps2_(1);}
+  inline float accel_z_mps2() const {return accel_mps2_(2);}
+  inline Eigen::Vector3f accel_mps2() const {return accel_mps2_;}
+  inline float gyro_x_radps() const {return gyro_radps_(0);}
+  inline float gyro_y_radps() const {return gyro_radps_(1);}
+  inline float gyro_z_radps() const {return gyro_radps_(2);}
+  inline Eigen::Vector3f gyro_radps() const {return gyro_radps_;}
+  inline float mag_x_ut() const {return mag_ut_(0);}
+  inline float mag_y_ut() const {return mag_ut_(1);}
+  inline float mag_z_ut() const {return mag_ut_(2);}
+  inline Eigen::Vector3f mag_ut() const {return mag_ut_;}
+  inline float die_temperature_c() const {return die_temperature_c_;}
 
  private:
   enum Interface {
