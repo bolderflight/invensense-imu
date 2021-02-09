@@ -93,11 +93,11 @@ if (!status) {
 
 Outputs are defined as:
 
-```math
-x_{u} = c * x_{b}
+```
+Xu = c * Xb
 ```
 
-Where $`x_{u}`$ is the output, $`c`$ is the rotation matrix, and $`x_{b}`$ are the measurements in the sensor reference frame.
+Where *Xu* is the output, *c* is the rotation matrix, and *Xb* are the measurements in the sensor reference frame.
 
 ```C++
 /*
