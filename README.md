@@ -87,7 +87,7 @@ if (!status) {
 }
 ```
 
-**void ApplyRotation(const Eigen::Matrix3f &c)** Applies a rotation matrix to the sensor measurements. The default value for $`c`$ is the identity matrix and the default sensor reference frame is shown below:
+**void ApplyRotation(const Eigen::Matrix3f &c)** Applies a rotation matrix to the sensor measurements. The default value for *c* is the identity matrix and the default sensor reference frame is shown below:
 
 ![MPU-9250 Reference Frame](docs/MPU-9250-AXIS.png "MPU-9250 Reference Frame")
 
