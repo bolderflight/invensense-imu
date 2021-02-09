@@ -27,7 +27,7 @@
 #include "Eigen/Core"
 #include "Eigen/Dense"
 #include "core/core.h"
-#include "global_defs/global_defs.h"
+#include "units/units.h"
 
 namespace sensors {
 
@@ -369,19 +369,19 @@ bool Mpu9250::Read() {
   /* Convert to float values and rotate the accel / gyro axis */
   Eigen::Vector3f accel, gyro, mag;
   float temp;
-  accel(0) = global::conversions::G_to_Mps2(static_cast<float>(accel_counts[1])
+  accel(0) = conversions::G_to_Mps2(static_cast<float>(accel_counts[1])
              * accel_scale_);
-  accel(2) = global::conversions::G_to_Mps2(static_cast<float>(accel_counts[2])
+  accel(2) = conversions::G_to_Mps2(static_cast<float>(accel_counts[2])
              * accel_scale_ * -1.0f);
-  accel(1) = global::conversions::G_to_Mps2(static_cast<float>(accel_counts[0])
+  accel(1) = conversions::G_to_Mps2(static_cast<float>(accel_counts[0])
              * accel_scale_);
   die_temperature_c_ = (static_cast<float>(temp_counts) - 21.0f) / temp_scale_
                      + 21.0f;
-  gyro(1) =  global::conversions::Deg_to_Rad(static_cast<float>(gyro_counts[0])
+  gyro(1) =  conversions::Deg_to_Rad(static_cast<float>(gyro_counts[0])
              * gyro_scale_);
-  gyro(0) =  global::conversions::Deg_to_Rad(static_cast<float>(gyro_counts[1])
+  gyro(0) =  conversions::Deg_to_Rad(static_cast<float>(gyro_counts[1])
              * gyro_scale_);
-  gyro(2) =  global::conversions::Deg_to_Rad(static_cast<float>(gyro_counts[2])
+  gyro(2) =  conversions::Deg_to_Rad(static_cast<float>(gyro_counts[2])
              * gyro_scale_ * -1.0f);
   mag(0) =   static_cast<float>(mag_counts[0]) * mag_scale_[0];
   mag(1) =   static_cast<float>(mag_counts[1]) * mag_scale_[1];

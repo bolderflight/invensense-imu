@@ -5,7 +5,7 @@ if (DEFINED MCU)
 endif()
 # Project information
 project(Mpu9250
-	VERSION 2.0.0
+	VERSION 2.0.1
 	DESCRIPTION "MPU-9250 sensor driver"
 	LANGUAGES CXX
 )
@@ -17,24 +17,24 @@ if (DEFINED MCU)
 	# Fetch core
 	FetchContent_Declare(
 		core
-		GIT_REPOSITORY 	https://gitlab.com/bolderflight/software/core.git
-		GIT_TAG v2.0.3
+		GIT_REPOSITORY 	https://github.com/bolderflight/core.git
+		GIT_TAG v2.0.4
 	)
 	FetchContent_MakeAvailable(core)
 	# Fetch eigen
 	FetchContent_Declare(
 		eigen
-		GIT_REPOSITORY 	https://gitlab.com/bolderflight/software/eigen.git
+		GIT_REPOSITORY 	https://github.com/bolderflight/eigen.git
 		GIT_TAG v1.0.0
 	)
 	FetchContent_MakeAvailable(eigen)
 	# Fetch global defs
 	FetchContent_Declare(
-		global_defs
-		GIT_REPOSITORY 	https://gitlab.com/bolderflight/software/global_defs.git
-		GIT_TAG v1.1.2
+		units
+		GIT_REPOSITORY 	https://github.com/bolderflight/units.git
+		GIT_TAG v2.0.0
 	)
-	FetchContent_MakeAvailable(global_defs)
+	FetchContent_MakeAvailable(units)
 	# Add the library target
 	add_library(mpu9250
 		src/mpu9250/mpu9250.cc
@@ -45,7 +45,7 @@ if (DEFINED MCU)
 		PUBLIC
 			core
 			eigen
-			global_defs
+			units
 	)
 	# Setup include directories 
 	target_include_directories(mpu9250 PUBLIC 

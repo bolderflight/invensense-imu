@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.0.1
+- Updated to support core v2.0.4 and units v2.0.0
+- Updated sources to pull from github
+
 ## v2.0.0
 - Updating to better match style guide and make clear which methods are requesting the sensor to do something and which are simply acting like a class data member
 - Updated README with additional supported processors and updated methods
