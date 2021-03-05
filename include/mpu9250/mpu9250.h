@@ -30,7 +30,7 @@
 #include "Eigen/Dense"
 #include "core/core.h"
 
-namespace sensors {
+namespace bfs {
 
 class Mpu9250 {
  public:
@@ -160,6 +160,6 @@ class Mpu9250 {
   bool ReadAk8963Registers(uint8_t reg, uint8_t count, uint8_t *data);
 };
 
-}  // namespace sensors
+}  // namespace bfs
 
 #endif  // INCLUDE_MPU9250_MPU9250_H_

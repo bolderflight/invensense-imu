@@ -29,7 +29,7 @@
 #include "core/core.h"
 #include "units/units.h"
 
-namespace sensors {
+namespace bfs {
 
 Mpu9250::Mpu9250(TwoWire *bus, uint8_t addr) {
   iface_ = I2C;
@@ -369,20 +369,17 @@ bool Mpu9250::Read() {
   /* Convert to float values and rotate the accel / gyro axis */
   Eigen::Vector3f accel, gyro, mag;
   float temp;
-  accel(0) = conversions::G_to_Mps2(static_cast<float>(accel_counts[1])
-             * accel_scale_);
-  accel(2) = conversions::G_to_Mps2(static_cast<float>(accel_counts[2])
-             * accel_scale_ * -1.0f);
-  accel(1) = conversions::G_to_Mps2(static_cast<float>(accel_counts[0])
-             * accel_scale_);
+  accel(0) = convacc(static_cast<float>(accel_counts[1]) * accel_scale_,
+             LinAccUnit::G, LinAccUnit::MPS2);
+  accel(2) = convacc(static_cast<float>(accel_counts[2]) * accel_scale_ *
+             -1.0f, LinAccUnit::G, LinAccUnit::MPS2);
+  accel(1) = convacc(static_cast<float>(accel_counts[0]) * accel_scale_,
+             LinAccUnit::G, LinAccUnit::MPS2);
   die_temperature_c_ = (static_cast<float>(temp_counts) - 21.0f) / temp_scale_
                      + 21.0f;
-  gyro(1) =  conversions::Deg_to_Rad(static_cast<float>(gyro_counts[0])
-             * gyro_scale_);
-  gyro(0) =  conversions::Deg_to_Rad(static_cast<float>(gyro_counts[1])
-             * gyro_scale_);
-  gyro(2) =  conversions::Deg_to_Rad(static_cast<float>(gyro_counts[2])
-             * gyro_scale_ * -1.0f);
+  gyro(1) =  deg2rad(static_cast<float>(gyro_counts[0]) * gyro_scale_);
+  gyro(0) =  deg2rad(static_cast<float>(gyro_counts[1]) * gyro_scale_);
+  gyro(2) =  deg2rad(static_cast<float>(gyro_counts[2]) * gyro_scale_ * -1.0f);
   mag(0) =   static_cast<float>(mag_counts[0]) * mag_scale_[0];
   mag(1) =   static_cast<float>(mag_counts[1]) * mag_scale_[1];
   mag(2) =   static_cast<float>(mag_counts[2]) * mag_scale_[2];
@@ -488,4 +485,4 @@ bool Mpu9250::ReadAk8963Registers(uint8_t reg, uint8_t count, uint8_t *data) {
   return ReadRegisters(EXT_SENS_DATA_00_, count, data);
 }
 
-}  // namespace sensors
+}  // namespace bfs
