@@ -276,7 +276,6 @@ bool Mpu9250::ConfigSrd(const uint8_t srd) {
       return false;
     }
     delay(100);  // long wait between AK8963 mode changes
-    
     /* Instruct the MPU9250 to get 8 bytes from the AK8963 at the sample rate */
     uint8_t mag_data[8];
     if (!ReadAk8963Registers(AK8963_ST1_, sizeof(mag_data), mag_data)) {
