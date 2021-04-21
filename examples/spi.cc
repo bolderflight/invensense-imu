@@ -26,12 +26,14 @@
 #include "mpu9250/mpu9250.h"
 
 /* Mpu9250 object using SPI */
-bfs::Mpu9250 mpu9250(&SPI, 10);
+bfs::Mpu9250 mpu9250(&SPI, 24);
 /* Data acquisition ISR */
 void imu_isr() {
   /* Check if data read */
   if (mpu9250.Read()) {
     /* Print data */
+    Serial.print(mpu9250.new_mag_data());
+    Serial.print("\t");
     Serial.print(mpu9250.accel_x_mps2());
     Serial.print("\t");
     Serial.print(mpu9250.accel_y_mps2());
@@ -59,6 +61,12 @@ int main() {
   /* Serial to display data */
   Serial.begin(115200);
   while(!Serial) {}
+  pinMode(24, OUTPUT);
+  pinMode(25, OUTPUT);
+  pinMode(26, OUTPUT);
+  digitalWriteFast(24, HIGH);
+  digitalWriteFast(25, HIGH);
+  digitalWriteFast(26, HIGH);
   /* Start communicating with MPU-9250 */
   bool status = mpu9250.Begin();
   if (!status) {
@@ -66,7 +74,7 @@ int main() {
     while(1) {}
   }
   /* Set sample rate divider for 50 Hz */
-  status = mpu9250.ConfigSrd(19);
+  status = mpu9250.ConfigSrd(9);
   if (!status) {
     Serial.println("ERROR: unable to setup sample rate divider");
     while(1) {}
@@ -78,7 +86,7 @@ int main() {
     while(1) {}
   }
   /* Setup callback for data ready interrupt */
-  mpu9250.DrdyCallback(3, imu_isr);
+  mpu9250.DrdyCallback(27, imu_isr);
   while (1) {}
 }
 

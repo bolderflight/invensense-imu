@@ -133,11 +133,6 @@ bool Mpu9250::Begin() {
   if (!WriteRegister(PWR_MGMNT_1_, CLKSEL_PLL_)) {
     return false;
   }
-  /* Instruct the MPU9250 to get 7 bytes from the AK8963 at the sample rate */
-  uint8_t mag_data[7];
-  if (!ReadAk8963Registers(AK8963_HXL_, sizeof(mag_data), mag_data)) {
-    return false;
-  }
   /* Set the accel range to 16G by default */
   if (!ConfigAccelRange(ACCEL_RANGE_16G)) {
     return false;
@@ -267,9 +262,9 @@ bool Mpu9250::ConfigSrd(const uint8_t srd) {
       return false;
     }
     delay(100);  // long wait between AK8963 mode changes
-    /* Instruct the MPU9250 to get 7 bytes from the AK8963 at the sample rate */
-    uint8_t mag_data[7];
-    if (!ReadAk8963Registers(AK8963_HXL_, sizeof(mag_data), mag_data)) {
+    /* Instruct the MPU9250 to get 8 bytes from the AK8963 at the sample rate */
+    uint8_t mag_data[8];
+    if (!ReadAk8963Registers(AK8963_ST1_, sizeof(mag_data), mag_data)) {
       return false;
     }
   } else {
@@ -281,9 +276,10 @@ bool Mpu9250::ConfigSrd(const uint8_t srd) {
       return false;
     }
     delay(100);  // long wait between AK8963 mode changes
-    /* Instruct the MPU9250 to get 7 bytes from the AK8963 at the sample rate */
-    uint8_t mag_data[7];
-    if (!ReadAk8963Registers(AK8963_HXL_, sizeof(mag_data), mag_data)) {
+    
+    /* Instruct the MPU9250 to get 8 bytes from the AK8963 at the sample rate */
+    uint8_t mag_data[8];
+    if (!ReadAk8963Registers(AK8963_ST1_, sizeof(mag_data), mag_data)) {
       return false;
     }
   }
@@ -345,13 +341,13 @@ void Mpu9250::DrdyCallback(uint8_t int_pin, void (*function)()) {
 bool Mpu9250::Read() {
   spi_clock_ = 20000000;
   /* Read the data registers */
-  uint8_t data_buff[22];
+  uint8_t data_buff[23];
   if (!ReadRegisters(INT_STATUS_, sizeof(data_buff), data_buff)) {
     return false;
   }
   /* Check if data is ready */
-  bool data_ready = (data_buff[0] & RAW_DATA_RDY_INT_);
-  if (!data_ready) {
+  new_imu_data_ = (data_buff[0] & RAW_DATA_RDY_INT_);
+  if (!new_imu_data_) {
     return false;
   }
   /* Unpack the buffer */
@@ -363,9 +359,15 @@ bool Mpu9250::Read() {
   gyro_counts[0] =  static_cast<int16_t>(data_buff[9])  << 8 | data_buff[10];
   gyro_counts[1] =  static_cast<int16_t>(data_buff[11]) << 8 | data_buff[12];
   gyro_counts[2] =  static_cast<int16_t>(data_buff[13]) << 8 | data_buff[14];
-  mag_counts[0] =   static_cast<int16_t>(data_buff[16]) << 8 | data_buff[15];
-  mag_counts[1] =   static_cast<int16_t>(data_buff[18]) << 8 | data_buff[17];
-  mag_counts[2] =   static_cast<int16_t>(data_buff[20]) << 8 | data_buff[19];
+  new_mag_data_ = (data_buff[15] & AK8963_DATA_RDY_INT_);
+  mag_counts[0] =   static_cast<int16_t>(data_buff[17]) << 8 | data_buff[16];
+  mag_counts[1] =   static_cast<int16_t>(data_buff[19]) << 8 | data_buff[18];
+  mag_counts[2] =   static_cast<int16_t>(data_buff[21]) << 8 | data_buff[20];
+  /* Check for mag overflow */
+  mag_sensor_overflow_ = (data_buff[22] & AK8963_HOFL_);
+  if (mag_sensor_overflow_) {
+    new_mag_data_ = false;
+  }
   /* Convert to float values and rotate the accel / gyro axis */
   Eigen::Vector3f accel, gyro, mag;
   float temp;
@@ -386,7 +388,10 @@ bool Mpu9250::Read() {
   /* Apply rotation */
   accel_mps2_ = rotation_ * accel;
   gyro_radps_ = rotation_ * gyro;
-  mag_ut_ = rotation_ * mag;
+  /* Only update on new data */
+  if (new_mag_data_) {
+    mag_ut_ = rotation_ * mag;
+  }
   return true;
 }
 bool Mpu9250::WriteRegister(uint8_t reg, uint8_t data) {
