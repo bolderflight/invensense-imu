@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.1.0
+- Added *new_mag_data* getter to indicate whether new magnetometer data has been read
+- Added logic to get the magnetometer status byte in addition to the other magnetometer data to check for whether new data was received
+- Check for mag sensor overflow, in which case we set *new_mag_data* to false
+- Only update class-stored mag data if valid new data received
+- Updated README
+
 ## v3.0.0
 - Updated to namespace *bfs*
 - Updated to support units v3.1.0

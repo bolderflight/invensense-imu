@@ -44,20 +44,20 @@ These are known to work with the same packages used in Teensy products. Also swi
 The *i2c_example* and *spi_example* targets create executables for communicating with the sensor using I2C or SPI communication, respectively. Each target also has a *_hex* for creating the hex file to upload to the microcontroller. 
 
 ## Namespace
-This library is within the namespace *sensors*.
+This library is within the namespace *bfs*.
 
 ## Methods
 
 **Mpu9250(i2c_t3 &ast;bus, uint8_t addr)** Creates a Mpu9250 object. This constructor is used for the I2C communication interface. A pointer to the I2C bus object is passed along with the I2C address of the sensor. The address will be 0x68 if the AD0 pin is grounded and 0x69 if the AD0 pin is pulled high.
 
 ```C++
-sensors::Mpu9250 mpu9250(&Wire, 0x68);
+bfs::Mpu9250 mpu9250(&Wire, 0x68);
 ```
 
 **Mpu9250(SPIClass &ast;bus, uint8_t cs)** Creates a Mpu9250 object. This constructor is used for the SPI communication interface. A pointer to the SPI bus object is passed along with the chip select pin of the sensor. Any pin capable of digital I/O can be used as a chip select pin.
 
 ```C++
-sensors::Mpu9250 mpu9250(&SPI, 2);
+bfs::Mpu9250 mpu9250(&SPI, 2);
 ```
 
 **bool Begin()** Initializes communication with the sensor and configures the default sensor ranges, sampling rates, and low pass filter settings. The default accelerometer range is +/- 16g and the default gyro range is +/- 2,000 deg/s. The default sampling rate is 1000 Hz and the low-pass filter is set to a cutoff frequency of 184 Hz. True is returned if communication is able to be established with the sensor and configuration completes successfully, otherwise, false is returned.
@@ -231,13 +231,15 @@ void main() {
 }
 ```
 
-**bool Read()** Reads data from the MPU-9250 and stores the data in the Mpu9250 object. Returns true if data is successfully read, otherwise, returns false.
+**bool Read()** Reads data from the MPU-9250 and stores the data in the Mpu9250 object. Returns true if accel and gyro data is successfully read, otherwise, returns false.
 
 ```C++
 /* Read the IMU data */
 if (mpu9250.Read()) {
 }
 ```
+
+**bool new_mag_data()** Returns true if valid, new magnetometer data was read.
 
 **float accel_x_mps2()** Returns the x accelerometer data from the Mpu9250 object in units of m/s/s. Similar methods exist for the y and z axis data.
 

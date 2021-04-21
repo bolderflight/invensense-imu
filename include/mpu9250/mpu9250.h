@@ -71,6 +71,7 @@ class Mpu9250 {
   inline DlpfBandwidth dlpf() const {return dlpf_bandwidth_;}
   void DrdyCallback(uint8_t int_pin, void (*function)());
   bool Read();
+  inline bool new_mag_data() const {return new_mag_data_;}
   inline float accel_x_mps2() const {return accel_mps2_(0);}
   inline float accel_y_mps2() const {return accel_mps2_(1);}
   inline float accel_z_mps2() const {return accel_mps2_(2);}
@@ -108,6 +109,8 @@ class Mpu9250 {
   static constexpr uint8_t WHOAMI_MPU9255_ = 0x73;
   static constexpr uint8_t WHOAMI_AK8963_ = 0x48;
   /* Data */
+  bool new_imu_data_, new_mag_data_;
+  bool mag_sensor_overflow_;
   float accel_scale_, gyro_scale_, mag_scale_[3];
   float temp_scale_ = 333.87f;
   Eigen::Vector3f accel_mps2_;
@@ -144,6 +147,8 @@ class Mpu9250 {
   static constexpr uint8_t EXT_SENS_DATA_00_ = 0x49;
   /* AK8963 registers */
   static constexpr uint8_t AK8963_I2C_ADDR_ = 0x0C;
+  static constexpr uint8_t AK8963_ST1_ = 0x02;
+  static constexpr uint8_t AK8963_DATA_RDY_INT_ = 0x01;
   static constexpr uint8_t AK8963_HXL_ = 0x03;
   static constexpr uint8_t AK8963_CNTL1_ = 0x0A;
   static constexpr uint8_t AK8963_PWR_DOWN_ = 0x00;
@@ -154,6 +159,7 @@ class Mpu9250 {
   static constexpr uint8_t AK8963_RESET_ = 0x01;
   static constexpr uint8_t AK8963_ASA_ = 0x10;
   static constexpr uint8_t AK8963_WHOAMI_ = 0x00;
+  static constexpr uint8_t AK8963_HOFL_ = 0x08;
   bool WriteRegister(uint8_t reg, uint8_t data);
   bool ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data);
   bool WriteAk8963Register(uint8_t reg, uint8_t data);

@@ -32,6 +32,8 @@ void imu_isr() {
   /* Check if data read */
   if (mpu9250.Read()) {
     /* Print data */
+    Serial.print(mpu9250.new_mag_data());
+    Serial.print("\t");
     Serial.print(mpu9250.accel_x_mps2());
     Serial.print("\t");
     Serial.print(mpu9250.accel_y_mps2());
