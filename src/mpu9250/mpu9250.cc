@@ -339,6 +339,8 @@ void Mpu9250::DrdyCallback(uint8_t int_pin, void (*function)()) {
 }
 bool Mpu9250::Read() {
   spi_clock_ = 20000000;
+  /* Reset the new_mag_data flag */
+  new_mag_data_ = false;
   /* Read the data registers */
   uint8_t data_buff[23];
   if (!ReadRegisters(INT_STATUS_, sizeof(data_buff), data_buff)) {
@@ -347,7 +349,6 @@ bool Mpu9250::Read() {
   /* Check if data is ready */
   new_imu_data_ = (data_buff[0] & RAW_DATA_RDY_INT_);
   if (!new_imu_data_) {
-    new_mag_data_ = false;
     return false;
   }
   /* Unpack the buffer */

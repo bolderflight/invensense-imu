@@ -1,5 +1,8 @@
 # Changelog
 
+## v3.1.2
+- Found a better approach to resetting the *new_mag_data* flag.
+
 ## v3.1.1
 - Fixed an issue where the IMU could return false on *Read*, but *new_mag_data* would return true from the last good read.
 
