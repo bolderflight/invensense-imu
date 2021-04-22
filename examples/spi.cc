@@ -61,12 +61,6 @@ int main() {
   /* Serial to display data */
   Serial.begin(115200);
   while(!Serial) {}
-  pinMode(24, OUTPUT);
-  pinMode(25, OUTPUT);
-  pinMode(26, OUTPUT);
-  digitalWriteFast(24, HIGH);
-  digitalWriteFast(25, HIGH);
-  digitalWriteFast(26, HIGH);
   /* Start communicating with MPU-9250 */
   bool status = mpu9250.Begin();
   if (!status) {

@@ -347,6 +347,7 @@ bool Mpu9250::Read() {
   /* Check if data is ready */
   new_imu_data_ = (data_buff[0] & RAW_DATA_RDY_INT_);
   if (!new_imu_data_) {
+    new_mag_data_ = false;
     return false;
   }
   /* Unpack the buffer */

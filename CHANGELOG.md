@@ -1,5 +1,8 @@
 # Changelog
 
+## v3.1.1
+- Fixed an issue where the IMU could return false on *Read*, but *new_mag_data* would return true from the last good read.
+
 ## v3.1.0
 - Added *new_mag_data* getter to indicate whether new magnetometer data has been read
 - Added logic to get the magnetometer status byte in addition to the other magnetometer data to check for whether new data was received
