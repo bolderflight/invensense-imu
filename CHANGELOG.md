@@ -1,5 +1,8 @@
 # Changelog
 
+## v4.0.2
+- Toggle the CS pin during Begin
+
 ## v4.0.1
 - Updated to IMU v2.0.2
 
