@@ -1,5 +1,8 @@
 # Changelog
 
+## v4.0.1
+- Updated to IMU v2.0.2
+
 ## v4.0.0
 - Edited to conform to IMU interface
 
