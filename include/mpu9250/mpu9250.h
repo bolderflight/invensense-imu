@@ -29,11 +29,18 @@
 #include "Eigen/Core"
 #include "Eigen/Dense"
 #include "core/core.h"
+#include "imu/imu.h"
+#include "statistics/statistics.h"
 
 namespace bfs {
 
 class Mpu9250 {
  public:
+  bool Init(const ImuConfig &ref);
+  bool Read(ImuData * const ptr);
+
+ private:
+  /* Sensor and filter settings */
   enum DlpfBandwidth : uint8_t {
     DLPF_BANDWIDTH_184HZ = 0x01,
     DLPF_BANDWIDTH_92HZ = 0x02,
@@ -54,65 +61,49 @@ class Mpu9250 {
     GYRO_RANGE_1000DPS = 0x10,
     GYRO_RANGE_2000DPS = 0x18
   };
-  Mpu9250(TwoWire *bus, uint8_t addr);
-  Mpu9250(SPIClass *bus, uint8_t cs);
-  bool Begin();
-  bool EnableDrdyInt();
-  bool DisableDrdyInt();
-  void ApplyRotation(const Eigen::Matrix3f &c) {rotation_ = c;}
-  inline Eigen::Matrix3f rotation() const {return rotation_;}
-  bool ConfigAccelRange(const AccelRange range);
-  inline AccelRange accel_range() const {return accel_range_;}
-  bool ConfigGyroRange(const GyroRange range);
-  inline GyroRange gyro_range() const {return gyro_range_;}
-  bool ConfigSrd(const uint8_t srd);
-  inline uint8_t srd() const {return srd_;}
-  bool ConfigDlpf(const DlpfBandwidth dlpf);
-  inline DlpfBandwidth dlpf() const {return dlpf_bandwidth_;}
-  void DrdyCallback(uint8_t int_pin, void (*function)());
-  bool Read();
-  inline bool new_mag_data() const {return new_mag_data_;}
-  inline float accel_x_mps2() const {return accel_mps2_(0);}
-  inline float accel_y_mps2() const {return accel_mps2_(1);}
-  inline float accel_z_mps2() const {return accel_mps2_(2);}
-  inline Eigen::Vector3f accel_mps2() const {return accel_mps2_;}
-  inline float gyro_x_radps() const {return gyro_radps_(0);}
-  inline float gyro_y_radps() const {return gyro_radps_(1);}
-  inline float gyro_z_radps() const {return gyro_radps_(2);}
-  inline Eigen::Vector3f gyro_radps() const {return gyro_radps_;}
-  inline float mag_x_ut() const {return mag_ut_(0);}
-  inline float mag_y_ut() const {return mag_ut_(1);}
-  inline float mag_z_ut() const {return mag_ut_(2);}
-  inline Eigen::Vector3f mag_ut() const {return mag_ut_;}
-  inline float die_temperature_c() const {return die_temperature_c_;}
-
- private:
+  /* Communications interface */
   enum Interface {
     SPI,
     I2C
   };
-  /* Communications interface */
   Interface iface_;
   TwoWire *i2c_;
   SPIClass *spi_;
-  uint8_t conn_;
   uint32_t spi_clock_;
   static constexpr uint32_t I2C_CLOCK_ = 400000;
   static constexpr uint8_t SPI_READ_ = 0x80;
   /* Configuration */
-  Eigen::Matrix3f rotation_ = Eigen::Matrix3f::Identity();
-  AccelRange accel_range_;
-  GyroRange gyro_range_;
-  DlpfBandwidth dlpf_bandwidth_;
+  ImuConfig config_;
+  AccelRange accel_range_, requested_accel_range_;
+  GyroRange gyro_range_, requested_gyro_range_;
+  DlpfBandwidth dlpf_bandwidth_, requested_dlpf_;
   uint8_t srd_;
+  uint8_t who_am_i_;
+  uint8_t asa_buff_[3];
   static constexpr uint8_t WHOAMI_MPU9250_ = 0x71;
   static constexpr uint8_t WHOAMI_MPU9255_ = 0x73;
   static constexpr uint8_t WHOAMI_AK8963_ = 0x48;
+  /* Gyro bias removal */
+  elapsedMillis time_ms_;
+  static constexpr int16_t INIT_TIME_MS_ = 2000;
+  bfs::RunningStats<float> gx_, gy_, gz_;
+  Eigen::Vector3f gyro_bias_radps_ = Eigen::Vector3f::Zero();
+  /* Health determination */
+  int16_t imu_health_period_ms_;
+  int16_t mag_health_period_ms_;
+  elapsedMillis imu_health_timer_ms_;
+  elapsedMillis mag_health_timer_ms_;
   /* Data */
+  float accel_scale_, requested_accel_scale_;
+  float gyro_scale_, requested_gyro_scale_;
+  float mag_scale_[3];
+  static constexpr float temp_scale_ = 333.87f;
+  uint8_t mag_data_[8];
+  uint8_t data_buf_[23];
+  int16_t accel_cnts_[3], gyro_cnts_[3], temp_cnts_, mag_cnts_[3];
+  Eigen::Vector3f accel_, gyro_, mag_;
   bool new_imu_data_, new_mag_data_;
   bool mag_sensor_overflow_;
-  float accel_scale_, gyro_scale_, mag_scale_[3];
-  float temp_scale_ = 333.87f;
   Eigen::Vector3f accel_mps2_;
   Eigen::Vector3f gyro_radps_;
   Eigen::Vector3f mag_ut_;
@@ -160,11 +151,23 @@ class Mpu9250 {
   static constexpr uint8_t AK8963_ASA_ = 0x10;
   static constexpr uint8_t AK8963_WHOAMI_ = 0x00;
   static constexpr uint8_t AK8963_HOFL_ = 0x08;
+  /* Utility functions */
+  bool Begin();
+  bool EnableDrdyInt();
+  bool DisableDrdyInt();
+  bool ConfigAccelRange(const AccelRange range);
+  bool ConfigGyroRange(const GyroRange range);
+  bool ConfigSrd(const uint8_t srd);
+  bool ConfigDlpf(const DlpfBandwidth dlpf);
+  bool ReadImu();
   bool WriteRegister(uint8_t reg, uint8_t data);
   bool ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data);
   bool WriteAk8963Register(uint8_t reg, uint8_t data);
   bool ReadAk8963Registers(uint8_t reg, uint8_t count, uint8_t *data);
 };
+
+/* Checking conformance to IMU interface */
+static_assert(Imu<Mpu9250>, "MPU-9250 does not conform to IMU interface");
 
 }  // namespace bfs
 

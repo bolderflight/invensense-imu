@@ -31,25 +31,90 @@
 
 namespace bfs {
 
-Mpu9250::Mpu9250(TwoWire *bus, uint8_t addr) {
-  iface_ = I2C;
-  i2c_ = bus;
-  conn_ = addr;
+bool Mpu9250::Init(const ImuConfig &ref) {
+  /* Copy the config */
+  config_ = ref;
+  /* Determine the interface type */
+  if (std::holds_alternative<TwoWire *>(config_.bus)) {
+    iface_ = I2C;
+    i2c_ = std::get<TwoWire *>(config_.bus);
+  } else if (std::holds_alternative<SPIClass *>(config_.bus)) {
+    iface_ = SPI;
+    spi_ = std::get<SPIClass *>(config_.bus);
+  } else {
+    return false;
+  }
+  /* Setup the IMU */
+  if (!Begin()) {return false;}
+  if (!ConfigAccelRange(Mpu9250::ACCEL_RANGE_16G)) {return false;}
+  if (!ConfigGyroRange(Mpu9250::GYRO_RANGE_2000DPS)) {return false;}
+  switch (config_.frame_rate) {
+    case RATE_200HZ: {
+      if (!ConfigDlpf(Mpu9250::DLPF_BANDWIDTH_92HZ)) {return false;}
+      if (!ConfigSrd(4)) {return false;}
+      /* IMU is healhty at 5x the sampling rate or 25 ms */
+      imu_health_period_ms_ = 25;
+      /* Mag is sampled at 100 Hz, so healthy at 50 ms */
+      mag_health_period_ms_ = 50;
+      break;
+    }
+    case RATE_100HZ: {
+      if (!ConfigDlpf(Mpu9250::DLPF_BANDWIDTH_41HZ)) {return false;}
+      if (!ConfigSrd(9)) {return false;}
+      /* IMU is healhty at 5x the sampling rate or 50 ms */
+      imu_health_period_ms_ = 50;
+      /* Mag is sampled at 100 Hz, so healthy at 50 ms */
+      mag_health_period_ms_ = 50;
+      break;
+    }
+    case RATE_50HZ: {
+      if (!ConfigDlpf(Mpu9250::DLPF_BANDWIDTH_20HZ)) {return false;}
+      if (!ConfigSrd(19)) {return false;}
+      /* IMU is healhty at 5x the sampling rate or 100 ms */
+      imu_health_period_ms_ = 100;
+      /* Mag is sampled at 8 Hz, so healthy at 625 ms */
+      mag_health_period_ms_ = 625;
+      break;
+    }
+  }
+  if (!EnableDrdyInt()) {return false;}
+  /* Estimate gyro bias */
+  time_ms_ = 0;
+  while (time_ms_ < INIT_TIME_MS_) {
+    if (ReadImu()) {
+      gx_.Update(gyro_radps_(0));
+      gy_.Update(gyro_radps_(1));
+      gz_.Update(gyro_radps_(2));
+    }
+  }
+  /* Assign gyro bias */
+  gyro_bias_radps_(0) = -gx_.mean();
+  gyro_bias_radps_(1) = -gy_.mean();
+  gyro_bias_radps_(2) = -gz_.mean();
+  /* Reset timers */
+  imu_health_timer_ms_ = 0;
+  mag_health_timer_ms_ = 0;
+  return true;
 }
-Mpu9250::Mpu9250(SPIClass *bus, uint8_t cs) {
-  iface_ = SPI;
-  spi_ = bus;
-  conn_ = cs;
+bool Mpu9250::Read(ImuData * const ptr) {
+  if (!ptr) {return false;}
+  ptr->new_imu_data = ReadImu();
+  ptr->new_mag_data = new_mag_data_;
+  ptr->imu_healthy = (imu_health_timer_ms_ < imu_health_period_ms_);
+  ptr->mag_healthy = (mag_health_timer_ms_ < mag_health_period_ms_);
+  if (ptr->new_imu_data) {
+    imu_health_timer_ms_ = 0;
+    ptr->accel_mps2 = config_.accel_scale * accel_mps2_ +
+                      config_.accel_bias_mps2;
+    ptr->gyro_radps = gyro_radps_ + gyro_bias_radps_;
+  }
+  if (ptr->new_mag_data) {
+    mag_health_timer_ms_ = 0;
+    ptr->mag_ut = config_.mag_scale * mag_ut_ + config_.mag_bias_ut;
+  }
+  return ptr->new_imu_data;
 }
 bool Mpu9250::Begin() {
-  if (iface_ == I2C) {
-    i2c_->begin();
-    i2c_->setClock(I2C_CLOCK_);
-  } else {
-    pinMode(conn_, OUTPUT);
-    digitalWriteFast(conn_, HIGH);
-    spi_->begin();
-  }
   spi_clock_ = 1000000;
   /* Select clock source to gyro */
   if (!WriteRegister(PWR_MGMNT_1_, CLKSEL_PLL_)) {
@@ -76,11 +141,11 @@ bool Mpu9250::Begin() {
     return false;
   }
   /* Check the WHO AM I byte */
-  uint8_t who_am_i;
-  if (!ReadRegisters(WHOAMI_, sizeof(who_am_i), &who_am_i)) {
+  who_am_i_;
+  if (!ReadRegisters(WHOAMI_, sizeof(who_am_i_), &who_am_i_)) {
     return false;
   }
-  if ((who_am_i != WHOAMI_MPU9250_) && (who_am_i != WHOAMI_MPU9255_)) {
+  if ((who_am_i_ != WHOAMI_MPU9250_) && (who_am_i_ != WHOAMI_MPU9255_)) {
     return false;
   }
   /* Enable I2C master mode */
@@ -92,10 +157,10 @@ bool Mpu9250::Begin() {
     return false;
   }
   /* Check the AK8963 WHOAMI */
-  if (!ReadAk8963Registers(AK8963_WHOAMI_, sizeof(who_am_i), &who_am_i)) {
+  if (!ReadAk8963Registers(AK8963_WHOAMI_, sizeof(who_am_i_), &who_am_i_)) {
     return false;
   }
-  if (who_am_i != WHOAMI_AK8963_) {
+  if (who_am_i_ != WHOAMI_AK8963_) {
     return false;
   }
   /* Get the magnetometer calibration */
@@ -110,15 +175,15 @@ bool Mpu9250::Begin() {
   }
   delay(100);  // long wait between AK8963 mode changes
   /* Read the AK8963 ASA registers and compute magnetometer scale factors */
-  uint8_t asa_buff[3];
-  if (!ReadAk8963Registers(AK8963_ASA_, sizeof(asa_buff), asa_buff)) {
+  asa_buff_[3];
+  if (!ReadAk8963Registers(AK8963_ASA_, sizeof(asa_buff_), asa_buff_)) {
     return false;
   }
-  mag_scale_[0] = ((static_cast<float>(asa_buff[0]) - 128.0f)
+  mag_scale_[0] = ((static_cast<float>(asa_buff_[0]) - 128.0f)
     / 256.0f + 1.0f) * 4912.0f / 32760.0f;
-  mag_scale_[1] = ((static_cast<float>(asa_buff[1]) - 128.0f)
+  mag_scale_[1] = ((static_cast<float>(asa_buff_[1]) - 128.0f)
     / 256.0f + 1.0f) * 4912.0f / 32760.0f;
-  mag_scale_[2] = ((static_cast<float>(asa_buff[2]) - 128.0f)
+  mag_scale_[2] = ((static_cast<float>(asa_buff_[2]) - 128.0f)
     / 256.0f + 1.0f) * 4912.0f / 32760.0f;
   /* Set AK8963 to power down */
   if (!WriteAk8963Register(AK8963_CNTL1_, AK8963_PWR_DOWN_)) {
@@ -169,29 +234,27 @@ bool Mpu9250::DisableDrdyInt() {
   return true;
 }
 bool Mpu9250::ConfigAccelRange(const AccelRange range) {
-  AccelRange requested_range;
-  float requested_scale;
   spi_clock_ = 1000000;
   /* Check input is valid and set requested range and scale */
   switch (range) {
     case ACCEL_RANGE_2G: {
-      requested_range = range;
-      requested_scale = 2.0f / 32767.5f;
+      requested_accel_range_ = range;
+      requested_accel_scale_ = 2.0f / 32767.5f;
       break;
     }
     case ACCEL_RANGE_4G: {
-      requested_range = range;
-      requested_scale = 4.0f / 32767.5f;
+      requested_accel_range_ = range;
+      requested_accel_scale_ = 4.0f / 32767.5f;
       break;
     }
     case ACCEL_RANGE_8G: {
-      requested_range = range;
-      requested_scale = 8.0f / 32767.5f;
+      requested_accel_range_ = range;
+      requested_accel_scale_ = 8.0f / 32767.5f;
       break;
     }
     case ACCEL_RANGE_16G: {
-      requested_range = range;
-      requested_scale = 16.0f / 32767.5f;
+      requested_accel_range_ = range;
+      requested_accel_scale_ = 16.0f / 32767.5f;
       break;
     }
     default: {
@@ -199,38 +262,36 @@ bool Mpu9250::ConfigAccelRange(const AccelRange range) {
     }
   }
   /* Try setting the requested range */
-  if (!WriteRegister(ACCEL_CONFIG_, requested_range)) {
+  if (!WriteRegister(ACCEL_CONFIG_, requested_accel_range_)) {
     return false;
   }
   /* Update stored range and scale */
-  accel_range_ = requested_range;
-  accel_scale_ = requested_scale;
+  accel_range_ = requested_accel_range_;
+  accel_scale_ = requested_accel_scale_;
   return true;
 }
 bool Mpu9250::ConfigGyroRange(const GyroRange range) {
-  GyroRange requested_range;
-  float requested_scale;
   spi_clock_ = 1000000;
   /* Check input is valid and set requested range and scale */
   switch (range) {
     case GYRO_RANGE_250DPS: {
-      requested_range = range;
-      requested_scale = 250.0f / 32767.5f;
+      requested_gyro_range_ = range;
+      requested_gyro_scale_ = 250.0f / 32767.5f;
       break;
     }
     case GYRO_RANGE_500DPS: {
-      requested_range = range;
-      requested_scale = 500.0f / 32767.5f;
+      requested_gyro_range_ = range;
+      requested_gyro_scale_ = 500.0f / 32767.5f;
       break;
     }
     case GYRO_RANGE_1000DPS: {
-      requested_range = range;
-      requested_scale = 1000.0f / 32767.5f;
+      requested_gyro_range_ = range;
+      requested_gyro_scale_ = 1000.0f / 32767.5f;
       break;
     }
     case GYRO_RANGE_2000DPS: {
-      requested_range = range;
-      requested_scale = 2000.0f / 32767.5f;
+      requested_gyro_range_ = range;
+      requested_gyro_scale_ = 2000.0f / 32767.5f;
       break;
     }
     default: {
@@ -238,12 +299,12 @@ bool Mpu9250::ConfigGyroRange(const GyroRange range) {
     }
   }
   /* Try setting the requested range */
-  if (!WriteRegister(GYRO_CONFIG_, requested_range)) {
+  if (!WriteRegister(GYRO_CONFIG_, requested_gyro_range_)) {
     return false;
   }
   /* Update stored range and scale */
-  gyro_range_ = requested_range;
-  gyro_scale_ = requested_scale;
+  gyro_range_ = requested_gyro_range_;
+  gyro_scale_ = requested_gyro_scale_;
   return true;
 }
 bool Mpu9250::ConfigSrd(const uint8_t srd) {
@@ -263,8 +324,7 @@ bool Mpu9250::ConfigSrd(const uint8_t srd) {
     }
     delay(100);  // long wait between AK8963 mode changes
     /* Instruct the MPU9250 to get 8 bytes from the AK8963 at the sample rate */
-    uint8_t mag_data[8];
-    if (!ReadAk8963Registers(AK8963_ST1_, sizeof(mag_data), mag_data)) {
+    if (!ReadAk8963Registers(AK8963_ST1_, sizeof(mag_data_), mag_data_)) {
       return false;
     }
   } else {
@@ -277,8 +337,7 @@ bool Mpu9250::ConfigSrd(const uint8_t srd) {
     }
     delay(100);  // long wait between AK8963 mode changes
     /* Instruct the MPU9250 to get 8 bytes from the AK8963 at the sample rate */
-    uint8_t mag_data[8];
-    if (!ReadAk8963Registers(AK8963_ST1_, sizeof(mag_data), mag_data)) {
+    if (!ReadAk8963Registers(AK8963_ST1_, sizeof(mag_data_), mag_data_)) {
       return false;
     }
   }
@@ -290,32 +349,31 @@ bool Mpu9250::ConfigSrd(const uint8_t srd) {
   return true;
 }
 bool Mpu9250::ConfigDlpf(const DlpfBandwidth dlpf) {
-  DlpfBandwidth requested_dlpf;
   spi_clock_ = 1000000;
   /* Check input is valid and set requested dlpf */
   switch (dlpf) {
     case DLPF_BANDWIDTH_184HZ: {
-      requested_dlpf = dlpf;
+      requested_dlpf_ = dlpf;
       break;
     }
     case DLPF_BANDWIDTH_92HZ: {
-      requested_dlpf = dlpf;
+      requested_dlpf_ = dlpf;
       break;
     }
     case DLPF_BANDWIDTH_41HZ: {
-      requested_dlpf = dlpf;
+      requested_dlpf_ = dlpf;
       break;
     }
     case DLPF_BANDWIDTH_20HZ: {
-      requested_dlpf = dlpf;
+      requested_dlpf_ = dlpf;
       break;
     }
     case DLPF_BANDWIDTH_10HZ: {
-      requested_dlpf = dlpf;
+      requested_dlpf_ = dlpf;
       break;
     }
     case DLPF_BANDWIDTH_5HZ: {
-      requested_dlpf = dlpf;
+      requested_dlpf_ = dlpf;
       break;
     }
     default: {
@@ -323,94 +381,86 @@ bool Mpu9250::ConfigDlpf(const DlpfBandwidth dlpf) {
     }
   }
   /* Try setting the dlpf */
-  if (!WriteRegister(ACCEL_CONFIG2_, requested_dlpf)) {
+  if (!WriteRegister(ACCEL_CONFIG2_, requested_dlpf_)) {
     return false;
   }
-  if (!WriteRegister(CONFIG_, requested_dlpf)) {
+  if (!WriteRegister(CONFIG_, requested_dlpf_)) {
     return false;
   }
   /* Update stored dlpf */
-  dlpf_bandwidth_ = requested_dlpf;
+  dlpf_bandwidth_ = requested_dlpf_;
   return true;
 }
-void Mpu9250::DrdyCallback(uint8_t int_pin, void (*function)()) {
-  pinMode(int_pin, INPUT);
-  attachInterrupt(int_pin, function, RISING);
-}
-bool Mpu9250::Read() {
+bool Mpu9250::ReadImu() {
   spi_clock_ = 20000000;
   /* Reset the new_mag_data flag */
   new_mag_data_ = false;
   /* Read the data registers */
-  uint8_t data_buff[23];
-  if (!ReadRegisters(INT_STATUS_, sizeof(data_buff), data_buff)) {
+  if (!ReadRegisters(INT_STATUS_, sizeof(data_buf_), data_buf_)) {
     return false;
   }
   /* Check if data is ready */
-  new_imu_data_ = (data_buff[0] & RAW_DATA_RDY_INT_);
+  new_imu_data_ = (data_buf_[0] & RAW_DATA_RDY_INT_);
   if (!new_imu_data_) {
     return false;
   }
   /* Unpack the buffer */
-  int16_t accel_counts[3], gyro_counts[3], temp_counts, mag_counts[3];
-  accel_counts[0] = static_cast<int16_t>(data_buff[1])  << 8 | data_buff[2];
-  accel_counts[1] = static_cast<int16_t>(data_buff[3])  << 8 | data_buff[4];
-  accel_counts[2] = static_cast<int16_t>(data_buff[5])  << 8 | data_buff[6];
-  temp_counts =     static_cast<int16_t>(data_buff[7])  << 8 | data_buff[8];
-  gyro_counts[0] =  static_cast<int16_t>(data_buff[9])  << 8 | data_buff[10];
-  gyro_counts[1] =  static_cast<int16_t>(data_buff[11]) << 8 | data_buff[12];
-  gyro_counts[2] =  static_cast<int16_t>(data_buff[13]) << 8 | data_buff[14];
-  new_mag_data_ = (data_buff[15] & AK8963_DATA_RDY_INT_);
-  mag_counts[0] =   static_cast<int16_t>(data_buff[17]) << 8 | data_buff[16];
-  mag_counts[1] =   static_cast<int16_t>(data_buff[19]) << 8 | data_buff[18];
-  mag_counts[2] =   static_cast<int16_t>(data_buff[21]) << 8 | data_buff[20];
+  accel_cnts_[0] = static_cast<int16_t>(data_buf_[1])  << 8 | data_buf_[2];
+  accel_cnts_[1] = static_cast<int16_t>(data_buf_[3])  << 8 | data_buf_[4];
+  accel_cnts_[2] = static_cast<int16_t>(data_buf_[5])  << 8 | data_buf_[6];
+  temp_cnts_ =     static_cast<int16_t>(data_buf_[7])  << 8 | data_buf_[8];
+  gyro_cnts_[0] =  static_cast<int16_t>(data_buf_[9])  << 8 | data_buf_[10];
+  gyro_cnts_[1] =  static_cast<int16_t>(data_buf_[11]) << 8 | data_buf_[12];
+  gyro_cnts_[2] =  static_cast<int16_t>(data_buf_[13]) << 8 | data_buf_[14];
+  new_mag_data_ = (data_buf_[15] & AK8963_DATA_RDY_INT_);
+  mag_cnts_[0] =   static_cast<int16_t>(data_buf_[17]) << 8 | data_buf_[16];
+  mag_cnts_[1] =   static_cast<int16_t>(data_buf_[19]) << 8 | data_buf_[18];
+  mag_cnts_[2] =   static_cast<int16_t>(data_buf_[21]) << 8 | data_buf_[20];
   /* Check for mag overflow */
-  mag_sensor_overflow_ = (data_buff[22] & AK8963_HOFL_);
+  mag_sensor_overflow_ = (data_buf_[22] & AK8963_HOFL_);
   if (mag_sensor_overflow_) {
     new_mag_data_ = false;
   }
   /* Convert to float values and rotate the accel / gyro axis */
-  Eigen::Vector3f accel, gyro, mag;
-  float temp;
-  accel(0) = convacc(static_cast<float>(accel_counts[1]) * accel_scale_,
-             LinAccUnit::G, LinAccUnit::MPS2);
-  accel(2) = convacc(static_cast<float>(accel_counts[2]) * accel_scale_ *
-             -1.0f, LinAccUnit::G, LinAccUnit::MPS2);
-  accel(1) = convacc(static_cast<float>(accel_counts[0]) * accel_scale_,
-             LinAccUnit::G, LinAccUnit::MPS2);
-  die_temperature_c_ = (static_cast<float>(temp_counts) - 21.0f) / temp_scale_
-                     + 21.0f;
-  gyro(1) =  deg2rad(static_cast<float>(gyro_counts[0]) * gyro_scale_);
-  gyro(0) =  deg2rad(static_cast<float>(gyro_counts[1]) * gyro_scale_);
-  gyro(2) =  deg2rad(static_cast<float>(gyro_counts[2]) * gyro_scale_ * -1.0f);
-  mag(0) =   static_cast<float>(mag_counts[0]) * mag_scale_[0];
-  mag(1) =   static_cast<float>(mag_counts[1]) * mag_scale_[1];
-  mag(2) =   static_cast<float>(mag_counts[2]) * mag_scale_[2];
+  accel_(0) = convacc(static_cast<float>(accel_cnts_[1]) * accel_scale_,
+                      LinAccUnit::G, LinAccUnit::MPS2);
+  accel_(2) = convacc(static_cast<float>(accel_cnts_[2]) * accel_scale_ *
+                      -1.0f, LinAccUnit::G, LinAccUnit::MPS2);
+  accel_(1) = convacc(static_cast<float>(accel_cnts_[0]) * accel_scale_,
+                      LinAccUnit::G, LinAccUnit::MPS2);
+  die_temperature_c_ = (static_cast<float>(temp_cnts_) - 21.0f) / temp_scale_
+                        + 21.0f;
+  gyro_(1) =  deg2rad(static_cast<float>(gyro_cnts_[0]) * gyro_scale_);
+  gyro_(0) =  deg2rad(static_cast<float>(gyro_cnts_[1]) * gyro_scale_);
+  gyro_(2) =  deg2rad(static_cast<float>(gyro_cnts_[2]) * gyro_scale_ * -1.0f);
+  mag_(0) =   static_cast<float>(mag_cnts_[0]) * mag_scale_[0];
+  mag_(1) =   static_cast<float>(mag_cnts_[1]) * mag_scale_[1];
+  mag_(2) =   static_cast<float>(mag_cnts_[2]) * mag_scale_[2];
   /* Apply rotation */
-  accel_mps2_ = rotation_ * accel;
-  gyro_radps_ = rotation_ * gyro;
+  accel_mps2_ = config_.rotation * accel_;
+  gyro_radps_ = config_.rotation * gyro_;
   /* Only update on new data */
   if (new_mag_data_) {
-    mag_ut_ = rotation_ * mag;
+    mag_ut_ = config_.rotation * mag_;
   }
   return true;
 }
 bool Mpu9250::WriteRegister(uint8_t reg, uint8_t data) {
   uint8_t ret_val;
   if (iface_ == I2C) {
-    i2c_->beginTransmission(conn_);
+    i2c_->beginTransmission(config_.dev);
     i2c_->write(reg);
     i2c_->write(data);
     i2c_->endTransmission();
   } else {
     spi_->beginTransaction(SPISettings(spi_clock_, MSBFIRST, SPI_MODE3));
-    digitalWriteFast(conn_, LOW);
+    digitalWriteFast(config_.dev, LOW);
     #if defined(__IMXRT1062__)
       delayNanoseconds(50);
     #endif
     spi_->transfer(reg);
     spi_->transfer(data);
-    digitalWriteFast(conn_, HIGH);
+    digitalWriteFast(config_.dev, HIGH);
     #if defined(__IMXRT1062__)
       delayNanoseconds(50);
     #endif
@@ -426,10 +476,10 @@ bool Mpu9250::WriteRegister(uint8_t reg, uint8_t data) {
 }
 bool Mpu9250::ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data) {
   if (iface_ == I2C) {
-    i2c_->beginTransmission(conn_);
+    i2c_->beginTransmission(config_.dev);
     i2c_->write(reg);
     i2c_->endTransmission(false);
-    uint8_t bytes_rx = i2c_->requestFrom(conn_, count);
+    uint8_t bytes_rx = i2c_->requestFrom(config_.dev, count);
     if (bytes_rx == count) {
       for (std::size_t i = 0; i < count; i++) {
         data[i] = i2c_->read();
@@ -440,13 +490,13 @@ bool Mpu9250::ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data) {
     }
   } else {
     spi_->beginTransaction(SPISettings(spi_clock_, MSBFIRST, SPI_MODE3));
-    digitalWriteFast(conn_, LOW);
+    digitalWriteFast(config_.dev, LOW);
     #if defined(__IMXRT1062__)
       delayNanoseconds(50);
     #endif
     spi_->transfer(reg | SPI_READ_);
     spi_->transfer(data, count);
-    digitalWriteFast(conn_, HIGH);
+    digitalWriteFast(config_.dev, HIGH);
     #if defined(__IMXRT1062__)
       delayNanoseconds(50);
     #endif
