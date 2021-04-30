@@ -115,6 +115,13 @@ bool Mpu9250::Read(ImuData * const ptr) {
   return ptr->new_imu_data;
 }
 bool Mpu9250::Begin() {
+  if (iface_ == SPI) {
+    pinMode(config_.dev, OUTPUT);
+    /* Toggle CS pin to lock in SPI mode */
+    digitalWriteFast(config_.dev, LOW);
+    delay(1);
+    digitalWriteFast(config_.dev, HIGH);
+  }
   spi_clock_ = 1000000;
   /* Select clock source to gyro */
   if (!WriteRegister(PWR_MGMNT_1_, CLKSEL_PLL_)) {
