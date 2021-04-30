@@ -5,7 +5,7 @@ if (DEFINED MCU)
 endif()
 # Project information
 project(Mpu9250
-	VERSION 3.1.2
+	VERSION 4.0.0
 	DESCRIPTION "MPU-9250 sensor driver"
 	LANGUAGES CXX
 )
@@ -17,24 +17,38 @@ if (DEFINED MCU)
 	# Fetch core
 	FetchContent_Declare(
 		core
-		GIT_REPOSITORY 	https://github.com/bolderflight/core.git
-		GIT_TAG v2.0.4
+		GIT_REPOSITORY https://github.com/bolderflight/core.git
+		GIT_TAG v2.0.5
 	)
 	FetchContent_MakeAvailable(core)
 	# Fetch eigen
 	FetchContent_Declare(
 		eigen
-		GIT_REPOSITORY 	https://github.com/bolderflight/eigen.git
+		GIT_REPOSITORY https://github.com/bolderflight/eigen.git
 		GIT_TAG v1.0.0
 	)
 	FetchContent_MakeAvailable(eigen)
-	# Fetch global defs
+	# Fetch units
 	FetchContent_Declare(
 		units
-		GIT_REPOSITORY 	https://github.com/bolderflight/units.git
-		GIT_TAG v3.1.0
+		GIT_REPOSITORY https://github.com/bolderflight/units.git
+		GIT_TAG v3.2.0
 	)
 	FetchContent_MakeAvailable(units)
+	# Fetch imu
+	FetchContent_Declare(
+		imu
+		GIT_REPOSITORY https://github.com/bolderflight/imu.git
+		GIT_TAG v2.0.1
+	)
+	FetchContent_MakeAvailable(imu)
+	# Fetch statistics
+	FetchContent_Declare(
+		statistics
+		GIT_REPOSITORY https://github.com/bolderflight/statistics.git
+		GIT_TAG v3.0.1
+	)
+	FetchContent_MakeAvailable(statistics)
 	# Add the library target
 	add_library(mpu9250
 		src/mpu9250/mpu9250.cc
@@ -46,6 +60,8 @@ if (DEFINED MCU)
 			core
 			eigen
 			units
+			imu
+			statistics
 	)
 	# Setup include directories 
 	target_include_directories(mpu9250 PUBLIC 

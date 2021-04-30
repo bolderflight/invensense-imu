@@ -25,34 +25,41 @@
 
 #include "mpu9250/mpu9250.h"
 
-/* Mpu9250 object using SPI */
-bfs::Mpu9250 mpu9250(&SPI, 24);
+/* Mpu9250 object */
+bfs::Mpu9250 imu;
+
+/* IMU data */
+bfs::ImuData data;
+
 /* Data acquisition ISR */
 void imu_isr() {
   /* Check if data read */
-  if (mpu9250.Read()) {
-    /* Print data */
-    Serial.print(mpu9250.new_mag_data());
+  if (imu.Read(&data)) {
+    Serial.print(data.new_imu_data);
     Serial.print("\t");
-    Serial.print(mpu9250.accel_x_mps2());
+    Serial.print(data.new_mag_data);
     Serial.print("\t");
-    Serial.print(mpu9250.accel_y_mps2());
+    Serial.print(data.imu_healthy);
     Serial.print("\t");
-    Serial.print(mpu9250.accel_z_mps2());
+    Serial.print(data.mag_healthy);
     Serial.print("\t");
-    Serial.print(mpu9250.gyro_x_radps());
+    Serial.print(data.accel_mps2(0));
     Serial.print("\t");
-    Serial.print(mpu9250.gyro_y_radps());
+    Serial.print(data.accel_mps2(1));
     Serial.print("\t");
-    Serial.print(mpu9250.gyro_z_radps());
+    Serial.print(data.accel_mps2(2));
     Serial.print("\t");
-    Serial.print(mpu9250.mag_x_ut());
+    Serial.print(data.gyro_radps(0));
     Serial.print("\t");
-    Serial.print(mpu9250.mag_y_ut());
+    Serial.print(data.gyro_radps(1));
     Serial.print("\t");
-    Serial.print(mpu9250.mag_z_ut());
+    Serial.print(data.gyro_radps(2));
     Serial.print("\t");
-    Serial.print(mpu9250.die_temperature_c());
+    Serial.print(data.mag_ut(0));
+    Serial.print("\t");
+    Serial.print(data.mag_ut(1));
+    Serial.print("\t");
+    Serial.print(data.mag_ut(2));
     Serial.print("\n");
   }
 }
@@ -61,26 +68,24 @@ int main() {
   /* Serial to display data */
   Serial.begin(115200);
   while(!Serial) {}
-  /* Start communicating with MPU-9250 */
-  bool status = mpu9250.Begin();
-  if (!status) {
-    Serial.println("ERROR: unable to communicate with MPU-9250");
+  /* Config */
+  bfs::ImuConfig config = {
+    .bus = &SPI,
+    .dev = 24,
+    .frame_rate = bfs::RATE_50HZ,
+    .accel_bias_mps2 = Eigen::Vector3f::Zero(),
+    .mag_bias_ut = Eigen::Vector3f::Zero(),
+    .accel_scale = Eigen::Matrix3f::Identity(),
+    .mag_scale = Eigen::Matrix3f::Identity(),
+    .rotation = Eigen::Matrix3f::Identity()
+  };
+  /* Init the bus */
+  SPI.begin();
+  /* Initialize and configure IMU */
+  if (!imu.Init(config)) {
+    Serial.println("Error initializing communication with IMU");
     while(1) {}
   }
-  /* Set sample rate divider for 50 Hz */
-  status = mpu9250.ConfigSrd(9);
-  if (!status) {
-    Serial.println("ERROR: unable to setup sample rate divider");
-    while(1) {}
-  }
-  /* Enable the data ready interrupt */
-  status = mpu9250.EnableDrdyInt();
-  if (!status) {
-    Serial.println("ERROR: unable to set data ready interrupt");
-    while(1) {}
-  }
-  /* Setup callback for data ready interrupt */
-  mpu9250.DrdyCallback(27, imu_isr);
-  while (1) {}
+  /* Attach data ready interrupt */
+  attachInterrupt(27, imu_isr, RISING);
 }
-

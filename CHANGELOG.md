@@ -1,5 +1,8 @@
 # Changelog
 
+## v4.0.0
+- Edited to conform to IMU interface
+
 ## v3.1.2
 - Found a better approach to resetting the *new_mag_data* flag.
 
