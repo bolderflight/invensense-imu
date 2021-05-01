@@ -1,5 +1,8 @@
 # Changelog
 
+## v4.0.3
+- Updated to imu v2.0.3 and eigen v2.0.0
+
 ## v4.0.2
 - Toggle the CS pin during Begin
 
