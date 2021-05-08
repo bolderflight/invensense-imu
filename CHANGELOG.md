@@ -1,5 +1,8 @@
 # Changelog
 
+## v4.1.0
+- Updated to imu v2.1.0
+
 ## v4.0.3
 - Updated to imu v2.0.3 and eigen v2.0.0
 

@@ -62,6 +62,8 @@ void imu_isr() {
     Serial.print(data.mag_ut(1));
     Serial.print("\t");
     Serial.print(data.mag_ut(2));
+    Serial.print("\t");
+    Serial.print(data.die_temp_c);
     Serial.print("\n");
   }
 }
@@ -72,9 +74,9 @@ int main() {
   while(!Serial) {}
   /* Config */
   bfs::ImuConfig config = {
-    .bus = &Wire,
+    .frame_rate = bfs::FRAME_RATE_50HZ,
     .dev = 0x68,
-    .frame_rate = bfs::RATE_50HZ,
+    .bus = &Wire,
     .accel_bias_mps2 = Eigen::Vector3f::Zero(),
     .mag_bias_ut = Eigen::Vector3f::Zero(),
     .accel_scale = Eigen::Matrix3f::Identity(),

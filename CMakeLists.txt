@@ -5,7 +5,7 @@ if (DEFINED MCU)
 endif()
 # Project information
 project(Mpu9250
-	VERSION 4.0.3
+	VERSION 4.1.0
 	DESCRIPTION "MPU-9250 sensor driver"
 	LANGUAGES CXX
 )
@@ -39,7 +39,7 @@ if (DEFINED MCU)
 	FetchContent_Declare(
 		imu
 		GIT_REPOSITORY https://github.com/bolderflight/imu.git
-		GIT_TAG v2.0.3
+		GIT_TAG v2.1.0
 	)
 	FetchContent_MakeAvailable(imu)
 	# Fetch statistics
