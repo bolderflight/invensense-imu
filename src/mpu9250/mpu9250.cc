@@ -49,7 +49,7 @@ bool Mpu9250::Init(const ImuConfig &ref) {
   if (!ConfigAccelRange(Mpu9250::ACCEL_RANGE_16G)) {return false;}
   if (!ConfigGyroRange(Mpu9250::GYRO_RANGE_2000DPS)) {return false;}
   switch (config_.frame_rate) {
-    case RATE_200HZ: {
+    case FRAME_RATE_200HZ: {
       if (!ConfigDlpf(Mpu9250::DLPF_BANDWIDTH_92HZ)) {return false;}
       if (!ConfigSrd(4)) {return false;}
       /* IMU is healhty at 5x the sampling rate or 25 ms */
@@ -58,7 +58,7 @@ bool Mpu9250::Init(const ImuConfig &ref) {
       mag_health_period_ms_ = 50;
       break;
     }
-    case RATE_100HZ: {
+    case FRAME_RATE_100HZ: {
       if (!ConfigDlpf(Mpu9250::DLPF_BANDWIDTH_41HZ)) {return false;}
       if (!ConfigSrd(9)) {return false;}
       /* IMU is healhty at 5x the sampling rate or 50 ms */
@@ -67,7 +67,7 @@ bool Mpu9250::Init(const ImuConfig &ref) {
       mag_health_period_ms_ = 50;
       break;
     }
-    case RATE_50HZ: {
+    case FRAME_RATE_50HZ: {
       if (!ConfigDlpf(Mpu9250::DLPF_BANDWIDTH_20HZ)) {return false;}
       if (!ConfigSrd(19)) {return false;}
       /* IMU is healhty at 5x the sampling rate or 100 ms */
@@ -107,6 +107,7 @@ bool Mpu9250::Read(ImuData * const ptr) {
     ptr->accel_mps2 = config_.accel_scale * accel_mps2_ +
                       config_.accel_bias_mps2;
     ptr->gyro_radps = gyro_radps_ + gyro_bias_radps_;
+    ptr->die_temp_c = die_temperature_c_;
   }
   if (ptr->new_mag_data) {
     mag_health_timer_ms_ = 0;
