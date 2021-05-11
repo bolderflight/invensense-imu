@@ -1,5 +1,8 @@
 # Changelog
 
+## v4.2.0
+- Updated to imu v2.2.0
+
 ## v4.1.0
 - Updated to imu v2.1.0
 

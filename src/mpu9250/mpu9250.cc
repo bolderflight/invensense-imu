@@ -91,6 +91,42 @@ bool Mpu9250::Init(const ImuConfig &ref) {
   gyro_bias_radps_(0) = -gx_.mean();
   gyro_bias_radps_(1) = -gy_.mean();
   gyro_bias_radps_(2) = -gz_.mean();
+  /* Accel bias and scale factor */
+  accel_bias_mps2_(0) = config_.accel_bias_mps2[0];
+  accel_bias_mps2_(1) = config_.accel_bias_mps2[1];
+  accel_bias_mps2_(2) = config_.accel_bias_mps2[2];
+  accel_scale_factor_(0, 0) = config_.accel_scale[0][0];
+  accel_scale_factor_(0, 1) = config_.accel_scale[0][1];
+  accel_scale_factor_(0, 2) = config_.accel_scale[0][2];
+  accel_scale_factor_(1, 0) = config_.accel_scale[1][0];
+  accel_scale_factor_(1, 1) = config_.accel_scale[1][1];
+  accel_scale_factor_(1, 2) = config_.accel_scale[1][2];
+  accel_scale_factor_(2, 0) = config_.accel_scale[2][0];
+  accel_scale_factor_(2, 1) = config_.accel_scale[2][1];
+  accel_scale_factor_(2, 2) = config_.accel_scale[2][2];
+  /* Mag bias and scale factor */
+  mag_bias_ut_(0) = config_.mag_bias_ut[0];
+  mag_bias_ut_(1) = config_.mag_bias_ut[1];
+  mag_bias_ut_(2) = config_.mag_bias_ut[2];
+  mag_scale_factor_(0, 0) = config_.mag_scale[0][0];
+  mag_scale_factor_(0, 1) = config_.mag_scale[0][1];
+  mag_scale_factor_(0, 2) = config_.mag_scale[0][2];
+  mag_scale_factor_(1, 0) = config_.mag_scale[1][0];
+  mag_scale_factor_(1, 1) = config_.mag_scale[1][1];
+  mag_scale_factor_(1, 2) = config_.mag_scale[1][2];
+  mag_scale_factor_(2, 0) = config_.mag_scale[2][0];
+  mag_scale_factor_(2, 1) = config_.mag_scale[2][1];
+  mag_scale_factor_(2, 2) = config_.mag_scale[2][2];
+  /* Rotation */
+  rotation_(0, 0) = config_.rotation[0][0];
+  rotation_(0, 1) = config_.rotation[0][1];
+  rotation_(0, 2) = config_.rotation[0][2];
+  rotation_(1, 0) = config_.rotation[1][0];
+  rotation_(1, 1) = config_.rotation[1][1];
+  rotation_(1, 2) = config_.rotation[1][2];
+  rotation_(2, 0) = config_.rotation[2][0];
+  rotation_(2, 1) = config_.rotation[2][1];
+  rotation_(2, 2) = config_.rotation[2][2];
   /* Reset timers */
   imu_health_timer_ms_ = 0;
   mag_health_timer_ms_ = 0;
@@ -104,14 +140,19 @@ bool Mpu9250::Read(ImuData * const ptr) {
   ptr->mag_healthy = (mag_health_timer_ms_ < mag_health_period_ms_);
   if (ptr->new_imu_data) {
     imu_health_timer_ms_ = 0;
-    ptr->accel_mps2 = config_.accel_scale * accel_mps2_ +
-                      config_.accel_bias_mps2;
-    ptr->gyro_radps = gyro_radps_ + gyro_bias_radps_;
+    ptr->accel_mps2[0] = accel_mps2_(0);
+    ptr->accel_mps2[1] = accel_mps2_(1);
+    ptr->accel_mps2[2] = accel_mps2_(2);
+    ptr->gyro_radps[0] = gyro_radps_(0);
+    ptr->gyro_radps[1] = gyro_radps_(1);
+    ptr->gyro_radps[2] = gyro_radps_(2);
     ptr->die_temp_c = die_temperature_c_;
   }
   if (ptr->new_mag_data) {
     mag_health_timer_ms_ = 0;
-    ptr->mag_ut = config_.mag_scale * mag_ut_ + config_.mag_bias_ut;
+    ptr->mag_ut[0] = mag_ut_(0);
+    ptr->mag_ut[1] = mag_ut_(1);
+    ptr->mag_ut[2] = mag_ut_(2);
   }
   return ptr->new_imu_data;
 }
@@ -445,11 +486,11 @@ bool Mpu9250::ReadImu() {
   mag_(1) =   static_cast<float>(mag_cnts_[1]) * mag_scale_[1];
   mag_(2) =   static_cast<float>(mag_cnts_[2]) * mag_scale_[2];
   /* Apply rotation */
-  accel_mps2_ = config_.rotation * accel_;
-  gyro_radps_ = config_.rotation * gyro_;
+  accel_mps2_ = accel_scale_factor_ * rotation_ * accel_ + accel_bias_mps2_;
+  gyro_radps_ = rotation_ * gyro_ + gyro_bias_radps_;
   /* Only update on new data */
   if (new_mag_data_) {
-    mag_ut_ = config_.rotation * mag_;
+    mag_ut_ = mag_scale_factor_ * rotation_ * mag_ + mag_bias_ut_;
   }
   return true;
 }

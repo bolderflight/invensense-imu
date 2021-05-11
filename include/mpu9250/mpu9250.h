@@ -41,7 +41,7 @@ class Mpu9250 {
 
  private:
   /* Sensor and filter settings */
-  enum DlpfBandwidth : uint8_t {
+  enum DlpfBandwidth : int8_t {
     DLPF_BANDWIDTH_184HZ = 0x01,
     DLPF_BANDWIDTH_92HZ = 0x02,
     DLPF_BANDWIDTH_41HZ = 0x03,
@@ -49,34 +49,37 @@ class Mpu9250 {
     DLPF_BANDWIDTH_10HZ = 0x05,
     DLPF_BANDWIDTH_5HZ = 0x06
   };
-  enum AccelRange : uint8_t {
+  enum AccelRange : int8_t {
     ACCEL_RANGE_2G = 0x00,
     ACCEL_RANGE_4G = 0x08,
     ACCEL_RANGE_8G = 0x10,
     ACCEL_RANGE_16G = 0x18
   };
-  enum GyroRange : uint8_t {
+  enum GyroRange : int8_t {
     GYRO_RANGE_250DPS = 0x00,
     GYRO_RANGE_500DPS = 0x08,
     GYRO_RANGE_1000DPS = 0x10,
     GYRO_RANGE_2000DPS = 0x18
   };
   /* Communications interface */
-  enum Interface {
+  enum Interface : int8_t {
     SPI,
     I2C
   };
   Interface iface_;
   TwoWire *i2c_;
   SPIClass *spi_;
-  uint32_t spi_clock_;
-  static constexpr uint32_t I2C_CLOCK_ = 400000;
+  int32_t spi_clock_;
   static constexpr uint8_t SPI_READ_ = 0x80;
   /* Configuration */
   ImuConfig config_;
   AccelRange accel_range_, requested_accel_range_;
   GyroRange gyro_range_, requested_gyro_range_;
+  float accel_scale_, requested_accel_scale_;
+  float gyro_scale_, requested_gyro_scale_;
   DlpfBandwidth dlpf_bandwidth_, requested_dlpf_;
+  float mag_scale_[3];
+  static constexpr float temp_scale_ = 333.87f;
   uint8_t srd_;
   uint8_t who_am_i_;
   uint8_t asa_buff_[3];
@@ -88,25 +91,27 @@ class Mpu9250 {
   static constexpr int16_t INIT_TIME_MS_ = 2000;
   bfs::RunningStats<float> gx_, gy_, gz_;
   Eigen::Vector3f gyro_bias_radps_ = Eigen::Vector3f::Zero();
+  /* Accel bias and scale factor */
+  Eigen::Vector3f accel_bias_mps2_;
+  Eigen::Matrix3f accel_scale_factor_;
+  /* Mag bias and scale factor */
+  Eigen::Vector3f mag_bias_ut_;
+  /* Rotation */
+  Eigen::Matrix3f rotation_;
+  Eigen::Matrix3f mag_scale_factor_;
   /* Health determination */
   int16_t imu_health_period_ms_;
   int16_t mag_health_period_ms_;
   elapsedMillis imu_health_timer_ms_;
   elapsedMillis mag_health_timer_ms_;
   /* Data */
-  float accel_scale_, requested_accel_scale_;
-  float gyro_scale_, requested_gyro_scale_;
-  float mag_scale_[3];
-  static constexpr float temp_scale_ = 333.87f;
   uint8_t mag_data_[8];
   uint8_t data_buf_[23];
   int16_t accel_cnts_[3], gyro_cnts_[3], temp_cnts_, mag_cnts_[3];
-  Eigen::Vector3f accel_, gyro_, mag_;
   bool new_imu_data_, new_mag_data_;
   bool mag_sensor_overflow_;
-  Eigen::Vector3f accel_mps2_;
-  Eigen::Vector3f gyro_radps_;
-  Eigen::Vector3f mag_ut_;
+  Eigen::Vector3f accel_, gyro_, mag_;
+  Eigen::Vector3f accel_mps2_, gyro_radps_, mag_ut_;
   float die_temperature_c_;
   /* Registers */
   static constexpr uint8_t PWR_MGMNT_1_ = 0x6B;
