@@ -111,7 +111,7 @@ class Mpu9250 {
   bool new_imu_data_, new_mag_data_;
   bool mag_sensor_overflow_;
   Eigen::Vector3f accel_, gyro_, mag_;
-  Eigen::Vector3f accel_mps2_, gyro_radps_, mag_ut_; 
+  Eigen::Vector3f accel_mps2_, gyro_radps_, mag_ut_;
   float die_temperature_c_;
   /* Registers */
   static constexpr uint8_t PWR_MGMNT_1_ = 0x6B;
