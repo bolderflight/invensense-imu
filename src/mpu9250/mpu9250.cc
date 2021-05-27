@@ -45,7 +45,14 @@ bool Mpu9250::Init(const ImuConfig &ref) {
     return false;
   }
   /* Setup the IMU */
-  if (!Begin()) {return false;}
+  bool init = false;
+  std::size_t tries = 0;
+  while (!init && tries < MAX_TRIES_) {
+    delay(100);
+    init = Begin();
+    tries++;
+  }
+  if (!init) {return false;}
   if (!ConfigAccelRange(Mpu9250::ACCEL_RANGE_16G)) {return false;}
   if (!ConfigGyroRange(Mpu9250::GYRO_RANGE_2000DPS)) {return false;}
   switch (config_.frame_rate) {
@@ -157,13 +164,13 @@ bool Mpu9250::Read(ImuData * const ptr) {
   return ptr->new_imu_data;
 }
 bool Mpu9250::Begin() {
-  if (iface_ == SPI) {
-    pinMode(config_.dev, OUTPUT);
-    /* Toggle CS pin to lock in SPI mode */
-    digitalWriteFast(config_.dev, LOW);
-    delay(1);
-    digitalWriteFast(config_.dev, HIGH);
-  }
+  // if (iface_ == SPI) {
+  //   pinMode(config_.dev, OUTPUT);
+  //   /* Toggle CS pin to lock in SPI mode */
+  //   digitalWriteFast(config_.dev, LOW);
+  //   delay(1);
+  //   digitalWriteFast(config_.dev, HIGH);
+  // }
   spi_clock_ = 1000000;
   /* Select clock source to gyro */
   if (!WriteRegister(PWR_MGMNT_1_, CLKSEL_PLL_)) {

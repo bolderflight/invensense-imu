@@ -70,6 +70,7 @@ class Mpu9250 {
   TwoWire *i2c_;
   SPIClass *spi_;
   int32_t spi_clock_;
+  std::size_t MAX_TRIES_ = 10;
   static constexpr uint8_t SPI_READ_ = 0x80;
   /* Configuration */
   ImuConfig config_;
