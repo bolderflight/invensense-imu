@@ -1,6 +1,7 @@
 # Changelog
 
 ## v4.2.1
+- Updated for Teensy 4.1
 
 ## v4.2.0
 - Updated to imu v2.2.0
