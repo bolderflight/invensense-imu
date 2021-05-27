@@ -319,7 +319,7 @@ macro (configMcu MCU)
   elseif (MCU STREQUAL "IMXRT1062_T41")
     message("Configuring IMXRT1062 T4.1 build.")
     # Setup def for the loader
-    set(MCU_LOAD imxrt1062)
+    set(MCU_LOAD TEENSY41)
     # Definitions
     add_definitions(
       -D__MCU__
@@ -328,7 +328,7 @@ macro (configMcu MCU)
       -DUSB_SERIAL
       -DTEENSYDUINO=153
       -DARDUINO=10810
-      -DARDUINO_TEENSY40
+      -DARDUINO_TEENSY41
     )
     # Compile options
     add_compile_options(
