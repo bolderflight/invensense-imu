@@ -23,45 +23,38 @@
 * IN THE SOFTWARE.
 */
 
-#include "mpu9250/mpu9250.h"
+#include "mpu9250.h"
 
-/* Mpu9250 object */
-bfs::Mpu9250 imu;
-
-/* IMU data */
-bfs::ImuData data;
+/* Mpu9250 object, I2C bus,  0x68 address */
+bfs::Mpu9250 imu(&Wire, 0x68);
 
 /* Data acquisition ISR */
 void imu_isr() {
   /* Check if data read */
-  if (imu.Read(&data)) {
-    Serial.print(data.new_imu_data);
+  if (imu.Read()) {
+    Serial.print(imu.new_imu_data());
     Serial.print("\t");
-    Serial.print(data.new_mag_data);
+    Serial.print(imu.new_mag_data());
     Serial.print("\t");
-    Serial.print(data.imu_healthy);
+    Serial.print(imu.accel_x_mps2());
     Serial.print("\t");
-    Serial.print(data.mag_healthy);
+    Serial.print(imu.accel_y_mps2());
     Serial.print("\t");
-    Serial.print(data.accel_mps2[0]);
+    Serial.print(imu.accel_z_mps2());
     Serial.print("\t");
-    Serial.print(data.accel_mps2[1]);
+    Serial.print(imu.gyro_x_radps());
     Serial.print("\t");
-    Serial.print(data.accel_mps2[2]);
+    Serial.print(imu.gyro_y_radps());
     Serial.print("\t");
-    Serial.print(data.gyro_radps[0]);
+    Serial.print(imu.gyro_z_radps());
     Serial.print("\t");
-    Serial.print(data.gyro_radps[1]);
+    Serial.print(imu.mag_x_ut());
     Serial.print("\t");
-    Serial.print(data.gyro_radps[2]);
+    Serial.print(imu.mag_y_ut());
     Serial.print("\t");
-    Serial.print(data.mag_ut[0]);
+    Serial.print(imu.mag_z_ut());
     Serial.print("\t");
-    Serial.print(data.mag_ut[1]);
-    Serial.print("\t");
-    Serial.print(data.mag_ut[2]);
-    Serial.print("\t");
-    Serial.print(data.die_temp_c);
+    Serial.print(imu.die_temp_c());
     Serial.print("\n");
   }
 }
@@ -70,30 +63,24 @@ int main() {
   /* Serial to display data */
   Serial.begin(115200);
   while(!Serial) {}
-  /* Config */
-  bfs::ImuConfig config = {
-    .dev = 24,
-    .frame_rate = bfs::FRAME_RATE_50HZ,
-    .bus = &SPI,
-    .accel_bias_mps2 = {0, 0, 0},
-    .mag_bias_ut = {0, 0, 0},
-    .accel_scale = {{1, 0, 0},
-                    {0, 1, 0},
-                    {0, 0, 1}},
-    .mag_scale = {{1, 0, 0},
-                  {0, 1, 0},
-                  {0, 0, 1}},
-    .rotation = {{1, 0, 0},
-                 {0, 1, 0},
-                 {0, 0, 1}}
-  };
-  /* Init the bus */
-  SPI.begin();
+  /* Start the I2C bus */
+  Wire.begin();
+  Wire.setClock(400000);
   /* Initialize and configure IMU */
-  if (!imu.Init(config)) {
+  if (!imu.Begin()) {
     Serial.println("Error initializing communication with IMU");
     while(1) {}
   }
-  /* Attach data ready interrupt */
-  attachInterrupt(27, imu_isr, RISING);
+  /* Set the sample rate divider */
+  if (!imu.ConfigSrd(19)) {
+    Serial.println("Error configured SRD");
+    while(1) {}
+  }
+  /* Enabled data ready interrupt */
+  if (!imu.EnableDrdyInt()) {
+    Serial.println("Error enabling data ready interrupt");
+    while(1) {}
+  }
+  /* Attach data ready interrupt to pin 9 */
+  attachInterrupt(9, imu_isr, RISING);
 }

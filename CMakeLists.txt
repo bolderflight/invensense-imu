@@ -5,7 +5,7 @@ if (DEFINED MCU)
 endif()
 # Project information
 project(Mpu9250
-	VERSION 4.2.1
+	VERSION 5.0.0
 	DESCRIPTION "MPU-9250 sensor driver"
 	LANGUAGES CXX
 )
@@ -18,54 +18,22 @@ if (DEFINED MCU)
 	FetchContent_Declare(
 		core
 		GIT_REPOSITORY https://github.com/bolderflight/core.git
-		GIT_TAG v2.0.5
+		GIT_TAG v3.0.0
 	)
 	FetchContent_MakeAvailable(core)
-	# Fetch eigen
-	FetchContent_Declare(
-		eigen
-		GIT_REPOSITORY https://github.com/bolderflight/eigen.git
-		GIT_TAG v2.0.0
-	)
-	FetchContent_MakeAvailable(eigen)
-	# Fetch units
-	FetchContent_Declare(
-		units
-		GIT_REPOSITORY https://github.com/bolderflight/units.git
-		GIT_TAG v3.2.0
-	)
-	FetchContent_MakeAvailable(units)
-	# Fetch imu
-	FetchContent_Declare(
-		imu
-		GIT_REPOSITORY https://github.com/bolderflight/imu.git
-		GIT_TAG v2.2.0
-	)
-	FetchContent_MakeAvailable(imu)
-	# Fetch statistics
-	FetchContent_Declare(
-		statistics
-		GIT_REPOSITORY https://github.com/bolderflight/statistics.git
-		GIT_TAG v3.0.1
-	)
-	FetchContent_MakeAvailable(statistics)
 	# Add the library target
 	add_library(mpu9250
-		src/mpu9250/mpu9250.cc
-		include/mpu9250/mpu9250.h
+		src/mpu9250.cpp
+		src/mpu9250.h
 	)
 	# Link libraries
 	target_link_libraries(mpu9250
 		PUBLIC
 			core
-			eigen
-			units
-			imu
-			statistics
 	)
 	# Setup include directories 
 	target_include_directories(mpu9250 PUBLIC 
-		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 		$<INSTALL_INTERFACE:include>
 	)
 endif()
@@ -74,7 +42,7 @@ endif()
 if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
 	if (DEFINED MCU)		
 		# Add the spi example target
-		add_executable(spi_example examples/spi.cc)
+		add_executable(spi_example examples/cmake/spi.cc)
 		# Add the includes
 		target_include_directories(spi_example PUBLIC 
 			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -89,9 +57,9 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
 		include(${CMAKE_SOURCE_DIR}/cmake/flash_mcu.cmake)
 		FlashMcu(spi_example ${MCU})
 		# Add the i2c example target
-		add_executable(i2c_example examples/i2c.cc)
+		add_executable(i2c_example examples/cmake/i2c.cc)
 		# Add the includes
-		target_include_directories(spi_example PUBLIC 
+		target_include_directories(i2c_example PUBLIC 
 			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 			$<INSTALL_INTERFACE:include>
 		)

@@ -13,13 +13,12 @@ macro (configMcu MCU)
       -D__MK20DX128__
       -DF_CPU=48000000 
       -DUSB_SERIAL
-      -DTEENSYDUINO=141  
-      -DARDUINO=10805
+      -DTEENSYDUINO=153
     )
     # Compile options
     add_compile_options(
       $<$<COMPILE_LANGUAGE:C>:-std=c11>
-      $<$<COMPILE_LANGUAGE:CXX>:-std=c++20>
+      $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>
       $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
       $<$<COMPILE_LANGUAGE:CXX>:-felide-constructors>
       $<$<COMPILE_LANGUAGE:CXX>:-Wno-error=narrowing>
@@ -63,13 +62,12 @@ macro (configMcu MCU)
       -D__MK20DX256__
       -DF_CPU=72000000 
       -DUSB_SERIAL
-      -DTEENSYDUINO=141  
-      -DARDUINO=10805
+      -DTEENSYDUINO=153
     )
     # Compile options
     add_compile_options(
       $<$<COMPILE_LANGUAGE:C>:-std=c11>
-      $<$<COMPILE_LANGUAGE:CXX>:-std=c++20>
+      $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>
       $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
       $<$<COMPILE_LANGUAGE:CXX>:-felide-constructors>
       $<$<COMPILE_LANGUAGE:CXX>:-Wno-error=narrowing>
@@ -113,13 +111,12 @@ macro (configMcu MCU)
       -D__MK64FX512__
       -DF_CPU=120000000 
       -DUSB_SERIAL
-      -DTEENSYDUINO=141  
-      -DARDUINO=10805
+      -DTEENSYDUINO=153
     )
     # Compile options
     add_compile_options(
       $<$<COMPILE_LANGUAGE:C>:-std=c11>
-      $<$<COMPILE_LANGUAGE:CXX>:-std=c++20>
+      $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>
       $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
       $<$<COMPILE_LANGUAGE:CXX>:-felide-constructors>
       $<$<COMPILE_LANGUAGE:CXX>:-Wno-error=narrowing>
@@ -167,13 +164,12 @@ macro (configMcu MCU)
       -D__MK66FX1M0__
       -DF_CPU=180000000 
       -DUSB_SERIAL
-      -DTEENSYDUINO=141  
-      -DARDUINO=10805
+      -DTEENSYDUINO=153
     )
     # Compile options
     add_compile_options(
       $<$<COMPILE_LANGUAGE:C>:-std=c11>
-      $<$<COMPILE_LANGUAGE:CXX>:-std=c++20>
+      $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>
       $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
       $<$<COMPILE_LANGUAGE:CXX>:-felide-constructors>
       $<$<COMPILE_LANGUAGE:CXX>:-Wno-error=narrowing>
@@ -221,13 +217,12 @@ macro (configMcu MCU)
       -D__MKL26Z64__
       -DF_CPU=48000000 
       -DUSB_SERIAL
-      -DTEENSYDUINO=141  
-      -DARDUINO=10805
+      -DTEENSYDUINO=153
     )
     # Compile options
     add_compile_options(
       $<$<COMPILE_LANGUAGE:C>:-std=c11>
-      $<$<COMPILE_LANGUAGE:CXX>:-std=c++20>
+      $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>
       $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
       $<$<COMPILE_LANGUAGE:CXX>:-felide-constructors>
       $<$<COMPILE_LANGUAGE:CXX>:-Wno-error=narrowing>
@@ -272,13 +267,12 @@ macro (configMcu MCU)
       -DF_CPU=528000000 
       -DUSB_SERIAL
       -DTEENSYDUINO=153
-      -DARDUINO=10810
       -DARDUINO_TEENSY40
     )
     # Compile options
     add_compile_options(
       $<$<COMPILE_LANGUAGE:C>:-std=gnu11>
-      $<$<COMPILE_LANGUAGE:CXX>:-std=c++20>
+      $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>
       $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
       $<$<COMPILE_LANGUAGE:CXX>:-felide-constructors>
       $<$<COMPILE_LANGUAGE:CXX>:-Wno-error=narrowing>
@@ -319,7 +313,7 @@ macro (configMcu MCU)
   elseif (MCU STREQUAL "IMXRT1062_T41")
     message("Configuring IMXRT1062 T4.1 build.")
     # Setup def for the loader
-    set(MCU_LOAD TEENSY41)
+    set(MCU_LOAD imxrt1062)
     # Definitions
     add_definitions(
       -D__MCU__
@@ -327,13 +321,12 @@ macro (configMcu MCU)
       -DF_CPU=528000000 
       -DUSB_SERIAL
       -DTEENSYDUINO=153
-      -DARDUINO=10810
       -DARDUINO_TEENSY41
     )
     # Compile options
     add_compile_options(
       $<$<COMPILE_LANGUAGE:C>:-std=gnu11>
-      $<$<COMPILE_LANGUAGE:CXX>:-std=c++20>
+      $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>
       $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
       $<$<COMPILE_LANGUAGE:CXX>:-felide-constructors>
       $<$<COMPILE_LANGUAGE:CXX>:-Wno-error=narrowing>
