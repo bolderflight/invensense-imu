@@ -273,7 +273,7 @@ if (mpu9250.Read()) {
 ## Sensor Orientation
 This library transforms all data to a common axis system before it is returned. This axis system is shown below. It is a right handed coordinate system with the z-axis positive down, common in aircraft dynamics.
 
-<img src="https://github.com/bolderflight/mpu9250/blob/main/docs/MPU-9250-AXIS.png" alt="Common Axis System" width="250">
+![MPU-9250 Orientation](docs/MPU-9250-AXIS.png)
 
 **Caution!** This axis system is shown relative to the MPU-9250 sensor. The sensor may be rotated relative to the breakout board. 
 
