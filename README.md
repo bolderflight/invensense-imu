@@ -18,7 +18,7 @@ The InvenSense MPU-9250 is a System in Package (SiP) that combines two chips: th
 | +/- 1000 deg/s | +/- 8g  | |
 | +/- 2000 deg/s | +/- 16g | |
 
-The MPU-9250 samples the gyros, accelerometers, and magnetometers with 16 bit analog to digital converters. It also features programmable digital filters, a precision clock, an embedded temperature sensor, and programmable interrupts.
+The MPU-9250 samples the gyros, accelerometers, and magnetometers with 16 bit analog to digital converters. It also features programmable digital filters, a precision clock, an embedded temperature sensor, and programmable interrupts (including wake on motion).
 
 # Installation
 
@@ -29,7 +29,7 @@ Use the Arduino Library Manager to install this library or clone to your Arduino
 #include "mpu9250.h"
 ```
 
-Example Arduino executables, using I2C and SPI communication, are located at *examples/arduino/i2c_example/i2c_example.ino* and *examples/arduino/spi_example/spi_example.ino. Teensy 3.x, 4.x, and LC devices are used for testing under Arduino and this library should be compatible with other Arduino devices.
+Example Arduino executables are located in: *examples/arduino/*, see the Examples list for a complete listing and description. Teensy 3.x, 4.x, and LC devices are used for testing under Arduino and this library should be compatible with other Arduino devices.
 
 ## CMake
 CMake is used to build this library, which is exported as a library target called *mpu9250*. The header is added as:
@@ -45,7 +45,7 @@ cmake .. -DMCU=MK66FX1M0
 make
 ```
 
-This will build the library and example executables called *i2c_example* and *spi_example*. The example executable source files are located at *examples/cmake/i2c.cc* and *examples/cmake/spi.cc*. Notice that the *cmake* command includes a define specifying the microcontroller the code is being compiled for. This is required to correctly configure the code, CPU frequency, and compile/linker options. The available MCUs are:
+This will build the library and example executables called *i2c_example*, *spi_example*, *drdy_spi_example*, and *wom_example*. The example executable source files are located at *examples/cmake/i2c.cc*, *examples/cmake/spi.cc*, *examples/cmake/drdy_spi.cc*, and *examples/cmake/wom_i2c.cc*. Notice that the *cmake* command includes a define specifying the microcontroller the code is being compiled for. This is required to correctly configure the code, CPU frequency, and compile/linker options. The available MCUs are:
    * MK20DX128
    * MK20DX256
    * MK64FX512
@@ -56,7 +56,7 @@ This will build the library and example executables called *i2c_example* and *sp
 
 These are known to work with the same packages used in Teensy products. Also switching packages is known to work well, as long as it's only a package change.
 
-The *i2c_example* and *spi_example* targets create executables for communicating with the sensor using I2C or SPI communication, respectively. Each target also has a *_hex*, for creating the hex file to upload to the microcontroller, and an *_upload* for using the [Teensy CLI Uploader](https://www.pjrc.com/teensy/loader_cli.html) to flash the Teensy. Please note that the CMake build tooling is expected to be run under Linux or WSL, instructions for setting up your build environment can be found in our [build-tools repo](https://github.com/bolderflight/build-tools).
+The example targets create executables for communicating with the sensor using I2C or SPI communication, using the data ready interrupt, and using the wake on motion interrupt, respectively. Each target also has a *_hex*, for creating the hex file to upload to the microcontroller, and an *_upload* for using the [Teensy CLI Uploader](https://www.pjrc.com/teensy/loader_cli.html) to flash the Teensy. Please note that the CMake build tooling is expected to be run under Linux or WSL, instructions for setting up your build environment can be found in our [build-tools repo](https://github.com/bolderflight/build-tools).
 
 # Namespace
 This library is within the namespace *bfs*.
@@ -118,7 +118,7 @@ if (!status) {
 True is returned on succesfully setting the accelerometer range, otherwise, false is returned. The default range is +/-16g.
 
 ```C++
-bool status = mpu9250.ConfigAccelRange(Mpu9250::ACCEL_RANGE_4G);
+bool status = mpu9250.ConfigAccelRange(bfs::Mpu9250::ACCEL_RANGE_4G);
 if (!status) {
   // ERROR
 }
@@ -142,7 +142,7 @@ AccelRange range = mpu9250.accel_range();
 True is returned on succesfully setting the gyro range, otherwise, false is returned. The default range is +/-2000 deg/s.
 
 ```C++
-bool status = mpu9250.ConfigGyroRange(Mpu9250::GYRO_RANGE_1000DPS);
+bool status = mpu9250.ConfigGyroRange(bfs::Mpu9250::GYRO_RANGE_1000DPS);
 if (!status) {
   // ERROR
 }
@@ -192,7 +192,7 @@ uint8_t srd = mpu9250.srd();
 True is returned on succesfully setting the digital low pass filters, otherwise, false is returned. The default bandwidth is 184 Hz.
 
 ```C++
-bool status = mpu9250.ConfigDlpf(Mpu9250::DLPF_BANDWIDTH_20HZ);
+bool status = mpu9250.ConfigDlpf(bfs::Mpu9250::DLPF_BANDWIDTH_20HZ);
 if (!status) {
   // ERROR
 }
@@ -203,6 +203,31 @@ if (!status) {
 ```C++
 DlpfBandwidth dlpf = mpu9250.dlpf();
 ```
+
+**bool EnableWom(int16_t threshold_mg, const WomRate wom_rate)** Enables the Wake-On-Motion interrupt. It places the MPU-9250 into a low power state, waking up at an interval determined by the *WomRate*. If the accelerometer detects motion in excess of the threshold, *threshold_mg*, it generates a 50us pulse from the MPU-9250 interrupt pin. The following enumerated WOM rates are supported:
+
+| WOM Sample Rate |  Enum Value      |
+| ---------------- |  ------------------   |
+| 0.24 Hz          |  WOM_RATE_0_24HZ  |
+| 0.49 Hz          |  WOM_RATE_0_49HZ  |
+| 0.98 Hz          |  WOM_RATE_0_98HZ  |
+| 1.95 Hz          |  WOM_RATE_1_95HZ  | 
+| 3.91 Hz          |  WOM_RATE_3_91HZ  |
+| 7.81 Hz          |  WOM_RATE_7_81HZ  |
+| 15.63 Hz         |  WOM_RATE_15_63HZ |
+| 31.25 Hz         |  WOM_RATE_31_25HZ |
+| 62.50 Hz         |  WOM_RATE_62_50HZ |
+| 125 Hz           |  WOM_RATE_125HZ   |
+| 250 Hz           |  WOM_RATE_250HZ   |
+| 500 Hz           |  WOM_RATE_500HZ   |
+
+The motion threshold is given as a value between 4 and 1020 mg, which is internally mapped to a single byte, 1-255 value. This function returns true on successfully enabling Wake On Motion, otherwise returns false. Please see the *wom_i2c* example. The following is an example of enabling the wake on motion with a 40 mg threshold and a ODR of 31.25 Hz.
+
+```C++
+imu.EnableWom(40, bfs::Mpu9250::WOM_RATE_31_25HZ);
+```
+
+**void Reset()** Resets the MPU-9250.
 
 **bool Read()** Reads data from the MPU-9250 and stores the data in the Mpu9250 object. Returns true if data is successfully read, otherwise, returns false.
 
@@ -279,8 +304,10 @@ This library transforms all data to a common axis system before it is returned. 
 
 # Example List
 
-* **I2C**: demonstrates declaring an *Mpu9250* object, initializing the sensor, and collecting data. I2C is used to communicate with the MPU-9250 sensor.
-* **SPI**: demonstrates declaring an *Mpu9250* object, initializing the sensor, and collecting data. SPI is used to communicate with the MPU-9250 sensor.
+* **i2c**: demonstrates declaring an *Mpu9250* object, initializing the sensor, and collecting data. I2C is used to communicate with the MPU-9250 sensor.
+* **spi**: demonstrates declaring an *Mpu9250* object, initializing the sensor, and collecting data. SPI is used to communicate with the MPU-9250 sensor.
+* **wom_i2c**: demonstrates setting up and using the Wake On Motion (WOM) interrupt. I2C is used to communicate with the sensor.
+* **drdy_spi**: demonstrates using the data ready interrupt to collect data. SPI is used to communicate with the sensor. 
 
 # Wiring and Pullups 
 

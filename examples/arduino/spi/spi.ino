@@ -25,11 +25,35 @@
 
 #include "mpu9250.h"
 
-/* Mpu9250 object, I2C bus,  0x68 address */
-bfs::Mpu9250 imu(&Wire, 0x68);
+/* Mpu9250 object, SPI bus, CS on pin 10 */
+bfs::Mpu9250 imu(&SPI, 10);
 
-/* Data acquisition ISR */
-void imu_isr() {
+void setup() {
+  /* Serial to display data */
+  Serial.begin(115200);
+  while(!Serial) {}
+  /* Start the SPI bus */
+  SPI.begin();
+  /* Initialize and configure IMU */
+  if (!imu.Begin()) {
+    Serial.println("Error initializing communication with IMU");
+    while(1) {}
+  }
+  /* Set the sample rate divider */
+  if (!imu.ConfigSrd(19)) {
+    Serial.println("Error configured SRD");
+    while(1) {}
+  }
+  /* Enabled data ready interrupt */
+  if (!imu.EnableDrdyInt()) {
+    Serial.println("Error enabling data ready interrupt");
+    while(1) {}
+  }
+  /* Attach data ready interrupt to pin 9 */
+  attachInterrupt(9, imu_isr, RISING);
+}
+
+void loop() {
   /* Check if data read */
   if (imu.Read()) {
     Serial.print(imu.new_imu_data());
@@ -58,31 +82,3 @@ void imu_isr() {
     Serial.print("\n");
   }
 }
-
-void setup() {
-  /* Serial to display data */
-  Serial.begin(115200);
-  while(!Serial) {}
-  /* Start the I2C bus */
-  Wire.begin();
-  Wire.setClock(400000);
-  /* Initialize and configure IMU */
-  if (!imu.Begin()) {
-    Serial.println("Error initializing communication with IMU");
-    while(1) {}
-  }
-  /* Set the sample rate divider */
-  if (!imu.ConfigSrd(19)) {
-    Serial.println("Error configured SRD");
-    while(1) {}
-  }
-  /* Enabled data ready interrupt */
-  if (!imu.EnableDrdyInt()) {
-    Serial.println("Error enabling data ready interrupt");
-    while(1) {}
-  }
-  /* Attach data ready interrupt to pin 9 */
-  attachInterrupt(9, imu_isr, RISING);
-}
-
-void loop() {}

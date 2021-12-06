@@ -59,6 +59,20 @@ class Mpu9250 {
     GYRO_RANGE_1000DPS = 0x10,
     GYRO_RANGE_2000DPS = 0x18
   };
+  enum WomRate : int8_t {
+    WOM_RATE_0_24HZ = 0x00,
+    WOM_RATE_0_49HZ = 0x01,
+    WOM_RATE_0_98HZ = 0x02,
+    WOM_RATE_1_95HZ = 0x03,
+    WOM_RATE_3_91HZ = 0x04,
+    WOM_RATE_7_81HZ = 0x05,
+    WOM_RATE_15_63HZ = 0x06,
+    WOM_RATE_31_25HZ = 0x07,
+    WOM_RATE_62_50HZ = 0x08,
+    WOM_RATE_125HZ = 0x09,
+    WOM_RATE_250HZ = 0x0A,
+    WOM_RATE_500HZ = 0x0B
+  };
   Mpu9250(TwoWire *i2c, const uint8_t addr) : i2c_(i2c), dev_(addr),
                                               iface_(I2C) {}
   Mpu9250(SPIClass *spi, const uint8_t cs) : spi_(spi), dev_(cs),
@@ -74,6 +88,8 @@ class Mpu9250 {
   inline uint8_t srd() const {return srd_;}
   bool ConfigDlpf(const DlpfBandwidth dlpf);
   inline DlpfBandwidth dlpf_bandwidth() const {return dlpf_bandwidth_;}
+  bool EnableWom(int16_t threshold_mg, const WomRate wom_rate);
+  void Reset();
   bool Read();
   inline bool new_imu_data() const {return new_imu_data_;}
   inline float accel_x_mps2() const {return accel_[0];}
@@ -153,6 +169,16 @@ class Mpu9250 {
   static constexpr uint8_t I2C_READ_FLAG_ = 0x80;
   static constexpr uint8_t I2C_SLV0_EN_ = 0x80;
   static constexpr uint8_t EXT_SENS_DATA_00_ = 0x49;
+  /* Needed for WOM */
+  static constexpr uint8_t INT_WOM_EN_ = 0x40;
+  static constexpr uint8_t PWR_MGMNT_2_ = 0x6C;
+  static constexpr uint8_t DISABLE_GYRO_ = 0x07;
+  static constexpr uint8_t MOT_DETECT_CTRL_ = 0x69;
+  static constexpr uint8_t ACCEL_INTEL_EN_ = 0x80;
+  static constexpr uint8_t ACCEL_INTEL_MODE_ = 0x40;
+  static constexpr uint8_t LP_ACCEL_ODR_ = 0x1E;
+  static constexpr uint8_t WOM_THR_ = 0x1F;
+  const uint8_t PWR_CYCLE_WOM_ = 0x20;
   /* AK8963 registers */
   static constexpr uint8_t AK8963_I2C_ADDR_ = 0x0C;
   static constexpr uint8_t AK8963_ST1_ = 0x02;
