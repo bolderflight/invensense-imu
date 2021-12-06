@@ -6,6 +6,6 @@ Lint:
   tags:
     - bfs
   script: 
-    - cpplint --verbose=0 src/mpu9250/mpu9250.cc
-    - cpplint --verbose=0 include/mpu9250/mpu9250.h
+    - cpplint --verbose=0 src/mpu9250.cpp
+    - cpplint --verbose=0 src/mpu9250.h
   
