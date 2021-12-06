@@ -89,7 +89,6 @@ class Mpu9250 {
   inline float die_temp_c() const {return temp_;}
 
  private:
-
   /* Communications interface */
   enum Interface : int8_t {
     SPI,
