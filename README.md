@@ -1,4 +1,8 @@
-# mpu9250
+[![Pipeline](https://gitlab.com/bolderflight/software/mpu9250/badges/main/pipeline.svg)](https://gitlab.com/bolderflight/software/mpu9250/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+![Bolder Flight Systems Logo](img/logo-words_75.png) &nbsp; &nbsp; ![Arduino Logo](img/arduino_logo_75.png)
+
+# Mpu9250
 This library communicates with [InvenSense MPU-9250 and MPU-9255](https://invensense.tdk.com/products/motion-tracking/9-axis/mpu-9250/) Inertial Measurement Units (IMUs). This library is compatible with Arduino and CMake build systems.
    * [License](LICENSE.md)
    * [Changelog](CHANGELOG.md)
