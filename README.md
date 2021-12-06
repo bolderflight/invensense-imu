@@ -284,7 +284,7 @@ This library transforms all data to a common axis system before it is returned. 
 
 # Wiring and Pullups 
 
-Please refer to the [MPU-9250 datasheet](https://github.com/bolderflight/mpu9250/blob/main/docs/MPU-9250-Datasheet.pdf) and your microcontroller's pinout diagram. This library was developed using the Embedded Masters breakout board v1.1 for the MPU-9250. The data sheet for this breakout board is located [here](https://github.com/bolderflight/mpu9250/blob/main/docs/Embedded-Masters-MPU-9250-Breakout.pdf). This library should work well for other breakout boards or embedded sensors, please refer to your vendor's pinout diagram.
+Please refer to the [MPU-9250 datasheet](docs/MPU-9250-Datasheet.pdf) and your microcontroller's pinout diagram. This library was developed using the Embedded Masters breakout board v1.1 for the MPU-9250. The data sheet for this breakout board is located [here](docs/Embedded-Masters-MPU-9250-Breakout.pdf). This library should work well for other breakout boards or embedded sensors, please refer to your vendor's pinout diagram.
 
 ## I2C
 
