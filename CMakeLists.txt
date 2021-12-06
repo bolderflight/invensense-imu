@@ -5,7 +5,7 @@ if (DEFINED MCU)
 endif()
 # Project information
 project(Mpu9250
-	VERSION 5.0.0
+	VERSION 5.1.0
 	DESCRIPTION "MPU-9250 sensor driver"
 	LANGUAGES CXX
 )
@@ -40,7 +40,8 @@ endif()
 
 # Example and test if this project is built separately
 if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
-	if (DEFINED MCU)		
+	if (DEFINED MCU)
+
 		# Add the spi example target
 		add_executable(spi_example examples/cmake/spi.cc)
 		# Add the includes
@@ -56,6 +57,7 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
 		# Add hex and upload targets
 		include(${CMAKE_SOURCE_DIR}/cmake/flash_mcu.cmake)
 		FlashMcu(spi_example ${MCU})
+
 		# Add the i2c example target
 		add_executable(i2c_example examples/cmake/i2c.cc)
 		# Add the includes
@@ -71,5 +73,37 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
 		# Add hex and upload targets
 		include(${CMAKE_SOURCE_DIR}/cmake/flash_mcu.cmake)
 		FlashMcu(i2c_example ${MCU})
+
+		# Add the drdy interrupt example
+		add_executable(drdy_spi_example examples/cmake/drdy_spi.cc)
+		# Add the includes
+		target_include_directories(drdy_spi_example PUBLIC 
+			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+			$<INSTALL_INTERFACE:include>
+		)
+		# Link libraries to the example target
+		target_link_libraries(drdy_spi_example
+			PRIVATE 
+				mpu9250
+		)
+		# Add hex and upload targets
+		include(${CMAKE_SOURCE_DIR}/cmake/flash_mcu.cmake)
+		FlashMcu(drdy_spi_example ${MCU})
+
+		# Add the wom example
+		add_executable(wom_example examples/cmake/wom_i2c.cc)
+		# Add the includes
+		target_include_directories(wom_example PUBLIC 
+			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+			$<INSTALL_INTERFACE:include>
+		)
+		# Link libraries to the example target
+		target_link_libraries(wom_example
+			PRIVATE 
+				mpu9250
+		)
+		# Add hex and upload targets
+		include(${CMAKE_SOURCE_DIR}/cmake/flash_mcu.cmake)
+		FlashMcu(wom_example ${MCU})
 	endif()
 endif()

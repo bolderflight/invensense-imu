@@ -1,5 +1,8 @@
 # Changelog
 
+## v5.1.0
+- Added Wake On Motion (WOM) capability and an example
+
 ## v5.0.0
 - Updated directory structure to support Arduino in addition to CMake builds
 - Added an Arduino example

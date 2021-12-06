@@ -28,37 +28,6 @@
 /* Mpu9250 object, I2C bus,  0x68 address */
 bfs::Mpu9250 imu(&Wire, 0x68);
 
-/* Data acquisition ISR */
-void imu_isr() {
-  /* Check if data read */
-  if (imu.Read()) {
-    Serial.print(imu.new_imu_data());
-    Serial.print("\t");
-    Serial.print(imu.new_mag_data());
-    Serial.print("\t");
-    Serial.print(imu.accel_x_mps2());
-    Serial.print("\t");
-    Serial.print(imu.accel_y_mps2());
-    Serial.print("\t");
-    Serial.print(imu.accel_z_mps2());
-    Serial.print("\t");
-    Serial.print(imu.gyro_x_radps());
-    Serial.print("\t");
-    Serial.print(imu.gyro_y_radps());
-    Serial.print("\t");
-    Serial.print(imu.gyro_z_radps());
-    Serial.print("\t");
-    Serial.print(imu.mag_x_ut());
-    Serial.print("\t");
-    Serial.print(imu.mag_y_ut());
-    Serial.print("\t");
-    Serial.print(imu.mag_z_ut());
-    Serial.print("\t");
-    Serial.print(imu.die_temp_c());
-    Serial.print("\n");
-  }
-}
-
 int main() {
   /* Serial to display data */
   Serial.begin(115200);
@@ -76,11 +45,33 @@ int main() {
     Serial.println("Error configured SRD");
     while(1) {}
   }
-  /* Enabled data ready interrupt */
-  if (!imu.EnableDrdyInt()) {
-    Serial.println("Error enabling data ready interrupt");
-    while(1) {}
+  while(1) {
+    /* Check if data read */
+    if (imu.Read()) {
+      Serial.print(imu.new_imu_data());
+      Serial.print("\t");
+      Serial.print(imu.new_mag_data());
+      Serial.print("\t");
+      Serial.print(imu.accel_x_mps2());
+      Serial.print("\t");
+      Serial.print(imu.accel_y_mps2());
+      Serial.print("\t");
+      Serial.print(imu.accel_z_mps2());
+      Serial.print("\t");
+      Serial.print(imu.gyro_x_radps());
+      Serial.print("\t");
+      Serial.print(imu.gyro_y_radps());
+      Serial.print("\t");
+      Serial.print(imu.gyro_z_radps());
+      Serial.print("\t");
+      Serial.print(imu.mag_x_ut());
+      Serial.print("\t");
+      Serial.print(imu.mag_y_ut());
+      Serial.print("\t");
+      Serial.print(imu.mag_z_ut());
+      Serial.print("\t");
+      Serial.print(imu.die_temp_c());
+      Serial.print("\n");
+    }
   }
-  /* Attach data ready interrupt to pin 9 */
-  attachInterrupt(9, imu_isr, RISING);
 }
