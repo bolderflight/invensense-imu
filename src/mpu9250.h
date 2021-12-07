@@ -33,6 +33,8 @@
 #else
 #include "core/core.h"
 #endif
+#include <stddef.h>
+#include <stdint.h>
 
 namespace bfs {
 
@@ -89,8 +91,13 @@ class Mpu9250 {
   bool ConfigDlpf(const DlpfBandwidth dlpf);
   inline DlpfBandwidth dlpf_bandwidth() const {return dlpf_bandwidth_;}
   bool EnableWom(int16_t threshold_mg, const WomRate wom_rate);
+  #if !defined(DISABLE_MPU9250_FIFO)
+  bool EnableFifo();
+  bool DisableFifo();
+  #endif
   void Reset();
   bool Read();
+  int8_t ReadFifo();
   inline bool new_imu_data() const {return new_imu_data_;}
   inline float accel_x_mps2() const {return accel_[0];}
   inline float accel_y_mps2() const {return accel_[1];}
@@ -103,6 +110,16 @@ class Mpu9250 {
   inline float mag_y_ut() const {return mag_[1];}
   inline float mag_z_ut() const {return mag_[2];}
   inline float die_temp_c() const {return temp_;}
+  #if !defined(DISABLE_MPU9250_FIFO)
+  int8_t fifo_accel_x_mps2(float * data, const size_t len);
+  int8_t fifo_accel_y_mps2(float * data, const size_t len);
+  int8_t fifo_accel_z_mps2(float * data, const size_t len);
+  int8_t fifo_gyro_x_radps(float * data, const size_t len);
+  int8_t fifo_gyro_y_radps(float * data, const size_t len);
+  int8_t fifo_gyro_z_radps(float * data, const size_t len);
+  static constexpr int8_t FIFO_MAX_SIZE() {return FIFO_MAX_NUM_FRAMES_;}
+  inline bool fifo_overflow() const {return fifo_overflow_;}
+  #endif
 
  private:
   /* Communications interface */
@@ -116,6 +133,13 @@ class Mpu9250 {
   Interface iface_;
   uint8_t bytes_rx_;
   int32_t spi_clock_;
+  /*
+  * MPU-9250 supports an SPI clock of 1 MHz for config and 20 MHz for reading
+  * data; however, in testing we found that 20 MHz was sometimes too fast and
+  * scaled this down to 15 MHz, which consistently worked well.
+  */
+  static constexpr int32_t SPI_CFG_CLOCK_ = 1000000;
+  static constexpr int32_t SPI_READ_CLOCK_ = 15000000;
   static constexpr uint8_t SPI_READ_ = 0x80;
   /* Configuration */
   AccelRange accel_range_, requested_accel_range_;
@@ -141,6 +165,20 @@ class Mpu9250 {
   float temp_;
   static constexpr float PI_ = 3.14159265358979323846f;
   static constexpr float G_ = 9.80665f;
+  /* FIFO data */
+  #if !defined(DISABLE_MPU9250_FIFO)
+  bool fifo_overflow_;
+  int8_t fifo_num_frames_;
+  int16_t fifo_bytes_;
+  static constexpr int8_t FIFO_FRAME_SIZE_ = 12;
+  static constexpr int8_t FIFO_MAX_NUM_FRAMES_ = 42;
+  float fifo_ax_[FIFO_MAX_NUM_FRAMES_];
+  float fifo_ay_[FIFO_MAX_NUM_FRAMES_];
+  float fifo_az_[FIFO_MAX_NUM_FRAMES_];
+  float fifo_gx_[FIFO_MAX_NUM_FRAMES_];
+  float fifo_gy_[FIFO_MAX_NUM_FRAMES_];
+  float fifo_gz_[FIFO_MAX_NUM_FRAMES_];
+  #endif
   /* Registers */
   static constexpr uint8_t PWR_MGMNT_1_ = 0x6B;
   static constexpr uint8_t H_RESET_ = 0x80;
@@ -178,7 +216,18 @@ class Mpu9250 {
   static constexpr uint8_t ACCEL_INTEL_MODE_ = 0x40;
   static constexpr uint8_t LP_ACCEL_ODR_ = 0x1E;
   static constexpr uint8_t WOM_THR_ = 0x1F;
-  const uint8_t PWR_CYCLE_WOM_ = 0x20;
+  static constexpr uint8_t PWR_CYCLE_WOM_ = 0x20;
+  /* Needed for FIFO */
+  #if !defined(DISABLE_MPU9250_FIFO)
+  static constexpr uint8_t FIFO_EN_CTRL_ = 0x40;
+  static constexpr uint8_t FIFO_EN_ = 0x23;
+  static constexpr uint8_t FIFO_GYRO_ = 0x70;
+  static constexpr uint8_t FIFO_ACCEL_ = 0x08;
+  static constexpr uint8_t FIFO_COUNT_ = 0x72;
+  static constexpr uint8_t FIFO_READ_ = 0x74;
+  static constexpr uint8_t FIFO_OVERFLOW_INT_ = 0x10;
+  static constexpr uint8_t FIFO_RESET_ = 0x04;
+  #endif
   /* AK8963 registers */
   static constexpr uint8_t AK8963_I2C_ADDR_ = 0x0C;
   static constexpr uint8_t AK8963_ST1_ = 0x02;

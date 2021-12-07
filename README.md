@@ -18,9 +18,21 @@ The InvenSense MPU-9250 is a System in Package (SiP) that combines two chips: th
 | +/- 1000 deg/s | +/- 8g  | |
 | +/- 2000 deg/s | +/- 16g | |
 
-The MPU-9250 samples the gyros, accelerometers, and magnetometers with 16 bit analog to digital converters. It also features programmable digital filters, a precision clock, an embedded temperature sensor, and programmable interrupts (including wake on motion).
+The MPU-9250 samples the gyros, accelerometers, and magnetometers with 16 bit analog to digital converters. It also features programmable digital filters, a precision clock, an embedded temperature sensor, programmable interrupts (including wake on motion), and a 512 byte FIFO buffer.
 
 # Installation
+
+## Library Memory Footprint
+For Arduino Uno and other devices with limited memory available, *DISABLE_MPU9250_FIFO* can be defined before the library is included to significantly reduce the library's memory footprint, at the expense of removing all FIFO functionality. An example of this is below.
+
+```C++
+#define DISABLE_MPU9250_FIFO
+#include "mpu9250.h"
+
+void setup() {}
+
+void loop() {}
+```
 
 ## Arduino
 Use the Arduino Library Manager to install this library or clone to your Arduino/libraries folder. This library is added as:
@@ -227,6 +239,17 @@ The motion threshold is given as a value between 4 and 1020 mg, which is interna
 imu.EnableWom(40, bfs::Mpu9250::WOM_RATE_31_25HZ);
 ```
 
+**bool EnableFifo()** Enables the MPU-9250 512 byte FIFO buffer and configures the buffer to store accelerometer and gyro data. This 512 byte buffer samples data at the data output rate set by the SRD and enables the microcontroller to bulk read the data, reducing microcontroller workload for certain applications. True is returned on successfully enabling the FIFO, otherwise false is returned.
+
+**bool DisableFifo()** Disables the FIFO buffer. True is returned on successfully disabling the buffer, otherwise false is returned.
+
+**static constexpr int8_t FIFO_MAX_SIZE()** This constant defines the maximum number of frames that the FIFO buffer will store. If you plan on using FIFO data and would like to read the data into an array, this define helps set the array size.
+
+```C++
+/* accel data for the X-axis read from the FIFO */
+float ax[bfs::Mpu9250::FIFO_MAX_SIZE()];
+```
+
 **void Reset()** Resets the MPU-9250.
 
 **bool Read()** Reads data from the MPU-9250 and stores the data in the Mpu9250 object. Returns true if data is successfully read, otherwise, returns false.
@@ -295,6 +318,38 @@ if (mpu9250.Read()) {
 }
 ```
 
+**int8_t ReadFifo()** Reads data from the MPU-920 FIFO buffer and stores the data in the Mpu9250 object. On success, returns the number of FIFO frames collected from the buffer. One frame of data is considered as one set of 3-axis accelerometer data and 3-axis gyro data. A frame internally consists of 12 bytes (each accel and gyro channel is stored in 2 bytes), so the maximum number of frames the MPU-9250 object handles is 42. On failure, -1 is returned.
+
+If you're using the IMU data ready interrupt to trigger the FIFO buffer, as in the *fifo_spi* example, note that the current frame of data will not be in the buffer, it will be the first frame in the next buffer. If you need the current frame of data, you can use the *Read* method to get the current data and the *ReadFifo* method to get the FIFO data.
+
+```C++
+int8_t fifo_len = imu.ReadFifo();
+```
+
+**int8_t fifo_accel_x_mps2(float * data, const size_t len)** Copies the x-axis accelerometer data from the last *ReadFifo* to the array pointed to by the *data* pointer. The array length given by *len* is used to ensure that the MPU-9250 object doesn't overflow the *data* array. The number of samples copied is returned on success or -1 on failure. Similar methods are available for the y-axis and z-axis accelerometer. Note that this is not a circular buffer, so multiple partial reads won't work, it simply copys the data up to either the number of frames of data available or the array length, whichever is smaller.
+
+```C++
+float ax_mps2[bfs::Mpu9250::FIFO_MAX_SIZE()];
+float ay_mps2[bfs::Mpu9250::FIFO_MAX_SIZE()];
+float az_mps2[bfs::Mpu9250::FIFO_MAX_SIZE()];
+imu.fifo_accel_x_mps2(ax_mps2, bfs::Mpu9250::FIFO_MAX_SIZE());
+imu.fifo_accel_y_mps2(ax_mps2, bfs::Mpu9250::FIFO_MAX_SIZE());
+imu.fifo_accel_z_mps2(ax_mps2, bfs::Mpu9250::FIFO_MAX_SIZE());
+```
+
+**int8_t fifo_gyro_x_radps(float * data, const size_t len)** Copies the x-axis gyro data from the last *ReadFifo* to the array pointed to by the *data* pointer. The array length given by *len* is used to ensure that the MPU-9250 object doesn't overflow the *data* array. The number of samples copied is returned on success or -1 on failure. Similar methods are available for the y-axis and z-axis gyro. Note that this is not a circular buffer, so multiple partial reads won't work, it simply copys the data up to either the number of frames of data available or the array length, whichever is smaller.
+
+```C++
+float gx_radps[bfs::Mpu9250::FIFO_MAX_SIZE()];
+float gy_radps[bfs::Mpu9250::FIFO_MAX_SIZE()];
+float gz_radps[bfs::Mpu9250::FIFO_MAX_SIZE()];
+imu.fifo_gyro_x_radps(ax_mps2, bfs::Mpu9250::FIFO_MAX_SIZE());
+imu.fifo_gyro_y_radps(ax_mps2, bfs::Mpu9250::FIFO_MAX_SIZE());
+imu.fifo_gyro_z_radps(ax_mps2, bfs::Mpu9250::FIFO_MAX_SIZE());
+```
+
+**bool fifo_overflow()** Returns whether the FIFO buffer has overflowed. Note that this requires using the *Read* method to update the overflow status.
+
 ## Sensor Orientation
 This library transforms all data to a common axis system before it is returned. This axis system is shown below. It is a right handed coordinate system with the z-axis positive down, common in aircraft dynamics.
 
@@ -307,7 +362,8 @@ This library transforms all data to a common axis system before it is returned. 
 * **i2c**: demonstrates declaring an *Mpu9250* object, initializing the sensor, and collecting data. I2C is used to communicate with the MPU-9250 sensor.
 * **spi**: demonstrates declaring an *Mpu9250* object, initializing the sensor, and collecting data. SPI is used to communicate with the MPU-9250 sensor.
 * **wom_i2c**: demonstrates setting up and using the Wake On Motion (WOM) interrupt. I2C is used to communicate with the sensor.
-* **drdy_spi**: demonstrates using the data ready interrupt to collect data. SPI is used to communicate with the sensor. 
+* **drdy_spi**: demonstrates using the data ready interrupt to collect data. SPI is used to communicate with the sensor.
+* **fifo_spi**: demonstrates using the FIFO buffer. SPI is used to communicate with the sensor.
 
 # Wiring and Pullups 
 

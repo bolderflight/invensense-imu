@@ -5,7 +5,7 @@ if (DEFINED MCU)
 endif()
 # Project information
 project(Mpu9250
-	VERSION 5.1.0
+	VERSION 5.2.0
 	DESCRIPTION "MPU-9250 sensor driver"
 	LANGUAGES CXX
 )
@@ -105,5 +105,21 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
 		# Add hex and upload targets
 		include(${CMAKE_SOURCE_DIR}/cmake/flash_mcu.cmake)
 		FlashMcu(wom_example ${MCU})
+
+		# Add the fifo example
+		add_executable(fifo_example examples/cmake/fifo_spi.cc)
+		# Add the includes
+		target_include_directories(fifo_example PUBLIC 
+			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+			$<INSTALL_INTERFACE:include>
+		)
+		# Link libraries to the example target
+		target_link_libraries(fifo_example
+			PRIVATE 
+				mpu9250
+		)
+		# Add hex and upload targets
+		include(${CMAKE_SOURCE_DIR}/cmake/flash_mcu.cmake)
+		FlashMcu(fifo_example ${MCU})
 	endif()
 endif()

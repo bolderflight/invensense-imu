@@ -1,5 +1,8 @@
 # Changelog
 
+## v5.2.0
+- Added FIFO buffer support for accel and gyro data
+
 ## v5.1.0
 - Added Wake On Motion (WOM) capability and an example
 
