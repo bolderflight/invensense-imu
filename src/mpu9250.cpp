@@ -29,8 +29,11 @@
 #include "Wire.h"
 #include "SPI.h"
 #else
+#include <algorithm>
 #include "core/core.h"
 #endif
+#include <stddef.h>
+#include <stdint.h>
 
 namespace bfs {
 
@@ -38,12 +41,13 @@ bool Mpu9250::Begin() {
   if (iface_ == SPI) {
     pinMode(dev_, OUTPUT);
     /* Toggle CS pin to lock in SPI mode */
-    digitalWriteFast(dev_, LOW);
+    digitalWrite(dev_, LOW);
     delay(1);
-    digitalWriteFast(dev_, HIGH);
+    digitalWrite(dev_, HIGH);
+    delay(1);
   }
   /* 1 MHz for config */
-  spi_clock_ = 1000000;
+  spi_clock_ = SPI_CFG_CLOCK_;
   /* Select clock source to gyro */
   if (!WriteRegister(PWR_MGMNT_1_, CLKSEL_PLL_)) {
     return false;
@@ -143,7 +147,7 @@ bool Mpu9250::Begin() {
   return true;
 }
 bool Mpu9250::EnableDrdyInt() {
-  spi_clock_ = 1000000;
+  spi_clock_ = SPI_CFG_CLOCK_;
   if (!WriteRegister(INT_PIN_CFG_, INT_PULSE_50US_)) {
     return false;
   }
@@ -153,14 +157,14 @@ bool Mpu9250::EnableDrdyInt() {
   return true;
 }
 bool Mpu9250::DisableDrdyInt() {
-  spi_clock_ = 1000000;
+  spi_clock_ = SPI_CFG_CLOCK_;
   if (!WriteRegister(INT_ENABLE_, INT_DISABLE_)) {
     return false;
   }
   return true;
 }
 bool Mpu9250::ConfigAccelRange(const AccelRange range) {
-  spi_clock_ = 1000000;
+  spi_clock_ = SPI_CFG_CLOCK_;
   /* Check input is valid and set requested range and scale */
   switch (range) {
     case ACCEL_RANGE_2G: {
@@ -197,7 +201,7 @@ bool Mpu9250::ConfigAccelRange(const AccelRange range) {
   return true;
 }
 bool Mpu9250::ConfigGyroRange(const GyroRange range) {
-  spi_clock_ = 1000000;
+  spi_clock_ = SPI_CFG_CLOCK_;
   /* Check input is valid and set requested range and scale */
   switch (range) {
     case GYRO_RANGE_250DPS: {
@@ -234,7 +238,7 @@ bool Mpu9250::ConfigGyroRange(const GyroRange range) {
   return true;
 }
 bool Mpu9250::ConfigSrd(const uint8_t srd) {
-  spi_clock_ = 1000000;
+  spi_clock_ = SPI_CFG_CLOCK_;
   /* Changing the SRD to allow us to set the magnetometer successfully */
   if (!WriteRegister(SMPLRT_DIV_, 19)) {
     return false;
@@ -273,7 +277,7 @@ bool Mpu9250::ConfigSrd(const uint8_t srd) {
   return true;
 }
 bool Mpu9250::ConfigDlpf(const DlpfBandwidth dlpf) {
-  spi_clock_ = 1000000;
+  spi_clock_ = SPI_CFG_CLOCK_;
   /* Check input is valid and set requested dlpf */
   switch (dlpf) {
     case DLPF_BANDWIDTH_184HZ: {
@@ -318,7 +322,7 @@ bool Mpu9250::ConfigDlpf(const DlpfBandwidth dlpf) {
 bool Mpu9250::EnableWom(int16_t threshold_mg, const WomRate wom_rate) {
   /* Check threshold in limits, 4 - 1020 mg */
   if ((threshold_mg < 4) || (threshold_mg > 1020)) {return false;}
-  spi_clock_ = 1000000;
+  spi_clock_ = SPI_CFG_CLOCK_;
   /* Set AK8963 to power down */
   WriteAk8963Register(AK8963_CNTL1_, AK8963_PWR_DOWN_);
   /* Reset the MPU9250 */
@@ -361,7 +365,32 @@ bool Mpu9250::EnableWom(int16_t threshold_mg, const WomRate wom_rate) {
   }
   return true;
 }
+#if !defined(DISABLE_MPU9250_FIFO)
+bool Mpu9250::EnableFifo() {
+  spi_clock_ = SPI_CFG_CLOCK_;
+  /* Enable the FIFO subsystem */
+  if (!WriteRegister(USER_CTRL_, FIFO_EN_CTRL_ | I2C_MST_EN_)) {
+    return false;
+  }
+  /* Set the accel and gyro to write to the FIFO */
+  if (!WriteRegister(FIFO_EN_, FIFO_ACCEL_ | FIFO_GYRO_)) {
+    return false;
+  }
+  return true;
+}
+bool Mpu9250::DisableFifo() {
+  spi_clock_ = SPI_CFG_CLOCK_;
+  /* Stop writing to the FIFO */
+  if (!WriteRegister(FIFO_EN_, 0x00)) {
+    return false;
+  }
+  /* Disable the FIFO subsystem */
+  WriteRegister(USER_CTRL_, FIFO_RESET_ | I2C_MST_EN_);
+  return true;
+}
+#endif
 void Mpu9250::Reset() {
+  spi_clock_ = SPI_CFG_CLOCK_;
   /* Set AK8963 to power down */
   WriteAk8963Register(AK8963_CNTL1_, AK8963_PWR_DOWN_);
   /* Reset the MPU9250 */
@@ -370,7 +399,7 @@ void Mpu9250::Reset() {
   delay(1);
 }
 bool Mpu9250::Read() {
-  spi_clock_ = 20000000;
+  spi_clock_ = SPI_READ_CLOCK_;
   /* Reset the new data flags */
   new_mag_data_ = false;
   new_imu_data_ = false;
@@ -378,6 +407,8 @@ bool Mpu9250::Read() {
   if (!ReadRegisters(INT_STATUS_, sizeof(data_buf_), data_buf_)) {
     return false;
   }
+  /* Check if the FIFO overflowed */
+  fifo_overflow_ = (data_buf_[0] & FIFO_OVERFLOW_INT_);
   /* Check if data is ready */
   new_imu_data_ = (data_buf_[0] & RAW_DATA_RDY_INT_);
   if (!new_imu_data_) {
@@ -402,11 +433,11 @@ bool Mpu9250::Read() {
   }
   /* Convert to float values and rotate the accel / gyro axis */
   accel_[0] = static_cast<float>(accel_cnts_[1]) * accel_scale_ * G_;
-  accel_[2] = static_cast<float>(accel_cnts_[2]) * accel_scale_ * -1.0f * G_;
   accel_[1] = static_cast<float>(accel_cnts_[0]) * accel_scale_ * G_;
+  accel_[2] = static_cast<float>(accel_cnts_[2]) * accel_scale_ * -1.0f * G_;
   temp_ = (static_cast<float>(temp_cnts_) - 21.0f) / TEMP_SCALE_ + 21.0f;
-  gyro_[1] = static_cast<float>(gyro_cnts_[0]) * gyro_scale_ / PI_;
   gyro_[0] = static_cast<float>(gyro_cnts_[1]) * gyro_scale_ / PI_;
+  gyro_[1] = static_cast<float>(gyro_cnts_[0]) * gyro_scale_ / PI_;
   gyro_[2] = static_cast<float>(gyro_cnts_[2]) * gyro_scale_ * -1.0f / PI_;
   /* Only update on new data */
   if (new_mag_data_) {
@@ -416,6 +447,105 @@ bool Mpu9250::Read() {
   }
   return true;
 }
+#if !defined(DISABLE_MPU9250_FIFO)
+int8_t Mpu9250::ReadFifo() {
+  spi_clock_ = SPI_READ_CLOCK_;
+  /* Get the FIFO size, bytes */
+  if (!ReadRegisters(FIFO_COUNT_, 2, data_buf_)) {
+    return -1;
+  }
+  fifo_bytes_ = static_cast<int16_t>(data_buf_[0] & 0x0F) << 8 | data_buf_[1];
+  /* Number of data frames available */
+  fifo_num_frames_ = fifo_bytes_ / FIFO_FRAME_SIZE_;
+  /* Read and store each frame */
+  #if defined(ARDUINO)
+  int8_t frames_to_read = min(fifo_num_frames_, FIFO_MAX_NUM_FRAMES_);
+  #else
+  int8_t frames_to_read = std::min(fifo_num_frames_, FIFO_MAX_NUM_FRAMES_);
+  #endif
+  for (int8_t i = 0; i < frames_to_read; i++) {
+    if (!ReadRegisters(FIFO_READ_, FIFO_FRAME_SIZE_, data_buf_)) {
+      return -1;
+    }
+    /* Unpack the buffer */
+    accel_cnts_[0] = static_cast<int16_t>(data_buf_[0])  << 8 | data_buf_[1];
+    accel_cnts_[1] = static_cast<int16_t>(data_buf_[2])  << 8 | data_buf_[3];
+    accel_cnts_[2] = static_cast<int16_t>(data_buf_[4])  << 8 | data_buf_[5];
+    gyro_cnts_[0] =  static_cast<int16_t>(data_buf_[6])  << 8 | data_buf_[7];
+    gyro_cnts_[1] =  static_cast<int16_t>(data_buf_[8]) << 8 | data_buf_[9];
+    gyro_cnts_[2] =  static_cast<int16_t>(data_buf_[10]) << 8 | data_buf_[11];
+    /* Convert to float values and rotate the accel / gyro axis */
+    fifo_ax_[i] = static_cast<float>(accel_cnts_[1]) * accel_scale_ * G_;
+    fifo_ay_[i] = static_cast<float>(accel_cnts_[0]) * accel_scale_ * G_;
+    fifo_az_[i] = static_cast<float>(accel_cnts_[2]) * accel_scale_ * -1.0f
+                                                     * G_;
+    fifo_gx_[i] = static_cast<float>(gyro_cnts_[1]) * gyro_scale_ / PI_;
+    fifo_gy_[i] = static_cast<float>(gyro_cnts_[0]) * gyro_scale_ / PI_;
+    fifo_gz_[i] = static_cast<float>(gyro_cnts_[2]) * gyro_scale_ * -1.0f / PI_;
+  }
+  return fifo_num_frames_;
+}
+int8_t Mpu9250::fifo_accel_x_mps2(float * data, const size_t len) {
+  if (!data) {return -1;}
+  #if defined(ARDUINO)
+  int8_t cpy_len = min(fifo_num_frames_, static_cast<int8_t>(len));
+  #else
+  int8_t cpy_len = std::min(fifo_num_frames_, static_cast<int8_t>(len));
+  #endif
+  memcpy(data, fifo_ax_, cpy_len * sizeof(float));
+  return cpy_len;
+}
+int8_t Mpu9250::fifo_accel_y_mps2(float * data, const size_t len) {
+  if (!data) {return -1;}
+  #if defined(ARDUINO)
+  int8_t cpy_len = min(fifo_num_frames_, static_cast<int8_t>(len));
+  #else
+  int8_t cpy_len = std::min(fifo_num_frames_, static_cast<int8_t>(len));
+  #endif
+  memcpy(data, fifo_ay_, cpy_len * sizeof(float));
+  return cpy_len;
+}
+int8_t Mpu9250::fifo_accel_z_mps2(float * data, const size_t len) {
+  if (!data) {return -1;}
+  #if defined(ARDUINO)
+  int8_t cpy_len = min(fifo_num_frames_, static_cast<int8_t>(len));
+  #else
+  int8_t cpy_len = std::min(fifo_num_frames_, static_cast<int8_t>(len));
+  #endif
+  memcpy(data, fifo_az_, cpy_len * sizeof(float));
+  return cpy_len;
+}
+int8_t Mpu9250::fifo_gyro_x_radps(float * data, const size_t len) {
+  if (!data) {return -1;}
+  #if defined(ARDUINO)
+  int8_t cpy_len = min(fifo_num_frames_, static_cast<int8_t>(len));
+  #else
+  int8_t cpy_len = std::min(fifo_num_frames_, static_cast<int8_t>(len));
+  #endif
+  memcpy(data, fifo_gx_, cpy_len * sizeof(float));
+  return cpy_len;
+}
+int8_t Mpu9250::fifo_gyro_y_radps(float * data, const size_t len) {
+  if (!data) {return -1;}
+  #if defined(ARDUINO)
+  int8_t cpy_len = min(fifo_num_frames_, static_cast<int8_t>(len));
+  #else
+  int8_t cpy_len = std::min(fifo_num_frames_, static_cast<int8_t>(len));
+  #endif
+  memcpy(data, fifo_gy_, cpy_len * sizeof(float));
+  return cpy_len;
+}
+int8_t Mpu9250::fifo_gyro_z_radps(float * data, const size_t len) {
+  if (!data) {return -1;}
+  #if defined(ARDUINO)
+  int8_t cpy_len = min(fifo_num_frames_, static_cast<int8_t>(len));
+  #else
+  int8_t cpy_len = std::min(fifo_num_frames_, static_cast<int8_t>(len));
+  #endif
+  memcpy(data, fifo_gz_, cpy_len * sizeof(float));
+  return cpy_len;
+}
+#endif
 bool Mpu9250::WriteRegister(uint8_t reg, uint8_t data) {
   uint8_t ret_val;
   if (iface_ == I2C) {
@@ -425,13 +555,21 @@ bool Mpu9250::WriteRegister(uint8_t reg, uint8_t data) {
     i2c_->endTransmission();
   } else {
     spi_->beginTransaction(SPISettings(spi_clock_, MSBFIRST, SPI_MODE3));
+    #if defined(TEENSYDUINO)
     digitalWriteFast(dev_, LOW);
+    #else
+    digitalWrite(dev_, LOW);
+    #endif
     #if defined(__IMXRT1062__)
       delayNanoseconds(50);
     #endif
     spi_->transfer(reg);
     spi_->transfer(data);
+    #if defined(TEENSYDUINO)
     digitalWriteFast(dev_, HIGH);
+    #else
+    digitalWrite(dev_, HIGH);
+    #endif
     #if defined(__IMXRT1062__)
       delayNanoseconds(50);
     #endif
@@ -452,7 +590,7 @@ bool Mpu9250::ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data) {
     i2c_->endTransmission(false);
     bytes_rx_ = i2c_->requestFrom(static_cast<uint8_t>(dev_), count);
     if (bytes_rx_ == count) {
-      for (std::size_t i = 0; i < count; i++) {
+      for (size_t i = 0; i < count; i++) {
         data[i] = i2c_->read();
       }
       return true;
@@ -461,13 +599,21 @@ bool Mpu9250::ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data) {
     }
   } else {
     spi_->beginTransaction(SPISettings(spi_clock_, MSBFIRST, SPI_MODE3));
+    #if defined(TEENSYDUINO)
     digitalWriteFast(dev_, LOW);
+    #else
+    digitalWrite(dev_, LOW);
+    #endif
     #if defined(__IMXRT1062__)
       delayNanoseconds(50);
     #endif
     spi_->transfer(reg | SPI_READ_);
     spi_->transfer(data, count);
+    #if defined(TEENSYDUINO)
     digitalWriteFast(dev_, HIGH);
+    #else
+    digitalWrite(dev_, HIGH);
+    #endif
     #if defined(__IMXRT1062__)
       delayNanoseconds(50);
     #endif

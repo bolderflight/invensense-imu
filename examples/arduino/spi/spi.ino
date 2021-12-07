@@ -44,13 +44,6 @@ void setup() {
     Serial.println("Error configured SRD");
     while(1) {}
   }
-  /* Enabled data ready interrupt */
-  if (!imu.EnableDrdyInt()) {
-    Serial.println("Error enabling data ready interrupt");
-    while(1) {}
-  }
-  /* Attach data ready interrupt to pin 9 */
-  attachInterrupt(9, imu_isr, RISING);
 }
 
 void loop() {
