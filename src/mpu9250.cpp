@@ -29,6 +29,7 @@
 #include "Wire.h"
 #include "SPI.h"
 #else
+#include <algorithm>
 #include "core/core.h"
 #endif
 #include <stddef.h>
