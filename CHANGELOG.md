@@ -1,5 +1,8 @@
 # Changelog
 
+## v5.3.0
+- Removing the tools folder to pass the Arduino linting, these will need to be installed on the system seperately for CMake builds
+
 ## v5.2.0
 - Added FIFO buffer support for accel and gyro data
 
