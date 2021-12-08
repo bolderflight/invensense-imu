@@ -5,7 +5,7 @@ if (DEFINED MCU)
 endif()
 # Project information
 project(Mpu9250
-	VERSION 5.2.0
+	VERSION 5.3.0
 	DESCRIPTION "MPU-9250 sensor driver"
 	LANGUAGES CXX
 )
