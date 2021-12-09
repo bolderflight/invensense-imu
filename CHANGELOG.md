@@ -1,5 +1,8 @@
 # Changelog
 
+## v5.3.1
+- Updating to pull in mcu-support repo for cmake, lib, ld, and tools libs
+
 ## v5.3.0
 - Removing the tools folder to pass the Arduino linting, these will need to be installed on the system seperately for CMake builds
 

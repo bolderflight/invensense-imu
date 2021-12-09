@@ -1,24 +1,30 @@
-cmake_minimum_required(VERSION 3.13)
+# v3.14 required for FetchContent_MakeAvailable
+cmake_minimum_required(VERSION 3.14)
 if (DEFINED MCU)
-	# Setting up the toolchain
-	set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/cmake/cortex.cmake")
-endif()
-# Project information
-project(Mpu9250
-	VERSION 5.3.0
-	DESCRIPTION "MPU-9250 sensor driver"
-	LANGUAGES CXX
-)
-if (DEFINED MCU)
+  include(FetchContent)
+	FetchContent_Declare(
+		mcu_support
+		GIT_REPOSITORY https://github.com/bolderflight/mcu-support.git
+		GIT_TAG v1.0.0
+	)
+	FetchContent_MakeAvailable(mcu_support)
+  # Setting up the toolchain
+  set(CMAKE_TOOLCHAIN_FILE "${mcu_support_SOURCE_DIR}/cmake/cortex.cmake")
+	# Project information
+	project(Mpu9250
+		VERSION 5.3.1
+		DESCRIPTION "MPU-9250 sensor driver"
+		LANGUAGES CXX
+	)
 	# Grab the processor and set up definitions and compile options
-	include(${CMAKE_SOURCE_DIR}/cmake/config_mcu.cmake)
-	configMcu(${MCU})
+	include(${mcu_support_SOURCE_DIR}/cmake/config_mcu.cmake)
+	configMcu(${MCU} ${mcu_support_SOURCE_DIR})
 	include(FetchContent)
 	# Fetch core
 	FetchContent_Declare(
 		core
 		GIT_REPOSITORY https://github.com/bolderflight/core.git
-		GIT_TAG v3.0.0
+		GIT_TAG v3.0.2
 	)
 	FetchContent_MakeAvailable(core)
 	# Add the library target
@@ -36,12 +42,8 @@ if (DEFINED MCU)
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 		$<INSTALL_INTERFACE:include>
 	)
-endif()
-
-# Example and test if this project is built separately
-if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
-	if (DEFINED MCU)
-
+	# Example and test if this project is built separately
+	if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
 		# Add the spi example target
 		add_executable(spi_example examples/cmake/spi.cc)
 		# Add the includes
@@ -55,8 +57,8 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
 				mpu9250
 		)
 		# Add hex and upload targets
-		include(${CMAKE_SOURCE_DIR}/cmake/flash_mcu.cmake)
-		FlashMcu(spi_example ${MCU})
+		include(${mcu_support_SOURCE_DIR}/cmake/flash_mcu.cmake)
+		FlashMcu(spi_example ${MCU} ${mcu_support_SOURCE_DIR})
 
 		# Add the i2c example target
 		add_executable(i2c_example examples/cmake/i2c.cc)
@@ -71,8 +73,8 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
 				mpu9250
 		)
 		# Add hex and upload targets
-		include(${CMAKE_SOURCE_DIR}/cmake/flash_mcu.cmake)
-		FlashMcu(i2c_example ${MCU})
+		include(${mcu_support_SOURCE_DIR}/cmake/flash_mcu.cmake)
+		FlashMcu(i2c_example ${MCU} ${mcu_support_SOURCE_DIR})
 
 		# Add the drdy interrupt example
 		add_executable(drdy_spi_example examples/cmake/drdy_spi.cc)
@@ -87,8 +89,8 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
 				mpu9250
 		)
 		# Add hex and upload targets
-		include(${CMAKE_SOURCE_DIR}/cmake/flash_mcu.cmake)
-		FlashMcu(drdy_spi_example ${MCU})
+		include(${mcu_support_SOURCE_DIR}/cmake/flash_mcu.cmake)
+		FlashMcu(drdy_spi_example ${MCU} ${mcu_support_SOURCE_DIR})
 
 		# Add the wom example
 		add_executable(wom_example examples/cmake/wom_i2c.cc)
@@ -103,8 +105,8 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
 				mpu9250
 		)
 		# Add hex and upload targets
-		include(${CMAKE_SOURCE_DIR}/cmake/flash_mcu.cmake)
-		FlashMcu(wom_example ${MCU})
+		include(${mcu_support_SOURCE_DIR}/cmake/flash_mcu.cmake)
+		FlashMcu(wom_example ${MCU} ${mcu_support_SOURCE_DIR})
 
 		# Add the fifo example
 		add_executable(fifo_example examples/cmake/fifo_spi.cc)
@@ -119,7 +121,7 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
 				mpu9250
 		)
 		# Add hex and upload targets
-		include(${CMAKE_SOURCE_DIR}/cmake/flash_mcu.cmake)
-		FlashMcu(fifo_example ${MCU})
+		include(${mcu_support_SOURCE_DIR}/cmake/flash_mcu.cmake)
+		FlashMcu(fifo_example ${MCU} ${mcu_support_SOURCE_DIR})
 	endif()
 endif()
