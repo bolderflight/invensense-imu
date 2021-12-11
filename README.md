@@ -210,7 +210,7 @@ if (!status) {
 }
 ```
 
-**DlpfBandwidth dlpf()** Returns the current digital low pass filter bandwidth setting.
+**DlpfBandwidth dlpf_bandwidth()** Returns the current digital low pass filter bandwidth setting.
 
 ```C++
 DlpfBandwidth dlpf = mpu9250.dlpf();
