@@ -35,6 +35,8 @@
 #include <cstddef>
 #include <cstdint>
 #include "units.h"  // NOLINT
+#include "eigen.h"  // NOLINT
+#include "Eigen/Dense"
 
 namespace bfs {
 
@@ -138,7 +140,7 @@ bool Mpu9250::Begin() {
     return false;
   }
   /* Set the DLPF to 184HZ by default */
-  if (!ConfigDlpf(DLPF_BANDWIDTH_184HZ)) {
+  if (!ConfigDlpfBandwidth(DLPF_BANDWIDTH_184HZ)) {
     return false;
   }
   /* Set the SRD to 0 by default */
@@ -277,7 +279,7 @@ bool Mpu9250::ConfigSrd(const uint8_t srd) {
   srd_ = srd;
   return true;
 }
-bool Mpu9250::ConfigDlpf(const DlpfBandwidth dlpf) {
+bool Mpu9250::ConfigDlpfBandwidth(const DlpfBandwidth dlpf) {
   spi_clock_ = SPI_CFG_CLOCK_;
   /* Check input is valid and set requested dlpf */
   switch (dlpf) {

@@ -35,6 +35,8 @@
 #endif
 #include <cstddef>
 #include <cstdint>
+#include "eigen.h"  // NOLINT
+#include "Eigen/Dense"
 
 namespace bfs {
 
@@ -102,13 +104,16 @@ class Mpu9250 {
   inline float accel_x_mps2() const {return accel_[0];}
   inline float accel_y_mps2() const {return accel_[1];}
   inline float accel_z_mps2() const {return accel_[2];}
+  inline Eigen::Vector3f accel_mps2() const {return accel_;}
   inline float gyro_x_radps() const {return gyro_[0];}
   inline float gyro_y_radps() const {return gyro_[1];}
   inline float gyro_z_radps() const {return gyro_[2];}
+  inline Eigen::Vector3f gyro_radps() const {return gyro_;}
   inline bool new_mag_data() const {return new_mag_data_;}
   inline float mag_x_ut() const {return mag_[0];}
   inline float mag_y_ut() const {return mag_[1];}
   inline float mag_z_ut() const {return mag_[2];}
+  inline Eigen::Vector3f mag_ut() const {return mag_;}
   inline float die_temp_c() const {return temp_;}
   #if !defined(DISABLE_MPU9250_FIFO)
   int8_t fifo_accel_x_mps2(float * data, const std::size_t len);
@@ -161,7 +166,7 @@ class Mpu9250 {
   uint8_t mag_data_[8];
   uint8_t data_buf_[23];
   int16_t accel_cnts_[3], gyro_cnts_[3], temp_cnts_, mag_cnts_[3];
-  float accel_[3], gyro_[3], mag_[3];
+  Eigen::Vector3f accel_, gyro_, mag_;
   float temp_;
   /* FIFO data */
   #if !defined(DISABLE_MPU9250_FIFO)
