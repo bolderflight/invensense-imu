@@ -1,5 +1,8 @@
 # Changelog
 
+## v5.3.3
+- Fixed typos between README and header regarding dlpf_bandwidth
+
 ## v5.3.2
 - Updating to pull in Units for deg -> rad and g -> m/s/s
 

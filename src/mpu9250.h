@@ -88,7 +88,7 @@ class Mpu9250 {
   inline GyroRange gyro_range() const {return gyro_range_;}
   bool ConfigSrd(const uint8_t srd);
   inline uint8_t srd() const {return srd_;}
-  bool ConfigDlpf(const DlpfBandwidth dlpf);
+  bool ConfigDlpfBandwidth(const DlpfBandwidth dlpf);
   inline DlpfBandwidth dlpf_bandwidth() const {return dlpf_bandwidth_;}
   bool EnableWom(int16_t threshold_mg, const WomRate wom_rate);
   #if !defined(DISABLE_MPU9250_FIFO)
