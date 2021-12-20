@@ -6,7 +6,7 @@ if (DEFINED MCU)
     mcu_support
     GIT_REPOSITORY https://github.com/bolderflight/mcu-support.git
     GIT_TAG v1.0.0
-	)
+  )
   FetchContent_MakeAvailable(mcu_support)
   # Setting up the toolchain
   set(CMAKE_TOOLCHAIN_FILE "${mcu_support_SOURCE_DIR}/cmake/cortex.cmake")
