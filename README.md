@@ -35,7 +35,7 @@ void loop() {}
 ```
 
 ## Arduino
-Use the Arduino Library Manager to install this library or clone to your Arduino/libraries folder. This library is added as:
+Use the Arduino Library Manager to install this library or clone to your Arduino/libraries folder. In addition, the [Bolder Flight Systems Units library](https://github.com/bolderflight/units) and the [Bolder Flight Systems Eigen library](https://github.com/bolderflight/eigen) must be installed. This library is added as:
 
 ```C++
 #include "mpu9250.h"
@@ -308,6 +308,12 @@ if (mpu9250.Read()) {
   float hz = mpu9250.mag_z_ut();
 }
 ```
+
+**Eigen::Vector3f accel_mps2()** Returns the accelerometer data from the Mpu9250 object as an Eigen::Vector3 in units of m/s/s.
+
+**Eigen::Vector3f gyro_radps()** Returns the gyro data from the Mpu9250 object as an Eigen::Vector3 in units of rad/s.
+
+**Eigen::Vector3f mag_ut()** Returns the magnetometer data from the Mpu9250 object as an Eigen::Vector3 in units of uT.
 
 **float die_temp_c()** Returns the die temperature of the sensor in units of C.
 

@@ -12,7 +12,7 @@ if (DEFINED MCU)
   set(CMAKE_TOOLCHAIN_FILE "${mcu_support_SOURCE_DIR}/cmake/cortex.cmake")
 	# Project information
 	project(Mpu9250
-		VERSION 5.3.3
+		VERSION 5.4.0
 		DESCRIPTION "MPU-9250 sensor driver"
 		LANGUAGES CXX
 	)
@@ -34,6 +34,13 @@ if (DEFINED MCU)
 		GIT_TAG v4.0.4
 	)
 	FetchContent_MakeAvailable(units)
+	# Fetch eigen
+	FetchContent_Declare(
+		eigen
+		GIT_REPOSITORY https://github.com/bolderflight/eigen.git
+		GIT_TAG v3.0.2
+	)
+	FetchContent_MakeAvailable(eigen)
 	# Add the library target
 	add_library(mpu9250
 		src/mpu9250.cpp
@@ -44,6 +51,7 @@ if (DEFINED MCU)
 		PUBLIC
 			core
 			units
+			eigen
 	)
 	# Setup include directories 
 	target_include_directories(mpu9250 PUBLIC 

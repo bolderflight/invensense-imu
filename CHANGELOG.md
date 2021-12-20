@@ -1,5 +1,8 @@
 # Changelog
 
+## v5.4.0
+- Pulling in Eigen for vector output of accel, gyro, mag
+
 ## v5.3.3
 - Fixed typos between README and header regarding dlpf_bandwidth
 
