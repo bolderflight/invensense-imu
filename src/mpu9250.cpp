@@ -29,9 +29,9 @@
 #include "Wire.h"
 #include "SPI.h"
 #else
-#include <algorithm>
 #include "core/core.h"
 #endif
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include "units.h"  // NOLINT
@@ -464,11 +464,7 @@ int8_t Mpu9250::ReadFifo() {
   /* Number of data frames available */
   fifo_num_frames_ = fifo_bytes_ / FIFO_FRAME_SIZE_;
   /* Read and store each frame */
-  #if defined(ARDUINO)
-  int8_t frames_to_read = min(fifo_num_frames_, FIFO_MAX_NUM_FRAMES_);
-  #else
   int8_t frames_to_read = std::min(fifo_num_frames_, FIFO_MAX_NUM_FRAMES_);
-  #endif
   for (int8_t i = 0; i < frames_to_read; i++) {
     if (!ReadRegisters(FIFO_READ_, FIFO_FRAME_SIZE_, data_buf_)) {
       return -1;
@@ -496,61 +492,37 @@ int8_t Mpu9250::ReadFifo() {
 }
 int8_t Mpu9250::fifo_accel_x_mps2(float * data, const std::size_t len) {
   if (!data) {return -1;}
-  #if defined(ARDUINO)
-  int8_t cpy_len = min(fifo_num_frames_, static_cast<int8_t>(len));
-  #else
   int8_t cpy_len = std::min(fifo_num_frames_, static_cast<int8_t>(len));
-  #endif
   memcpy(data, fifo_ax_, cpy_len * sizeof(float));
   return cpy_len;
 }
 int8_t Mpu9250::fifo_accel_y_mps2(float * data, const std::size_t len) {
   if (!data) {return -1;}
-  #if defined(ARDUINO)
-  int8_t cpy_len = min(fifo_num_frames_, static_cast<int8_t>(len));
-  #else
   int8_t cpy_len = std::min(fifo_num_frames_, static_cast<int8_t>(len));
-  #endif
   memcpy(data, fifo_ay_, cpy_len * sizeof(float));
   return cpy_len;
 }
 int8_t Mpu9250::fifo_accel_z_mps2(float * data, const std::size_t len) {
   if (!data) {return -1;}
-  #if defined(ARDUINO)
-  int8_t cpy_len = min(fifo_num_frames_, static_cast<int8_t>(len));
-  #else
   int8_t cpy_len = std::min(fifo_num_frames_, static_cast<int8_t>(len));
-  #endif
   memcpy(data, fifo_az_, cpy_len * sizeof(float));
   return cpy_len;
 }
 int8_t Mpu9250::fifo_gyro_x_radps(float * data, const std::size_t len) {
   if (!data) {return -1;}
-  #if defined(ARDUINO)
-  int8_t cpy_len = min(fifo_num_frames_, static_cast<int8_t>(len));
-  #else
   int8_t cpy_len = std::min(fifo_num_frames_, static_cast<int8_t>(len));
-  #endif
   memcpy(data, fifo_gx_, cpy_len * sizeof(float));
   return cpy_len;
 }
 int8_t Mpu9250::fifo_gyro_y_radps(float * data, const std::size_t len) {
   if (!data) {return -1;}
-  #if defined(ARDUINO)
-  int8_t cpy_len = min(fifo_num_frames_, static_cast<int8_t>(len));
-  #else
   int8_t cpy_len = std::min(fifo_num_frames_, static_cast<int8_t>(len));
-  #endif
   memcpy(data, fifo_gy_, cpy_len * sizeof(float));
   return cpy_len;
 }
 int8_t Mpu9250::fifo_gyro_z_radps(float * data, const std::size_t len) {
   if (!data) {return -1;}
-  #if defined(ARDUINO)
-  int8_t cpy_len = min(fifo_num_frames_, static_cast<int8_t>(len));
-  #else
   int8_t cpy_len = std::min(fifo_num_frames_, static_cast<int8_t>(len));
-  #endif
   memcpy(data, fifo_gz_, cpy_len * sizeof(float));
   return cpy_len;
 }
