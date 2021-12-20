@@ -190,7 +190,7 @@ if (!status) {
 uint8_t srd = mpu9250.srd();
 ```
 
-**bool ConfigDlpf(const DlpfBandwidth dlpf)** Sets the cutoff frequency of the digital low pass filter for the accelerometer, gyro, and temperature sensor. Available bandwidths are:
+**bool ConfigDlpfBandwidth(const DlpfBandwidth dlpf)** Sets the cutoff frequency of the digital low pass filter for the accelerometer, gyro, and temperature sensor. Available bandwidths are:
 
 | DLPF Bandwidth | Enum Value |
 | --- | --- |
@@ -204,16 +204,16 @@ uint8_t srd = mpu9250.srd();
 True is returned on succesfully setting the digital low pass filters, otherwise, false is returned. The default bandwidth is 184 Hz.
 
 ```C++
-bool status = mpu9250.ConfigDlpf(bfs::Mpu9250::DLPF_BANDWIDTH_20HZ);
+bool status = mpu9250.ConfigDlpfBandwidth(bfs::Mpu9250::DLPF_BANDWIDTH_20HZ);
 if (!status) {
   // ERROR
 }
 ```
 
-**DlpfBandwidth dlpf()** Returns the current digital low pass filter bandwidth setting.
+**DlpfBandwidth dlpf_bandwidth()** Returns the current digital low pass filter bandwidth setting.
 
 ```C++
-DlpfBandwidth dlpf = mpu9250.dlpf();
+DlpfBandwidth dlpf = mpu9250.dlpf_bandwidth();
 ```
 
 **bool EnableWom(int16_t threshold_mg, const WomRate wom_rate)** Enables the Wake-On-Motion interrupt. It places the MPU-9250 into a low power state, waking up at an interval determined by the *WomRate*. If the accelerometer detects motion in excess of the threshold, *threshold_mg*, it generates a 50us pulse from the MPU-9250 interrupt pin. The following enumerated WOM rates are supported:
