@@ -12,7 +12,7 @@ if (DEFINED MCU)
   set(CMAKE_TOOLCHAIN_FILE "${mcu_support_SOURCE_DIR}/cmake/cortex.cmake")
   # Project information
   project(Mpu9250
-    VERSION 5.4.0
+    VERSION 5.4.1
     DESCRIPTION "MPU-9250 sensor driver"
     LANGUAGES CXX
   )

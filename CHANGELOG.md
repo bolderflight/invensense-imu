@@ -1,5 +1,8 @@
 # Changelog
 
+## v5.4.1
+- Removing some unneeded ARDUINO if defs
+
 ## v5.4.0
 - Pulling in Eigen for vector output of accel, gyro, mag
 
