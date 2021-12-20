@@ -11,13 +11,16 @@ new_imu_data	KEYWORD2
 accel_x_mps2	KEYWORD2
 accel_y_mps2	KEYWORD2
 accel_z_mps2	KEYWORD2
+accel_mps2	KEYWORD2
 gyro_x_radps	KEYWORD2
 gyro_y_radps	KEYWORD2
 gyro_z_radps	KEYWORD2
+gyro_radps	KEYWORD2
 new_mag_data	KEYWORD2
 mag_x_ut	KEYWORD2
 mag_y_ut	KEYWORD2
 mag_z_ut	KEYWORD2
+mag_ut	KEYWORD2
 die_temp_c	KEYWORD2
 DlpfBandwidth	KEYWORD1
 DLPF_BANDWIDTH_184HZ	LITERAL1
