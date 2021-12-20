@@ -3,7 +3,7 @@
 ![Bolder Flight Systems Logo](img/logo-words_75.png) &nbsp; &nbsp; ![Arduino Logo](img/arduino_logo_75.png)
 
 # Mpu9250
-This library communicates with [InvenSense MPU-9250 and MPU-9255](https://invensense.tdk.com/products/motion-tracking/9-axis/mpu-9250/) Inertial Measurement Units (IMUs). This library is compatible with Arduino and CMake build systems.
+This library communicates with [InvenSense MPU-9250 and MPU-9255](https://invensense.tdk.com/products/motion-tracking/9-axis/mpu-9250/) Inertial Measurement Units (IMUs). This library is compatible with Arduino ARM and CMake build systems.
    * [License](LICENSE.md)
    * [Changelog](CHANGELOG.md)
    * [Contributing guide](CONTRIBUTING.md)
@@ -23,7 +23,7 @@ The MPU-9250 samples the gyros, accelerometers, and magnetometers with 16 bit an
 # Installation
 
 ## Library Memory Footprint
-For Arduino Uno and other devices with limited memory available, *DISABLE_MPU9250_FIFO* can be defined before the library is included to significantly reduce the library's memory footprint, at the expense of removing all FIFO functionality. An example of this is below.
+For devices with limited memory available, *DISABLE_MPU9250_FIFO* can be defined before the library is included to significantly reduce the library's memory footprint, at the expense of removing all FIFO functionality. An example of this is below.
 
 ```C++
 #define DISABLE_MPU9250_FIFO
@@ -41,7 +41,7 @@ Use the Arduino Library Manager to install this library or clone to your Arduino
 #include "mpu9250.h"
 ```
 
-Example Arduino executables are located in: *examples/arduino/*, see the Examples list for a complete listing and description. Teensy 3.x, 4.x, and LC devices are used for testing under Arduino and this library should be compatible with other Arduino devices.
+Example Arduino executables are located in: *examples/arduino/*, see the Examples list for a complete listing and description. Teensy 3.x, 4.x, and LC devices are used for testing under Arduino and this library should be compatible with other Arduino ARM devices. This library is **not** expected to work with AVR devices.
 
 ## CMake
 CMake is used to build this library, which is exported as a library target called *mpu9250*. The header is added as:
@@ -326,7 +326,7 @@ If you're using the IMU data ready interrupt to trigger the FIFO buffer, as in t
 int8_t fifo_len = imu.ReadFifo();
 ```
 
-**int8_t fifo_accel_x_mps2(float * data, const size_t len)** Copies the x-axis accelerometer data from the last *ReadFifo* to the array pointed to by the *data* pointer. The array length given by *len* is used to ensure that the MPU-9250 object doesn't overflow the *data* array. The number of samples copied is returned on success or -1 on failure. Similar methods are available for the y-axis and z-axis accelerometer. Note that this is not a circular buffer, so multiple partial reads won't work, it simply copys the data up to either the number of frames of data available or the array length, whichever is smaller.
+**int8_t fifo_accel_x_mps2(float * data, const std::size_t len)** Copies the x-axis accelerometer data from the last *ReadFifo* to the array pointed to by the *data* pointer. The array length given by *len* is used to ensure that the MPU-9250 object doesn't overflow the *data* array. The number of samples copied is returned on success or -1 on failure. Similar methods are available for the y-axis and z-axis accelerometer. Note that this is not a circular buffer, so multiple partial reads won't work, it simply copys the data up to either the number of frames of data available or the array length, whichever is smaller.
 
 ```C++
 float ax_mps2[bfs::Mpu9250::FIFO_MAX_SIZE()];
@@ -337,7 +337,7 @@ imu.fifo_accel_y_mps2(ax_mps2, bfs::Mpu9250::FIFO_MAX_SIZE());
 imu.fifo_accel_z_mps2(ax_mps2, bfs::Mpu9250::FIFO_MAX_SIZE());
 ```
 
-**int8_t fifo_gyro_x_radps(float * data, const size_t len)** Copies the x-axis gyro data from the last *ReadFifo* to the array pointed to by the *data* pointer. The array length given by *len* is used to ensure that the MPU-9250 object doesn't overflow the *data* array. The number of samples copied is returned on success or -1 on failure. Similar methods are available for the y-axis and z-axis gyro. Note that this is not a circular buffer, so multiple partial reads won't work, it simply copys the data up to either the number of frames of data available or the array length, whichever is smaller.
+**int8_t fifo_gyro_x_radps(float * data, const std::size_t len)** Copies the x-axis gyro data from the last *ReadFifo* to the array pointed to by the *data* pointer. The array length given by *len* is used to ensure that the MPU-9250 object doesn't overflow the *data* array. The number of samples copied is returned on success or -1 on failure. Similar methods are available for the y-axis and z-axis gyro. Note that this is not a circular buffer, so multiple partial reads won't work, it simply copys the data up to either the number of frames of data available or the array length, whichever is smaller.
 
 ```C++
 float gx_radps[bfs::Mpu9250::FIFO_MAX_SIZE()];

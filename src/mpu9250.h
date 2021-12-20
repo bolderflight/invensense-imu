@@ -33,8 +33,8 @@
 #else
 #include "core/core.h"
 #endif
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 namespace bfs {
 
@@ -111,12 +111,12 @@ class Mpu9250 {
   inline float mag_z_ut() const {return mag_[2];}
   inline float die_temp_c() const {return temp_;}
   #if !defined(DISABLE_MPU9250_FIFO)
-  int8_t fifo_accel_x_mps2(float * data, const size_t len);
-  int8_t fifo_accel_y_mps2(float * data, const size_t len);
-  int8_t fifo_accel_z_mps2(float * data, const size_t len);
-  int8_t fifo_gyro_x_radps(float * data, const size_t len);
-  int8_t fifo_gyro_y_radps(float * data, const size_t len);
-  int8_t fifo_gyro_z_radps(float * data, const size_t len);
+  int8_t fifo_accel_x_mps2(float * data, const std::size_t len);
+  int8_t fifo_accel_y_mps2(float * data, const std::size_t len);
+  int8_t fifo_accel_z_mps2(float * data, const std::size_t len);
+  int8_t fifo_gyro_x_radps(float * data, const std::size_t len);
+  int8_t fifo_gyro_y_radps(float * data, const std::size_t len);
+  int8_t fifo_gyro_z_radps(float * data, const std::size_t len);
   static constexpr int8_t FIFO_MAX_SIZE() {return FIFO_MAX_NUM_FRAMES_;}
   inline bool fifo_overflow() const {return fifo_overflow_;}
   #endif
@@ -163,8 +163,6 @@ class Mpu9250 {
   int16_t accel_cnts_[3], gyro_cnts_[3], temp_cnts_, mag_cnts_[3];
   float accel_[3], gyro_[3], mag_[3];
   float temp_;
-  static constexpr float PI_ = 3.14159265358979323846f;
-  static constexpr float G_ = 9.80665f;
   /* FIFO data */
   #if !defined(DISABLE_MPU9250_FIFO)
   bool fifo_overflow_;

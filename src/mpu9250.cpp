@@ -32,8 +32,9 @@
 #include <algorithm>
 #include "core/core.h"
 #endif
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
+#include "units.h"  // NOLINT
 
 namespace bfs {
 
@@ -432,13 +433,16 @@ bool Mpu9250::Read() {
     new_mag_data_ = false;
   }
   /* Convert to float values and rotate the accel / gyro axis */
-  accel_[0] = static_cast<float>(accel_cnts_[1]) * accel_scale_ * G_;
-  accel_[1] = static_cast<float>(accel_cnts_[0]) * accel_scale_ * G_;
-  accel_[2] = static_cast<float>(accel_cnts_[2]) * accel_scale_ * -1.0f * G_;
+  accel_[0] = convacc(static_cast<float>(accel_cnts_[1]) * accel_scale_,
+                      LinAccUnit::G, LinAccUnit::MPS2);
+  accel_[1] = convacc(static_cast<float>(accel_cnts_[0]) * accel_scale_,
+                      LinAccUnit::G, LinAccUnit::MPS2);
+  accel_[2] = convacc(static_cast<float>(accel_cnts_[2]) * accel_scale_ * -1.0f,
+                      LinAccUnit::G, LinAccUnit::MPS2);
   temp_ = (static_cast<float>(temp_cnts_) - 21.0f) / TEMP_SCALE_ + 21.0f;
-  gyro_[0] = static_cast<float>(gyro_cnts_[1]) * gyro_scale_ / PI_;
-  gyro_[1] = static_cast<float>(gyro_cnts_[0]) * gyro_scale_ / PI_;
-  gyro_[2] = static_cast<float>(gyro_cnts_[2]) * gyro_scale_ * -1.0f / PI_;
+  gyro_[0] = deg2rad(static_cast<float>(gyro_cnts_[1]) * gyro_scale_);
+  gyro_[1] = deg2rad(static_cast<float>(gyro_cnts_[0]) * gyro_scale_);
+  gyro_[2] = deg2rad(static_cast<float>(gyro_cnts_[2]) * gyro_scale_ * -1.0f);
   /* Only update on new data */
   if (new_mag_data_) {
     mag_[0] =   static_cast<float>(mag_cnts_[0]) * mag_scale_[0];
@@ -475,17 +479,20 @@ int8_t Mpu9250::ReadFifo() {
     gyro_cnts_[1] =  static_cast<int16_t>(data_buf_[8]) << 8 | data_buf_[9];
     gyro_cnts_[2] =  static_cast<int16_t>(data_buf_[10]) << 8 | data_buf_[11];
     /* Convert to float values and rotate the accel / gyro axis */
-    fifo_ax_[i] = static_cast<float>(accel_cnts_[1]) * accel_scale_ * G_;
-    fifo_ay_[i] = static_cast<float>(accel_cnts_[0]) * accel_scale_ * G_;
-    fifo_az_[i] = static_cast<float>(accel_cnts_[2]) * accel_scale_ * -1.0f
-                                                     * G_;
-    fifo_gx_[i] = static_cast<float>(gyro_cnts_[1]) * gyro_scale_ / PI_;
-    fifo_gy_[i] = static_cast<float>(gyro_cnts_[0]) * gyro_scale_ / PI_;
-    fifo_gz_[i] = static_cast<float>(gyro_cnts_[2]) * gyro_scale_ * -1.0f / PI_;
+    fifo_ax_[i] = convacc(static_cast<float>(accel_cnts_[1]) * accel_scale_,
+                          LinAccUnit::G, LinAccUnit::MPS2);
+    fifo_ay_[i] = convacc(static_cast<float>(accel_cnts_[0]) * accel_scale_,
+                          LinAccUnit::G, LinAccUnit::MPS2);
+    fifo_az_[i] = convacc(static_cast<float>(accel_cnts_[2]) * accel_scale_ *
+                          -1.0f, LinAccUnit::G, LinAccUnit::MPS2);
+    fifo_gx_[i] = deg2rad(static_cast<float>(gyro_cnts_[1]) * gyro_scale_);
+    fifo_gy_[i] = deg2rad(static_cast<float>(gyro_cnts_[0]) * gyro_scale_);
+    fifo_gz_[i] = deg2rad(static_cast<float>(gyro_cnts_[2]) * gyro_scale_ *
+                          -1.0f);
   }
   return fifo_num_frames_;
 }
-int8_t Mpu9250::fifo_accel_x_mps2(float * data, const size_t len) {
+int8_t Mpu9250::fifo_accel_x_mps2(float * data, const std::size_t len) {
   if (!data) {return -1;}
   #if defined(ARDUINO)
   int8_t cpy_len = min(fifo_num_frames_, static_cast<int8_t>(len));
@@ -495,7 +502,7 @@ int8_t Mpu9250::fifo_accel_x_mps2(float * data, const size_t len) {
   memcpy(data, fifo_ax_, cpy_len * sizeof(float));
   return cpy_len;
 }
-int8_t Mpu9250::fifo_accel_y_mps2(float * data, const size_t len) {
+int8_t Mpu9250::fifo_accel_y_mps2(float * data, const std::size_t len) {
   if (!data) {return -1;}
   #if defined(ARDUINO)
   int8_t cpy_len = min(fifo_num_frames_, static_cast<int8_t>(len));
@@ -505,7 +512,7 @@ int8_t Mpu9250::fifo_accel_y_mps2(float * data, const size_t len) {
   memcpy(data, fifo_ay_, cpy_len * sizeof(float));
   return cpy_len;
 }
-int8_t Mpu9250::fifo_accel_z_mps2(float * data, const size_t len) {
+int8_t Mpu9250::fifo_accel_z_mps2(float * data, const std::size_t len) {
   if (!data) {return -1;}
   #if defined(ARDUINO)
   int8_t cpy_len = min(fifo_num_frames_, static_cast<int8_t>(len));
@@ -515,7 +522,7 @@ int8_t Mpu9250::fifo_accel_z_mps2(float * data, const size_t len) {
   memcpy(data, fifo_az_, cpy_len * sizeof(float));
   return cpy_len;
 }
-int8_t Mpu9250::fifo_gyro_x_radps(float * data, const size_t len) {
+int8_t Mpu9250::fifo_gyro_x_radps(float * data, const std::size_t len) {
   if (!data) {return -1;}
   #if defined(ARDUINO)
   int8_t cpy_len = min(fifo_num_frames_, static_cast<int8_t>(len));
@@ -525,7 +532,7 @@ int8_t Mpu9250::fifo_gyro_x_radps(float * data, const size_t len) {
   memcpy(data, fifo_gx_, cpy_len * sizeof(float));
   return cpy_len;
 }
-int8_t Mpu9250::fifo_gyro_y_radps(float * data, const size_t len) {
+int8_t Mpu9250::fifo_gyro_y_radps(float * data, const std::size_t len) {
   if (!data) {return -1;}
   #if defined(ARDUINO)
   int8_t cpy_len = min(fifo_num_frames_, static_cast<int8_t>(len));
@@ -535,7 +542,7 @@ int8_t Mpu9250::fifo_gyro_y_radps(float * data, const size_t len) {
   memcpy(data, fifo_gy_, cpy_len * sizeof(float));
   return cpy_len;
 }
-int8_t Mpu9250::fifo_gyro_z_radps(float * data, const size_t len) {
+int8_t Mpu9250::fifo_gyro_z_radps(float * data, const std::size_t len) {
   if (!data) {return -1;}
   #if defined(ARDUINO)
   int8_t cpy_len = min(fifo_num_frames_, static_cast<int8_t>(len));
@@ -590,7 +597,7 @@ bool Mpu9250::ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data) {
     i2c_->endTransmission(false);
     bytes_rx_ = i2c_->requestFrom(static_cast<uint8_t>(dev_), count);
     if (bytes_rx_ == count) {
-      for (size_t i = 0; i < count; i++) {
+      for (std::size_t i = 0; i < count; i++) {
         data[i] = i2c_->read();
       }
       return true;

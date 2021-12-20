@@ -1,5 +1,8 @@
 # Changelog
 
+## v5.3.2
+- Updating to pull in Units for deg -> rad and g -> m/s/s
+
 ## v5.3.1
 - Updating to pull in mcu-support repo for cmake, lib, ld, and tools libs
 
