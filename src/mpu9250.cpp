@@ -2,7 +2,7 @@
 * Brian R Taylor
 * brian.taylor@bolderflight.com
 * 
-* Copyright (c) 2021 Bolder Flight Systems Inc
+* Copyright (c) 2022 Bolder Flight Systems Inc
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the “Software”), to
@@ -40,6 +40,16 @@
 
 namespace bfs {
 
+void Mpu9250::Config(TwoWire *i2c, const uint8_t addr) {
+  i2c_ = i2c;
+  dev_ = addr;
+  iface_ = I2C;
+}
+void Mpu9250::Config(SPIClass *spi, const uint8_t cs) {
+  spi_ = spi;
+  dev_ = cs;
+  iface_ = SPI;
+}
 bool Mpu9250::Begin() {
   if (iface_ == SPI) {
     pinMode(dev_, OUTPUT);

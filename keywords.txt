@@ -1,4 +1,5 @@
 Mpu9250	KEYWORD1
+Config	KEYWORD2
 Begin	KEYWORD2
 EnableDrdyInt	KEYWORD2
 DisableDrdyInt	KEYWORD2

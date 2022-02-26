@@ -77,6 +77,8 @@ This library is within the namespace *bfs*.
 
 ## Methods
 
+**Mpu9250()** Default construct, requires calling the *Config* method to setup the I2C or SPI bus and I2C address or SPI chip select pin.
+
 **Mpu9250(i2c_t3 &ast;bus, uint8_t addr)** Creates a Mpu9250 object. This constructor is used for the I2C communication interface. A pointer to the I2C bus object is passed along with the I2C address of the sensor. The address will be 0x68 if the AD0 pin is grounded and 0x69 if the AD0 pin is pulled high.
 
 ```C++
@@ -88,6 +90,10 @@ Mpu9250 mpu9250(&Wire, 0x68);
 ```C++
 Mpu9250 mpu9250(&SPI, 2);
 ```
+
+**void Config(TwoWire &ast;bus, const uint8_t addr)** This is required when using the default constructor and sets up the I2C bus and I2C address.
+
+**void Config(SPIClass &ast;spi, const uint8_t cs)** This is required when using the default constructor and sets up the SPI bus and chip select pin.
 
 **bool Begin()** Initializes communication with the sensor and configures the default sensor ranges, sampling rates, and low pass filter settings. The default accelerometer range is +/- 16g and the default gyro range is +/- 2,000 deg/s. The default sampling rate is 1000 Hz and the low-pass filter is set to a cutoff frequency of 184 Hz. True is returned if communication is able to be established with the sensor and configuration completes successfully, otherwise, false is returned. The communication bus is not initialized within this library and must be initialized seperately; this enhances compatibility with other sensors that may on the same bus.
 
