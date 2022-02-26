@@ -40,9 +40,9 @@
 
 namespace bfs {
 
-void Mpu9250::Config(TwoWire *i2c, const uint8_t addr) {
+void Mpu9250::Config(TwoWire *i2c, const I2cAddr addr) {
   i2c_ = i2c;
-  dev_ = addr;
+  dev_ = static_cast<uint8_t>(addr);
   iface_ = I2C;
 }
 void Mpu9250::Config(SPIClass *spi, const uint8_t cs) {

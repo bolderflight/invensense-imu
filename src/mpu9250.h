@@ -43,6 +43,10 @@ namespace bfs {
 class Mpu9250 {
  public:
   /* Sensor and filter settings */
+  enum I2cAddr : uint8_t {
+    I2C_ADDR_PRIM = 0x68,
+    I2C_ADDR_SEC = 0x69
+  };
   enum DlpfBandwidth : int8_t {
     DLPF_BANDWIDTH_184HZ = 0x01,
     DLPF_BANDWIDTH_92HZ = 0x02,
@@ -78,11 +82,12 @@ class Mpu9250 {
     WOM_RATE_500HZ = 0x0B
   };
   Mpu9250() {}
-  Mpu9250(TwoWire *i2c, const uint8_t addr) : i2c_(i2c), dev_(addr),
+  Mpu9250(TwoWire *i2c, const I2cAddr addr) : i2c_(i2c),
+                                              dev_(static_cast<uint8_t>(addr)),
                                               iface_(I2C) {}
   Mpu9250(SPIClass *spi, const uint8_t cs) : spi_(spi), dev_(cs),
                                              iface_(SPI) {}
-  void Config(TwoWire *i2c, const uint8_t addr);
+  void Config(TwoWire *i2c, const I2cAddr addr);
   void Config(SPIClass *spi, const uint8_t cs);
   bool Begin();
   bool EnableDrdyInt();

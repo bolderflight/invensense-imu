@@ -77,9 +77,9 @@ This library is within the namespace *bfs*.
 
 ## Methods
 
-**Mpu9250()** Default construct, requires calling the *Config* method to setup the I2C or SPI bus and I2C address or SPI chip select pin.
+**Mpu9250()** Default constructor, requires calling the *Config* method to setup the I2C or SPI bus and I2C address or SPI chip select pin.
 
-**Mpu9250(i2c_t3 &ast;bus, uint8_t addr)** Creates a Mpu9250 object. This constructor is used for the I2C communication interface. A pointer to the I2C bus object is passed along with the I2C address of the sensor. The address will be 0x68 if the AD0 pin is grounded and 0x69 if the AD0 pin is pulled high.
+**Mpu9250(i2c_t3 &ast;bus, I2cAddr addr)** Creates a Mpu9250 object. This constructor is used for the I2C communication interface. A pointer to the I2C bus object is passed along with the I2C address of the sensor. The address will be I2C_ADDR_PRIM (0x68) if the AD0 pin is grounded and I2C_ADDR_SEC (0x69) if the AD0 pin is pulled high.
 
 ```C++
 Mpu9250 mpu9250(&Wire, 0x68);
@@ -91,7 +91,7 @@ Mpu9250 mpu9250(&Wire, 0x68);
 Mpu9250 mpu9250(&SPI, 2);
 ```
 
-**void Config(TwoWire &ast;bus, const uint8_t addr)** This is required when using the default constructor and sets up the I2C bus and I2C address.
+**void Config(TwoWire &ast;bus, const I2cAddr addr)** This is required when using the default constructor and sets up the I2C bus and I2C address. The address will be I2C_ADDR_PRIM (0x68) if the AD0 pin is grounded and I2C_ADDR_SEC (0x69) if the AD0 pin is pulled high.
 
 **void Config(SPIClass &ast;spi, const uint8_t cs)** This is required when using the default constructor and sets up the SPI bus and chip select pin.
 
