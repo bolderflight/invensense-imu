@@ -26,7 +26,7 @@
 #include "mpu9250.h"
 
 /* Mpu9250 object, I2C bus,  0x68 address */
-bfs::Mpu9250 imu(&Wire, 0x68);
+bfs::Mpu9250 imu(&Wire, bfs::Mpu9250::I2C_ADDR_PRIM);
 
 void wakeup() {
   Serial.println("Motion");

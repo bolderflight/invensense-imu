@@ -1,5 +1,8 @@
 # Changelog
 
+## v5.6.0
+- Instead of inputting an I2C address, use an enum of the two potential addresses
+
 ## v5.5.0
 - Updating to include a default constructor
 
