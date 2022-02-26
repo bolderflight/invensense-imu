@@ -1,5 +1,8 @@
 # Changelog
 
+## v5.5.0
+- Updating to include a default constructor
+
 ## v5.4.1
 - Removing some unneeded ARDUINO if defs
 

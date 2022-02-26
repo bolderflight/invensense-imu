@@ -25,8 +25,8 @@
 
 #include "mpu9250.h"
 
-/* Mpu9250 object, I2C bus,  0x68 address */
-bfs::Mpu9250 imu(&Wire, 0x68);
+/* Mpu9250 object */
+bfs::Mpu9250 imu;
 
 void setup() {
   /* Serial to display data */
@@ -35,6 +35,8 @@ void setup() {
   /* Start the I2C bus */
   Wire.begin();
   Wire.setClock(400000);
+  /* I2C bus,  0x68 address */
+  imu.Config(&Wire, 0x68);
   /* Initialize and configure IMU */
   if (!imu.Begin()) {
     Serial.println("Error initializing communication with IMU");
