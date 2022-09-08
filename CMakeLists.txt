@@ -26,22 +26,10 @@ if (DEFINED MCU)
     GIT_TAG v3.0.2
   )
   FetchContent_MakeAvailable(core)
-  # Fetch units
-  FetchContent_Declare(
-    units
-    GIT_REPOSITORY https://github.com/bolderflight/units.git
-    GIT_TAG v4.0.4
-  )
-  FetchContent_MakeAvailable(units)
-  # Fetch eigen
-  FetchContent_Declare(
-    eigen
-    GIT_REPOSITORY https://github.com/bolderflight/eigen.git
-    GIT_TAG v3.0.2
-  )
-  FetchContent_MakeAvailable(eigen)
   # Add the library target
   add_library(mpu9250
+    src/invensense.cpp
+    src/invensense.h
     src/mpu9250.cpp
     src/mpu9250.h
   )
@@ -49,8 +37,6 @@ if (DEFINED MCU)
   target_link_libraries(mpu9250
     PUBLIC
       core
-      units
-      eigen
   )
   # Setup include directories 
   target_include_directories(mpu9250 PUBLIC 

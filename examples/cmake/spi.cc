@@ -23,6 +23,7 @@
 * IN THE SOFTWARE.
 */
 
+#define DISABLE_MPU9250_FIFO
 #include "mpu9250.h"
 
 /* Mpu9250 object, SPI bus, CS on pin 10 */
