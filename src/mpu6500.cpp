@@ -223,9 +223,9 @@ bool Mpu6500::EnableWom(int16_t threshold_mg, const WomRate wom_rate) {
   /* Check threshold in limits, 4 - 1020 mg */
   if ((threshold_mg < 4) || (threshold_mg > 1020)) {return false;}
   spi_clock_ = SPI_CFG_CLOCK_;
-  /* Reset the MPU9250 */
+  /* Reset the MPU-6500 */
   WriteRegister(PWR_MGMNT_1_, H_RESET_);
-  /* Wait for MPU-9250 to come back up */
+  /* Wait for MPU-6500 to come back up */
   delay(1);
   /* Cycle 0, Sleep 0, Standby 0, Internal Clock */
   if (!WriteRegister(PWR_MGMNT_1_, 0x00)) {
@@ -265,9 +265,9 @@ bool Mpu6500::EnableWom(int16_t threshold_mg, const WomRate wom_rate) {
 }
 void Mpu6500::Reset() {
   spi_clock_ = SPI_CFG_CLOCK_;
-  /* Reset the MPU9250 */
+  /* Reset the MPU-6500 */
   WriteRegister(PWR_MGMNT_1_, H_RESET_);
-  /* Wait for MPU-9250 to come back up */
+  /* Wait for MPU-6500 to come back up */
   delay(1);
 }
 bool Mpu6500::Read() {

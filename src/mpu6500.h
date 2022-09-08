@@ -114,7 +114,7 @@ class Mpu6500 {
   InvensenseImu imu_;
   int32_t spi_clock_;
   /*
-  * MPU-9250 supports an SPI clock of 1 MHz for config and 20 MHz for reading
+  * MPU-6500 supports an SPI clock of 1 MHz for config and 20 MHz for reading
   * data; however, in testing we found that 20 MHz was sometimes too fast and
   * scaled this down to 15 MHz, which consistently worked well.
   */
@@ -185,4 +185,4 @@ class Mpu6500 {
 
 }  // namespace bfs
 
-#endif  // INVENSENSE_SRC_MPU9250_H_ NOLINT
+#endif  // INVENSENSE_SRC_MPU6500_H_ NOLINT
