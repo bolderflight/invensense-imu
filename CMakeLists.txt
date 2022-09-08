@@ -32,6 +32,8 @@ if (DEFINED MCU)
     src/invensense.h
     src/mpu9250.cpp
     src/mpu9250.h
+    src/mpu6500.cpp
+    src/mpu6500.h
   )
   # Link libraries
   target_link_libraries(mpu9250
@@ -108,21 +110,5 @@ if (DEFINED MCU)
     # Add hex and upload targets
     include(${mcu_support_SOURCE_DIR}/cmake/flash_mcu.cmake)
     FlashMcu(wom_example ${MCU} ${mcu_support_SOURCE_DIR})
-
-    # Add the fifo example
-    add_executable(fifo_example examples/cmake/fifo_spi.cc)
-    # Add the includes
-    target_include_directories(fifo_example PUBLIC 
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-      $<INSTALL_INTERFACE:include>
-    )
-    # Link libraries to the example target
-    target_link_libraries(fifo_example
-      PRIVATE
-        mpu9250
-    )
-    # Add hex and upload targets
-    include(${mcu_support_SOURCE_DIR}/cmake/flash_mcu.cmake)
-    FlashMcu(fifo_example ${MCU} ${mcu_support_SOURCE_DIR})
   endif()
 endif()
