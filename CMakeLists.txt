@@ -32,6 +32,8 @@ if (DEFINED MCU)
     src/invensense.h
     src/mpu9250.cpp
     src/mpu9250.h
+    src/mpu9150.cpp
+    src/mpu9150.h
     src/mpu6500.cpp
     src/mpu6500.h
     src/mpu6050.cpp
