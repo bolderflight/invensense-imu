@@ -51,6 +51,59 @@ if (DEFINED MCU)
   )
   # Example and test if this project is built separately
   if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
+
+    ### MPU-6050
+
+    # Add the spi example target
+    add_executable(mpu6050_spi_example examples/cmake/mpu6050/spi.cc)
+    # Add the includes
+    target_include_directories(mpu6050_spi_example PUBLIC 
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:include>
+    )
+    # Link libraries to the example target
+    target_link_libraries(mpu6050_spi_example
+      PRIVATE
+        invensense_imu
+    )
+    # Add hex and upload targets
+    include(${mcu_support_SOURCE_DIR}/cmake/flash_mcu.cmake)
+    FlashMcu(mpu6050_spi_example ${MCU} ${mcu_support_SOURCE_DIR})
+
+    # Add the i2c example target
+    add_executable(mpu6050_i2c_example examples/cmake/mpu6050/i2c.cc)
+    # Add the includes
+    target_include_directories(mpu6050_i2c_example PUBLIC 
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:include>
+    )
+    # Link libraries to the example target
+    target_link_libraries(mpu6050_i2c_example
+      PRIVATE
+        invensense_imu
+    )
+    # Add hex and upload targets
+    include(${mcu_support_SOURCE_DIR}/cmake/flash_mcu.cmake)
+    FlashMcu(mpu6050_i2c_example ${MCU} ${mcu_support_SOURCE_DIR})
+
+    # Add the drdy interrupt example
+    add_executable(mpu6050_drdy_spi_example examples/cmake/mpu6050/drdy_spi.cc)
+    # Add the includes
+    target_include_directories(mpu6050_drdy_spi_example PUBLIC 
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:include>
+    )
+    # Link libraries to the example target
+    target_link_libraries(mpu6050_drdy_spi_example
+      PRIVATE
+        invensense_imu
+    )
+    # Add hex and upload targets
+    include(${mcu_support_SOURCE_DIR}/cmake/flash_mcu.cmake)
+    FlashMcu(mpu6050_drdy_spi_example ${MCU} ${mcu_support_SOURCE_DIR})
+
+    ### MPU-6500
+
     # Add the spi example target
     add_executable(mpu6500_spi_example examples/cmake/mpu6500/spi.cc)
     # Add the includes
@@ -114,6 +167,27 @@ if (DEFINED MCU)
     # Add hex and upload targets
     include(${mcu_support_SOURCE_DIR}/cmake/flash_mcu.cmake)
     FlashMcu(mpu6500_wom_example ${MCU} ${mcu_support_SOURCE_DIR})
+
+    ### MPU-9150
+
+    # Add the i2c example target
+    add_executable(mpu9150_i2c_example examples/cmake/mpu9150/i2c.cc)
+    # Add the includes
+    target_include_directories(mpu9150_i2c_example PUBLIC 
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:include>
+    )
+    # Link libraries to the example target
+    target_link_libraries(mpu9150_i2c_example
+      PRIVATE
+        invensense_imu
+    )
+    # Add hex and upload targets
+    include(${mcu_support_SOURCE_DIR}/cmake/flash_mcu.cmake)
+    FlashMcu(mpu9150_i2c_example ${MCU} ${mcu_support_SOURCE_DIR})
+
+    ### MPU-9250
+
     # Add the spi example target
     add_executable(mpu9250_spi_example examples/cmake/mpu6500/spi.cc)
     # Add the includes
