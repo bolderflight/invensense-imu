@@ -23,10 +23,10 @@
 * IN THE SOFTWARE.
 */
 
-#include "mpu6050.h"
+#include "mpu6000.h"
 
-/* Mpu6050 object, SPI bus, CS on pin 10 */
-bfs::Mpu6050 imu(&SPI, 10);
+/* Mpu6000 object, SPI bus, CS on pin 10 */
+bfs::Mpu6000 imu(&SPI, 10);
 
 /* Data acquisition ISR */
 void imu_isr() {

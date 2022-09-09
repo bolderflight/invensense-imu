@@ -23,8 +23,8 @@
 * IN THE SOFTWARE.
 */
 
-#ifndef INVENSENSE_SRC_MPU6050_H_  // NOLINT
-#define INVENSENSE_SRC_MPU6050_H_
+#ifndef INVENSENSE_SRC_MPU6000_H_  // NOLINT
+#define INVENSENSE_SRC_MPU6000_H_
 
 #if defined(ARDUINO)
 #include <Arduino.h>
@@ -39,7 +39,7 @@
 
 namespace bfs {
 
-class Mpu6050 {
+class Mpu6000 {
  public:
   /* Sensor and filter settings */
   enum I2cAddr : uint8_t {
@@ -66,10 +66,13 @@ class Mpu6050 {
     GYRO_RANGE_1000DPS = 0x10,
     GYRO_RANGE_2000DPS = 0x18
   };
-  Mpu6050() {}
-  Mpu6050(TwoWire *i2c, const I2cAddr addr) :
+  Mpu6000() {}
+  Mpu6000(TwoWire *i2c, const I2cAddr addr) :
           imu_(i2c, static_cast<uint8_t>(addr)) {}
+  Mpu6000(SPIClass *spi, const uint8_t cs) :
+          imu_(spi, cs) {}
   void Config(TwoWire *i2c, const I2cAddr addr);
+  void Config(SPIClass *spi, const uint8_t cs);
   bool Begin();
   bool EnableDrdyInt();
   bool DisableDrdyInt();
@@ -96,7 +99,9 @@ class Mpu6050 {
   InvensenseImu imu_;
   int32_t spi_clock_;
   /*
-  * MPU-6050 does not support SPI, but leaving these defs to not break the code
+  * MPU-6000 supports an SPI clock of 1 MHz for config and 20 MHz for reading
+  * data; however, in testing we found that 20 MHz was sometimes too fast and
+  * scaled this down to 15 MHz, which consistently worked well.
   */
   static constexpr int32_t SPI_CFG_CLOCK_ = 1000000;
   static constexpr int32_t SPI_READ_CLOCK_ = 15000000;
@@ -109,7 +114,7 @@ class Mpu6050 {
   uint8_t srd_;
   static constexpr float TEMP_SCALE_ = 333.87f;
   uint8_t who_am_i_;
-  static constexpr uint8_t WHOAMI_MPU6050_ = 0x68;
+  static constexpr uint8_t WHOAMI_MPU6000_ = 0x68;
   /* Data */
   static constexpr float G_MPS2_ = 9.80665f;
   static constexpr float DEG2RAD_ = 3.14159265358979323846264338327950288f /
@@ -144,4 +149,4 @@ class Mpu6050 {
 
 }  // namespace bfs
 
-#endif  // INVENSENSE_SRC_MPU6050_H_ NOLINT
+#endif  // INVENSENSE_SRC_MPU6000_H_ NOLINT

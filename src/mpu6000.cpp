@@ -23,7 +23,7 @@
 * IN THE SOFTWARE.
 */
 
-#include "mpu6050.h"  // NOLINT
+#include "mpu6000.h"  // NOLINT
 #if defined(ARDUINO)
 #include <Arduino.h>
 #include "Wire.h"
@@ -37,10 +37,13 @@
 
 namespace bfs {
 
-void Mpu6050::Config(TwoWire *i2c, const I2cAddr addr) {
+void Mpu6000::Config(TwoWire *i2c, const I2cAddr addr) {
   imu_.Config(i2c, static_cast<uint8_t>(addr));
 }
-bool Mpu6050::Begin() {
+void Mpu6000::Config(SPIClass *spi, const uint8_t cs) {
+  imu_.Config(spi, cs);
+}
+bool Mpu6000::Begin() {
   imu_.Begin();
   /* 1 MHz for config */
   spi_clock_ = SPI_CFG_CLOCK_;
@@ -52,7 +55,7 @@ bool Mpu6050::Begin() {
   if (!ReadRegisters(WHOAMI_, sizeof(who_am_i_), &who_am_i_)) {
     return false;
   }
-  if (who_am_i_ != WHOAMI_MPU6050_) {
+  if (who_am_i_ != WHOAMI_MPU6000_) {
     return false;
   }
   /* Set the accel range to 16G by default */
@@ -73,7 +76,7 @@ bool Mpu6050::Begin() {
   }
   return true;
 }
-bool Mpu6050::EnableDrdyInt() {
+bool Mpu6000::EnableDrdyInt() {
   spi_clock_ = SPI_CFG_CLOCK_;
   if (!WriteRegister(INT_PIN_CFG_, INT_PULSE_50US_)) {
     return false;
@@ -83,14 +86,14 @@ bool Mpu6050::EnableDrdyInt() {
   }
   return true;
 }
-bool Mpu6050::DisableDrdyInt() {
+bool Mpu6000::DisableDrdyInt() {
   spi_clock_ = SPI_CFG_CLOCK_;
   if (!WriteRegister(INT_ENABLE_, INT_DISABLE_)) {
     return false;
   }
   return true;
 }
-bool Mpu6050::ConfigAccelRange(const AccelRange range) {
+bool Mpu6000::ConfigAccelRange(const AccelRange range) {
   spi_clock_ = SPI_CFG_CLOCK_;
   /* Check input is valid and set requested range and scale */
   switch (range) {
@@ -127,7 +130,7 @@ bool Mpu6050::ConfigAccelRange(const AccelRange range) {
   accel_scale_ = requested_accel_scale_;
   return true;
 }
-bool Mpu6050::ConfigGyroRange(const GyroRange range) {
+bool Mpu6000::ConfigGyroRange(const GyroRange range) {
   spi_clock_ = SPI_CFG_CLOCK_;
   /* Check input is valid and set requested range and scale */
   switch (range) {
@@ -164,7 +167,7 @@ bool Mpu6050::ConfigGyroRange(const GyroRange range) {
   gyro_scale_ = requested_gyro_scale_;
   return true;
 }
-bool Mpu6050::ConfigSrd(const uint8_t srd) {
+bool Mpu6000::ConfigSrd(const uint8_t srd) {
   spi_clock_ = SPI_CFG_CLOCK_;
   /* Set the IMU sample rate */
   if (!WriteRegister(SMPLRT_DIV_, srd)) {
@@ -173,7 +176,7 @@ bool Mpu6050::ConfigSrd(const uint8_t srd) {
   srd_ = srd;
   return true;
 }
-bool Mpu6050::ConfigDlpfBandwidth(const DlpfBandwidth dlpf) {
+bool Mpu6000::ConfigDlpfBandwidth(const DlpfBandwidth dlpf) {
   spi_clock_ = SPI_CFG_CLOCK_;
   /* Check input is valid and set requested dlpf */
   switch (dlpf) {
@@ -213,14 +216,14 @@ bool Mpu6050::ConfigDlpfBandwidth(const DlpfBandwidth dlpf) {
   dlpf_bandwidth_ = requested_dlpf_;
   return true;
 }
-void Mpu6050::Reset() {
+void Mpu6000::Reset() {
   spi_clock_ = SPI_CFG_CLOCK_;
-  /* Reset the MPU-6050 */
+  /* Reset the MPU-6000 */
   WriteRegister(PWR_MGMNT_1_, H_RESET_);
-  /* Wait for MPU-6050 to come back up */
+  /* Wait for MPU-6000 to come back up */
   delay(1);
 }
-bool Mpu6050::Read() {
+bool Mpu6000::Read() {
   spi_clock_ = SPI_READ_CLOCK_;
   /* Reset the new data flags */
   new_imu_data_ = false;
@@ -252,10 +255,10 @@ bool Mpu6050::Read() {
   gyro_[2] = static_cast<float>(gyro_cnts_[2]) * gyro_scale_ * -1.0f * DEG2RAD_;
   return true;
 }
-bool Mpu6050::WriteRegister(const uint8_t reg, const uint8_t data) {
+bool Mpu6000::WriteRegister(const uint8_t reg, const uint8_t data) {
   return imu_.WriteRegister(reg, data, spi_clock_);
 }
-bool Mpu6050::ReadRegisters(const uint8_t reg, const uint8_t count,
+bool Mpu6000::ReadRegisters(const uint8_t reg, const uint8_t count,
                             uint8_t * const data) {
   return imu_.ReadRegisters(reg, count, spi_clock_, data);
 }
