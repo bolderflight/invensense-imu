@@ -34,6 +34,8 @@ if (DEFINED MCU)
     src/mpu9250.h
     src/mpu6500.cpp
     src/mpu6500.h
+    src/mpu6050.cpp
+    src/mpu6050.h
   )
   # Link libraries
   target_link_libraries(invensense_imu

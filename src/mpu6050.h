@@ -23,8 +23,8 @@
 * IN THE SOFTWARE.
 */
 
-#ifndef INVENSENSE_SRC_MPU6500_H_  // NOLINT
-#define INVENSENSE_SRC_MPU6500_H_
+#ifndef INVENSENSE_SRC_MPU6050_H_  // NOLINT
+#define INVENSENSE_SRC_MPU6050_H_
 
 #if defined(ARDUINO)
 #include <Arduino.h>
@@ -39,7 +39,7 @@
 
 namespace bfs {
 
-class Mpu6500 {
+class Mpu6050 {
  public:
   /* Sensor and filter settings */
   enum I2cAddr : uint8_t {
@@ -66,24 +66,10 @@ class Mpu6500 {
     GYRO_RANGE_1000DPS = 0x10,
     GYRO_RANGE_2000DPS = 0x18
   };
-  enum WomRate : int8_t {
-    WOM_RATE_0_24HZ = 0x00,
-    WOM_RATE_0_49HZ = 0x01,
-    WOM_RATE_0_98HZ = 0x02,
-    WOM_RATE_1_95HZ = 0x03,
-    WOM_RATE_3_91HZ = 0x04,
-    WOM_RATE_7_81HZ = 0x05,
-    WOM_RATE_15_63HZ = 0x06,
-    WOM_RATE_31_25HZ = 0x07,
-    WOM_RATE_62_50HZ = 0x08,
-    WOM_RATE_125HZ = 0x09,
-    WOM_RATE_250HZ = 0x0A,
-    WOM_RATE_500HZ = 0x0B
-  };
-  Mpu6500() {}
-  Mpu6500(TwoWire *i2c, const I2cAddr addr) :
+  Mpu6050() {}
+  Mpu6050(TwoWire *i2c, const I2cAddr addr) :
           imu_(i2c, static_cast<uint8_t>(addr)) {}
-  Mpu6500(SPIClass *spi, const uint8_t cs) :
+  Mpu6050(SPIClass *spi, const uint8_t cs) :
           imu_(spi, cs) {}
   void Config(TwoWire *i2c, const I2cAddr addr);
   void Config(SPIClass *spi, const uint8_t cs);
@@ -98,7 +84,6 @@ class Mpu6500 {
   inline uint8_t srd() const {return srd_;}
   bool ConfigDlpfBandwidth(const DlpfBandwidth dlpf);
   inline DlpfBandwidth dlpf_bandwidth() const {return dlpf_bandwidth_;}
-  bool EnableWom(int16_t threshold_mg, const WomRate wom_rate);
   void Reset();
   bool Read();
   inline bool new_imu_data() const {return new_imu_data_;}
@@ -114,7 +99,7 @@ class Mpu6500 {
   InvensenseImu imu_;
   int32_t spi_clock_;
   /*
-  * MPU-6500 supports an SPI clock of 1 MHz for config and 20 MHz for reading
+  * MPU-6050 supports an SPI clock of 1 MHz for config and 20 MHz for reading
   * data; however, in testing we found that 20 MHz was sometimes too fast and
   * scaled this down to 15 MHz, which consistently worked well.
   */
@@ -129,7 +114,7 @@ class Mpu6500 {
   uint8_t srd_;
   static constexpr float TEMP_SCALE_ = 333.87f;
   uint8_t who_am_i_;
-  static constexpr uint8_t WHOAMI_MPU6500_ = 0x70;
+  static constexpr uint8_t WHOAMI_MPU6050_ = 0x68;
   /* Data */
   static constexpr float G_MPS2_ = 9.80665f;
   static constexpr float DEG2RAD_ = 3.14159265358979323846264338327950288f /
@@ -156,16 +141,6 @@ class Mpu6500 {
   static constexpr uint8_t INT_RAW_RDY_EN_ = 0x01;
   static constexpr uint8_t INT_STATUS_ = 0x3A;
   static constexpr uint8_t RAW_DATA_RDY_INT_ = 0x01;
-  /* Needed for WOM */
-  static constexpr uint8_t INT_WOM_EN_ = 0x40;
-  static constexpr uint8_t PWR_MGMNT_2_ = 0x6C;
-  static constexpr uint8_t DISABLE_GYRO_ = 0x07;
-  static constexpr uint8_t MOT_DETECT_CTRL_ = 0x69;
-  static constexpr uint8_t ACCEL_INTEL_EN_ = 0x80;
-  static constexpr uint8_t ACCEL_INTEL_MODE_ = 0x40;
-  static constexpr uint8_t LP_ACCEL_ODR_ = 0x1E;
-  static constexpr uint8_t WOM_THR_ = 0x1F;
-  static constexpr uint8_t PWR_CYCLE_WOM_ = 0x20;
   /* Utility functions */
   bool WriteRegister(const uint8_t reg, const uint8_t data);
   bool ReadRegisters(const uint8_t reg, const uint8_t count,
@@ -174,4 +149,4 @@ class Mpu6500 {
 
 }  // namespace bfs
 
-#endif  // INVENSENSE_SRC_MPU6500_H_ NOLINT
+#endif  // INVENSENSE_SRC_MPU6050_H_ NOLINT
