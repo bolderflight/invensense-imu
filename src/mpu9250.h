@@ -23,8 +23,8 @@
 * IN THE SOFTWARE.
 */
 
-#ifndef INVENSENSE_SRC_MPU9250_H_  // NOLINT
-#define INVENSENSE_SRC_MPU9250_H_
+#ifndef INVENSENSE_IMU_SRC_MPU9250_H_  // NOLINT
+#define INVENSENSE_IMU_SRC_MPU9250_H_
 
 #if defined(ARDUINO)
 #include <Arduino.h>
@@ -35,7 +35,7 @@
 #include <cstdint>
 #include "core/core.h"
 #endif
-#include "invensense.h"  // NOLINT
+#include "invensense_imu.h"  // NOLINT
 
 namespace bfs {
 
@@ -213,4 +213,4 @@ class Mpu9250 {
 
 }  // namespace bfs
 
-#endif  // INVENSENSE_SRC_MPU9250_H_ NOLINT
+#endif  // INVENSENSE_IMU_SRC_MPU9250_H_ NOLINT

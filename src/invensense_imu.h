@@ -23,8 +23,8 @@
 * IN THE SOFTWARE.
 */
 
-#ifndef INVENSENSE_SRC_INVENSENSE_H_  // NOLINT
-#define INVENSENSE_SRC_INVENSENSE_H_
+#ifndef INVENSENSE_IMU_SRC_INVENSENSE_IMU_H_  // NOLINT
+#define INVENSENSE_IMU_SRC_INVENSENSE_IMU_H_
 
 #if defined(ARDUINO)
 #include <Arduino.h>
@@ -50,10 +50,13 @@ class InvensenseImu {
   void Config(TwoWire *i2c, const uint8_t addr);
   void Config(SPIClass *spi, const uint8_t cs);
   void Begin();
+  bool ReadRegisters(const uint8_t reg, const uint8_t count,
+                     const int32_t spi_clock, uint8_t * const data);
+  bool WriteRegister(const uint8_t reg, const uint8_t data);
   bool WriteRegister(const uint8_t reg, const uint8_t data,
                      const int32_t spi_clock);
   bool ReadRegisters(const uint8_t reg, const uint8_t count,
-                     const int32_t spi_clock, uint8_t * const data);
+                     uint8_t * const data);
 
  private:
   /* Communications interface */
@@ -72,4 +75,4 @@ class InvensenseImu {
 
 }  // namespace bfs
 
-#endif  // INVENSENSE_SRC_INVENSENSE_H_ NOLINT
+#endif  // INVENSENSE_IMU_SRC_INVENSENSE_IMU_H_ NOLINT

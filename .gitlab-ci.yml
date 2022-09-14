@@ -8,4 +8,8 @@ Lint:
   script: 
     - cpplint --verbose=0 src/mpu9250.cpp
     - cpplint --verbose=0 src/mpu9250.h
+    - cpplint --verbose=0 src/mpu6500.cpp
+    - cpplint --verbose=0 src/mpu6500.h
+    - cpplint --verbose=0 src/invensense_imu.cpp
+    - cpplint --verbose=0 src/invensense_imu.h
   

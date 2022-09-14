@@ -23,7 +23,7 @@
 * IN THE SOFTWARE.
 */
 
-#include "invensense.h"  // NOLINT
+#include "invensense_imu.h"  // NOLINT
 
 namespace bfs {
 
@@ -128,6 +128,23 @@ bool InvensenseImu::ReadRegisters(const uint8_t reg, const uint8_t count,
     #endif
     spi_->endTransaction();
     return true;
+  }
+}
+
+bool InvensenseImu::WriteRegister(const uint8_t reg, const uint8_t data) {
+  if (iface_ == I2C) {
+    return WriteRegister(reg, data, 0);
+  } else {
+    return false;
+  }
+}
+
+bool InvensenseImu::ReadRegisters(const uint8_t reg, const uint8_t count,
+                                  uint8_t * const data) {
+  if (iface_ == I2C) {
+    return ReadRegisters(reg, count, 0, data);
+  } else {
+    return false;
   }
 }
 
