@@ -12,4 +12,5 @@ Lint:
     - cpplint --verbose=0 src/mpu6500.h
     - cpplint --verbose=0 src/invensense_imu.cpp
     - cpplint --verbose=0 src/invensense_imu.h
-  
+    - cpplint --verbose=0 src/bfs-mpu6500.cpp
+    - cpplint --verbose=0 src/bfs-mpu6500.h

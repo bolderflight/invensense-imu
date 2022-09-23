@@ -23,45 +23,49 @@
 * IN THE SOFTWARE.
 */
 
-#include "mpu6500.h"
+#include "bfs-mpu9250.h"
 
-/* Mpu6500 object, SPI bus, CS on pin 10 */
-bfs::Mpu6500 imu(&SPI, 10);
+bfs::BfsMpu9250 imu(&SPI, 10);
 
 int main() {
-  /* Serial to display data */
   Serial.begin(115200);
-  while(!Serial) {}
-  /* Start the SPI bus */
+  while (!Serial) {}
   SPI.begin();
-  /* Initialize and configure IMU */
-  if (!imu.Begin()) {
-    Serial.println("Error initializing communication with IMU");
-    while(1) {}
+  bfs::BfsMpu9250::Config config = {
+    .sample_rate = bfs::BfsMpu9250::SAMPLE_RATE_1000HZ,
+    .init_time_ms = 5000,
+    .accel_range_g = bfs::Mpu9250::ACCEL_RANGE_16G,
+    .gyro_range_dps = bfs::Mpu9250::GYRO_RANGE_2000DPS,
+    .dlpf_hz = bfs::Mpu9250::DLPF_BANDWIDTH_20HZ,
+    .accel_bias_mps2 = {0, 0, 0},
+    .accel_scale = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}},
+    .rotation = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}
+  };
+  bfs::ImuData data;
+  if (!imu.Init(config)) {
+    Serial.println("Failed to init sensor");
   }
-  /* Set the sample rate divider */
-  if (!imu.ConfigSrd(19)) {
-    Serial.println("Error configured SRD");
-    while(1) {}
-  }
-  while(1) {
-    /* Check if data read */
+  while (!imu.Calibrate()) {}
+  while (1) {
     if (imu.Read()) {
-      Serial.print(imu.new_imu_data());
+      data = imu.imu_data();
+      Serial.print(data.status);
       Serial.print("\t");
-      Serial.print(imu.accel_x_mps2());
+      Serial.print(data.new_data);
       Serial.print("\t");
-      Serial.print(imu.accel_y_mps2());
+      Serial.print(data.accel_mps2[0]);
       Serial.print("\t");
-      Serial.print(imu.accel_z_mps2());
+      Serial.print(data.accel_mps2[1]);
       Serial.print("\t");
-      Serial.print(imu.gyro_x_radps());
+      Serial.print(data.accel_mps2[2]);
       Serial.print("\t");
-      Serial.print(imu.gyro_y_radps());
+      Serial.print(data.gyro_radps[0]);
       Serial.print("\t");
-      Serial.print(imu.gyro_z_radps());
+      Serial.print(data.gyro_radps[1]);
       Serial.print("\t");
-      Serial.print(imu.die_temp_c());
+      Serial.print(data.gyro_radps[2]);
+      Serial.print("\t");
+      Serial.print(data.die_temp_c);
       Serial.print("\n");
     }
   }

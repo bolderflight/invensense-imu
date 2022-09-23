@@ -1,5 +1,8 @@
 # Changelog
 
+## v6.1.0
+- Added BfsMpu9250 and BfsMpu6500, these use a config struct and the ImuData and MagData data structs. They also incorporate calibration of the gyros. This facilitates easier integration into BFS software and interoperability between IMUs from different vendors.
+
 ## v6.0.0
 - Including support for the MPU9250 adn MPU6500
 - Removed Eigen and Units dependencies, so it should work with any Arduino

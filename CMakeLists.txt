@@ -26,6 +26,34 @@ if (DEFINED MCU)
     GIT_TAG v3.1.0
   )
   FetchContent_MakeAvailable(core)
+  # Fetch eigen
+  FetchContent_Declare(
+    eigen
+    GIT_REPOSITORY https://github.com/bolderflight/eigen.git
+    GIT_TAG v3.0.2
+  )
+  FetchContent_MakeAvailable(eigen)
+  # Fetch statistics
+  FetchContent_Declare(
+    statistics
+    GIT_REPOSITORY https://github.com/bolderflight/statistics.git
+    GIT_TAG v4.0.4
+  )
+  FetchContent_MakeAvailable(statistics)
+  # Fetch utils
+  FetchContent_Declare(
+    utils
+    GIT_REPOSITORY https://github.com/bolderflight/utils.git
+    GIT_TAG v1.0.1
+  )
+  FetchContent_MakeAvailable(utils)
+  # Fetch types
+  FetchContent_Declare(
+    types
+    GIT_REPOSITORY https://github.com/bolderflight/types.git
+    GIT_TAG v0.5.0
+  )
+  FetchContent_MakeAvailable(types)
   # Add the library target
   add_library(invensense_imu
     src/invensense_imu.cpp
@@ -34,11 +62,19 @@ if (DEFINED MCU)
     src/mpu9250.h
     src/mpu6500.cpp
     src/mpu6500.h
+    src/bfs-mpu6500.h
+    src/bfs-mpu6500.cpp
+    src/bfs-mpu9250.h
+    src/bfs-mpu9250.cpp
   )
   # Link libraries
   target_link_libraries(invensense_imu
     PUBLIC
       core
+      eigen
+      statistics
+      types
+      utils
   )
   # Setup include directories 
   target_include_directories(invensense_imu PUBLIC 
@@ -162,5 +198,37 @@ if (DEFINED MCU)
     # Add hex and upload targets
     include(${mcu_support_SOURCE_DIR}/cmake/flash_mcu.cmake)
     FlashMcu(mpu9250_wom_example ${MCU} ${mcu_support_SOURCE_DIR})
+
+    ### BFS-MPU6500
+    add_executable(bfs_mpu6500_ex examples/cmake/bfs/mpu6500.cc)
+    # Add the includes
+    target_include_directories(bfs_mpu6500_ex PUBLIC 
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:include>
+    )
+    # Link libraries to the example target
+    target_link_libraries(bfs_mpu6500_ex
+      PRIVATE
+        invensense_imu
+    )
+    # Add hex and upload targets
+    include(${mcu_support_SOURCE_DIR}/cmake/flash_mcu.cmake)
+    FlashMcu(bfs_mpu6500_ex ${MCU} ${mcu_support_SOURCE_DIR})
+
+    ### BFS-MPU9250
+    add_executable(bfs_mpu9250_ex examples/cmake/bfs/mpu9250.cc)
+    # Add the includes
+    target_include_directories(bfs_mpu9250_ex PUBLIC 
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:include>
+    )
+    # Link libraries to the example target
+    target_link_libraries(bfs_mpu9250_ex
+      PRIVATE
+        invensense_imu
+    )
+    # Add hex and upload targets
+    include(${mcu_support_SOURCE_DIR}/cmake/flash_mcu.cmake)
+    FlashMcu(bfs_mpu9250_ex ${MCU} ${mcu_support_SOURCE_DIR})
   endif()
 endif()
