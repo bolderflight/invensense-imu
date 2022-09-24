@@ -41,31 +41,41 @@ int main() {
     .accel_scale = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}},
     .rotation = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}
   };
-  bfs::ImuData data;
+  bfs::ImuData imu_data;
+  bfs::MagData mag_data;
   if (!imu.Init(config)) {
     Serial.println("Failed to init sensor");
   }
   while (!imu.Calibrate()) {}
   while (1) {
     if (imu.Read()) {
-      data = imu.imu_data();
-      Serial.print(data.status);
+      imu_data = imu.imu_data();
+      mag_data = imu.mag_data();
+      Serial.print(imu_data.new_data);
       Serial.print("\t");
-      Serial.print(data.new_data);
+      Serial.print(imu_data.accel_mps2[0]);
       Serial.print("\t");
-      Serial.print(data.accel_mps2[0]);
+      Serial.print(imu_data.accel_mps2[1]);
       Serial.print("\t");
-      Serial.print(data.accel_mps2[1]);
+      Serial.print(imu_data.accel_mps2[2]);
       Serial.print("\t");
-      Serial.print(data.accel_mps2[2]);
+      Serial.print(imu_data.gyro_radps[0]);
       Serial.print("\t");
-      Serial.print(data.gyro_radps[0]);
+      Serial.print(imu_data.gyro_radps[1]);
       Serial.print("\t");
-      Serial.print(data.gyro_radps[1]);
+      Serial.print(imu_data.gyro_radps[2]);
       Serial.print("\t");
-      Serial.print(data.gyro_radps[2]);
+      Serial.print(imu_data.die_temp_c);
       Serial.print("\t");
-      Serial.print(data.die_temp_c);
+      Serial.print(mag_data.new_data);
+      Serial.print("\t");
+      Serial.print(mag_data.mag_ut[0]);
+      Serial.print("\t");
+      Serial.print(mag_data.mag_ut[1]);
+      Serial.print("\t");
+      Serial.print(mag_data.mag_ut[2]);
+      Serial.print("\t");
+      Serial.print(mag_data.die_temp_c);
       Serial.print("\n");
     }
   }

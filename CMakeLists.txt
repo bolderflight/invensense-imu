@@ -12,7 +12,7 @@ if (DEFINED MCU)
   set(CMAKE_TOOLCHAIN_FILE "${mcu_support_SOURCE_DIR}/cmake/cortex.cmake")
   # Project information
   project(InvensenseImu
-    VERSION 6.0.0
+    VERSION 6.1.0
     DESCRIPTION "Invensense IMU sensor driver"
     LANGUAGES CXX
   )
@@ -51,7 +51,7 @@ if (DEFINED MCU)
   FetchContent_Declare(
     types
     GIT_REPOSITORY https://github.com/bolderflight/types.git
-    GIT_TAG v0.5.0
+    GIT_TAG v0.6.0
   )
   FetchContent_MakeAvailable(types)
   # Add the library target

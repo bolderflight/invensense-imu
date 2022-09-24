@@ -33,7 +33,7 @@
 
 namespace bfs {
 
-class BfsMpu9250 {
+class BfsMpu9250 : public Mpu9250 {
  public:
   enum SampleRate : uint8_t {
     SAMPLE_RATE_1000HZ = 0,
@@ -65,15 +65,11 @@ class BfsMpu9250 {
 
  private:
   bool latch_ = false;
-  bool status_;
-  float freq_hz_;
-  float period_ms_, mag_period_ms_;
-  static constexpr float HEALHTY_MULT_ = 5.0f;
   Mpu9250 imu_;
   Config config_;
   ImuData data_;
   MagData mag_data_;
-  elapsedMillis time_ms_, mag_time_ms_;
+  elapsedMillis time_ms_;
   Eigen::Vector3f accel_bias_mps2_, gyro_bias_radps_, mag_bias_ut_;
   Eigen::Vector3f accel_mps2_, gyro_radps_, mag_ut_;
   Eigen::Matrix3f accel_scale_, mag_scale_;

@@ -32,11 +32,11 @@ int main() {
   while (!Serial) {}
   SPI.begin();
   bfs::BfsMpu6500::Config config = {
-    .sample_rate = bfs::BfsMpu6500::SAMPLE_RATE_1000HZ,
+    .sample_rate = bfs::BfsMpu6500::SAMPLE_RATE_100HZ,
     .init_time_ms = 5000,
-    .accel_range_g = bfs::Mpu6500::ACCEL_RANGE_16G,
-    .gyro_range_dps = bfs::Mpu6500::GYRO_RANGE_2000DPS,
-    .dlpf_hz = bfs::Mpu6500::DLPF_BANDWIDTH_20HZ,
+    .accel_range_g = bfs::BfsMpu6500::ACCEL_RANGE_16G,
+    .gyro_range_dps = bfs::BfsMpu6500::GYRO_RANGE_2000DPS,
+    .dlpf_hz = bfs::BfsMpu6500::DLPF_BANDWIDTH_20HZ,
     .accel_bias_mps2 = {0, 0, 0},
     .accel_scale = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}},
     .rotation = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}
@@ -49,8 +49,6 @@ int main() {
   while (1) {
     if (imu.Read()) {
       data = imu.imu_data();
-      Serial.print(data.status);
-      Serial.print("\t");
       Serial.print(data.new_data);
       Serial.print("\t");
       Serial.print(data.accel_mps2[0]);

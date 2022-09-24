@@ -30,43 +30,31 @@ namespace bfs {
 
 bool BfsMpu6500::Init(const Config &config) {
   config_ = config;
+  data_.installed = false;
   /* Begin and configure the IMU */
   if (!imu_.Begin()) {
-    data_.status = SENSOR_NOT_INSTALLED;
     return false;
-  } else {
-    data_.status = SENSOR_INSTALLED;
   }
-  data_.status = SENSOR_INITIALIZING;
   if (!imu_.ConfigAccelRange(config_.accel_range_g)) {
-    data_.status = SENSOR_FAULT;
     return false;
   }
   if (!imu_.ConfigGyroRange(config_.gyro_range_dps)) {
-    data_.status = SENSOR_FAULT;
     return false;
   }
   if (!imu_.ConfigDlpfBandwidth(config_.dlpf_hz)) {
-    data_.status = SENSOR_FAULT;
     return false;
   }
   if (!imu_.ConfigSrd(static_cast<uint8_t>(config_.sample_rate))) {
-    data_.status = SENSOR_FAULT;
     return false;
   }
   if (!imu_.EnableDrdyInt()) {
-    data_.status = SENSOR_FAULT;
     return false;
   }
-  /* Compute the frequency and period */
-  freq_hz_ = 1000.0f /
-             static_cast<float>(static_cast<uint8_t>(config_.sample_rate) + 1);
-  period_ms_ = 1.0f / freq_hz_ * 1000.0f;
   /* Convert the config to Eigen for ease of use */
   accel_bias_mps2_ = ArrayToEigen(config_.accel_bias_mps2);
   accel_scale_ = ArrayToEigen(config_.accel_scale);
   rotation_ = ArrayToEigen(config_.rotation);
-  data_.status = SENSOR_INITIALIZED;
+  data_.installed = true;
   return true;
 }
 
@@ -78,7 +66,6 @@ bool BfsMpu6500::Calibrate() {
   }
   /* Collect data and estimate biases */
   if (time_ms_ < config_.init_time_ms) {
-    data_.status = SENSOR_CALIBRATING;
     if (imu_.Read()) {
       gyro_radps_[0] = imu_.gyro_x_radps();
       gyro_radps_[1] = imu_.gyro_y_radps();
@@ -92,7 +79,6 @@ bool BfsMpu6500::Calibrate() {
     gyro_bias_radps_[0] = -gx_.mean();
     gyro_bias_radps_[1] = -gy_.mean();
     gyro_bias_radps_[2] = -gz_.mean();
-    data_.status = SENSOR_CALIBRATED;
     return true;
   }
   return false;
@@ -109,8 +95,6 @@ void BfsMpu6500::ResetCal() {
 bool BfsMpu6500::Read() {
   data_.new_data = imu_.Read();
   if (data_.new_data) {
-    time_ms_ = 0;
-    data_.status = SENSOR_HEALTHY;
     /* Convert IMU data to eigen vectors */
     gyro_radps_[0] = imu_.gyro_x_radps();
     gyro_radps_[1] = imu_.gyro_y_radps();
@@ -126,12 +110,6 @@ bool BfsMpu6500::Read() {
     EigenToArray(gyro_radps_, data_.gyro_radps);
     /* Die temperature */
     data_.die_temp_c = imu_.die_temp_c();
-  } else {
-    if (time_ms_ > HEALHTY_MULT_ * period_ms_) {
-      data_.status = SENSOR_FAULT;
-    } else if (time_ms_ > period_ms_) {
-      data_.status = SENSOR_MISSED_FRAME;
-    }
   }
   return data_.new_data;
 }

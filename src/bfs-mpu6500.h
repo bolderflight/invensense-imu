@@ -33,7 +33,7 @@
 
 namespace bfs {
 
-class BfsMpu6500 {
+class BfsMpu6500 : public Mpu6500 {
  public:
   enum SampleRate : uint8_t {
     SAMPLE_RATE_1000HZ = 0,
@@ -62,10 +62,6 @@ class BfsMpu6500 {
 
  private:
   bool latch_ = false;
-  bool status_;
-  float freq_hz_;
-  float period_ms_;
-  static constexpr float HEALHTY_MULT_ = 5.0f;
   Mpu6500 imu_;
   Config config_;
   ImuData data_;
