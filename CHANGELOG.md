@@ -1,7 +1,10 @@
 # Changelog
 
+## v6.0.1
+- Updated core to v3.1.1 to support MMOD
+
 ## v6.0.0
-- Including support for the MPU9250 adn MPU6500
+- Including support for the MPU9250 and MPU6500
 - Removed Eigen and Units dependencies, so it should work with any Arduino
 - Removed FIFO; there was some bug with the FIFO and no time currently to solve
 
