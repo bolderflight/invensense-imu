@@ -55,7 +55,6 @@ class Icm20649 {
     GYRO_DLPF_BANDWIDTH_11HZ = 0x05,
     GYRO_DLPF_BANDWIDTH_5HZ = 0x06,
     GYRO_DLPF_BANDWIDTH_361HZ = 0x07,
-    GYRO_DLPF_BANDWIDTH_OFF
   };
   enum AccelDlpfBandwidth : int8_t {
     ACCEL_DLPF_BANDWIDTH_246HZ = 0x01,
@@ -65,10 +64,15 @@ class Icm20649 {
     ACCEL_DLPF_BANDWIDTH_11HZ = 0x05,
     ACCEL_DLPF_BANDWIDTH_5HZ = 0x06,
     ACCEL_DLPF_BANDWIDTH_473HZ = 0x07,
-    ACCEL_DLPF_BANDWIDTH_OFF
   };
   enum TempDlpfBandwidth : int8_t {
-
+    TEMP_DLPF_BANDWIDTH_7932HZ = 0x00,
+    TEMP_DLPF_BANDWIDTH_217HZ = 0x01,
+    TEMP_DLPF_BANDWIDTH_123HZ = 0x02,
+    TEMP_DLPF_BANDWIDTH_65HZ = 0x03,
+    TEMP_DLPF_BANDWIDTH_34HZ = 0x04,
+    TEMP_DLPF_BANDWIDTH_17HZ = 0x05,
+    TEMP_DLPF_BANDWIDTH_8HZ = 0x06
   };
   enum AccelRange : int8_t {
     ACCEL_RANGE_4G	= 0x00,
@@ -167,6 +171,7 @@ class Icm20649 {
   static constexpr uint8_t ODR_ALIGN_EN_ = 0x09;//
   static constexpr uint8_t ACCEL_SMPLRT_DIV_2_ = 0x11;//
   static constexpr uint8_t ACCEL_CONFIG_ = 0x14;//
+  static constexpr uint8_t TEMP_CONFIG_ = 0x53;
   /* Utility functions */
   bool WriteRegister(const uint8_t reg, const uint8_t data);
   bool ReadRegisters(const uint8_t reg, const uint8_t count,

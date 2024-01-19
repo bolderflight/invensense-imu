@@ -83,17 +83,18 @@ bool Icm20649::Begin() {
   if (!ConfigGyroRange(GYRO_RANGE_4000DPS)) {
     return false;
   }
-  /* Set the AccelDLPF to 111HZ by default */
-  if (!ConfigAccelDlpfBandwidth(ACCEL_DLPF_BANDWIDTH_111HZ)) {
+  /* Set the AccelDLPF to default */
+  if (!ConfigAccelDlpfBandwidth(ACCEL_DLPF_BANDWIDTH_473HZ)) {
     return false;
   }
-  /* Set the Gyro DLPF to 184HZ by default */
-  if (!ConfigGyroDlpfBandwidth(GYRO_DLPF_BANDWIDTH_119HZ)) {
+  /* Set the Gyro DLPF to default */
+  if (!ConfigGyroDlpfBandwidth(GYRO_DLPF_BANDWIDTH_361HZ)) {
     return false;
   }
   /* Set the Temp DLPF */
-
-
+  if (!ConfigTempDlpfBandwidth(TEMP_DLPF_BANDWIDTH_7932HZ)) {
+    return false;
+  }
   /* Set the SRD to 0 by default */
   if (!ConfigSrd(0)) {
     return false;
@@ -319,6 +320,52 @@ bool Icm20649::ConfigGyroDlpfBandwidth(const GyroDlpfBandwidth dlpf) {
   }
   /* Update stored dlpf */
   gyro_dlpf_bandwidth_ = gyro_requested_dlpf_;
+  return true;
+}
+bool Icm20649::ConfigTempDlpfBandwidth(const TempDlpfBandwidth dlpf) {
+  if(!SetBank(2)) {
+    return false;
+  }
+  /* Check input is valid and set requested dlpf */
+  switch (dlpf) {
+    case TEMP_DLPF_BANDWIDTH_7932HZ: {
+      temp_requested_dlpf_ = dlpf;
+      break;
+    }
+    case TEMP_DLPF_BANDWIDTH_217HZ: {
+      temp_requested_dlpf_ = dlpf;
+      break;
+    }
+    case TEMP_DLPF_BANDWIDTH_123HZ: {
+      temp_requested_dlpf_ = dlpf;
+      break;
+    }
+    case TEMP_DLPF_BANDWIDTH_65HZ: {
+      temp_requested_dlpf_ = dlpf;
+      break;
+    }
+    case TEMP_DLPF_BANDWIDTH_34HZ: {
+      temp_requested_dlpf_ = dlpf;
+      break;
+    }
+    case TEMP_DLPF_BANDWIDTH_17HZ: {
+      temp_requested_dlpf_ = dlpf;
+      break;
+    }
+    case TEMP_DLPF_BANDWIDTH_8HZ: {
+      temp_requested_dlpf_ = dlpf;
+      break;
+    }
+    default: {
+      return false;
+    }
+  }
+  /* second change dlpf */
+  if (!WriteRegister(TEMP_CONFIG_, temp_requested_dlpf_)) {
+    return false;
+  }
+  /* Update stored dlpf */
+  temp_dlpf_bandwidth_ = temp_requested_dlpf_;
   return true;
 }
 void Icm20649::Reset() {
