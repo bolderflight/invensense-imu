@@ -66,20 +66,6 @@ class Mpu9250 {
     GYRO_RANGE_1000DPS = 0x10,
     GYRO_RANGE_2000DPS = 0x18
   };
-  enum WomRate : int8_t {
-    WOM_RATE_0_24HZ = 0x00,
-    WOM_RATE_0_49HZ = 0x01,
-    WOM_RATE_0_98HZ = 0x02,
-    WOM_RATE_1_95HZ = 0x03,
-    WOM_RATE_3_91HZ = 0x04,
-    WOM_RATE_7_81HZ = 0x05,
-    WOM_RATE_15_63HZ = 0x06,
-    WOM_RATE_31_25HZ = 0x07,
-    WOM_RATE_62_50HZ = 0x08,
-    WOM_RATE_125HZ = 0x09,
-    WOM_RATE_250HZ = 0x0A,
-    WOM_RATE_500HZ = 0x0B
-  };
   Mpu9250() {}
   Mpu9250(TwoWire *i2c, const I2cAddr addr) :
           imu_(i2c, static_cast<uint8_t>(addr)) {}
@@ -98,7 +84,6 @@ class Mpu9250 {
   inline uint8_t srd() const {return srd_;}
   bool ConfigDlpfBandwidth(const DlpfBandwidth dlpf);
   inline DlpfBandwidth dlpf_bandwidth() const {return dlpf_bandwidth_;}
-  bool EnableWom(int16_t threshold_mg, const WomRate wom_rate);
   void Reset();
   bool Read();
   inline bool new_imu_data() const {return new_imu_data_;}

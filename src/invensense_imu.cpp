@@ -40,6 +40,8 @@ void InvensenseImu::Config(SPIClass *spi, const uint8_t cs) {
 }
 
 void InvensenseImu::Begin() {
+  /* Wait the minimum startup time for register read / write */
+  delay(100);
   if (iface_ == SPI) {
     pinMode(dev_, OUTPUT);
     /* Toggle CS pin to lock in SPI mode */

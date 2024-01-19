@@ -318,52 +318,6 @@ bool Mpu9250::ConfigDlpfBandwidth(const DlpfBandwidth dlpf) {
   dlpf_bandwidth_ = requested_dlpf_;
   return true;
 }
-bool Mpu9250::EnableWom(int16_t threshold_mg, const WomRate wom_rate) {
-  /* Check threshold in limits, 4 - 1020 mg */
-  if ((threshold_mg < 4) || (threshold_mg > 1020)) {return false;}
-  spi_clock_ = SPI_CFG_CLOCK_;
-  /* Set AK8963 to power down */
-  WriteAk8963Register(AK8963_CNTL1_, AK8963_PWR_DOWN_);
-  /* Reset the MPU9250 */
-  WriteRegister(PWR_MGMNT_1_, H_RESET_);
-  /* Wait for MPU-9250 to come back up */
-  delay(1);
-  /* Cycle 0, Sleep 0, Standby 0, Internal Clock */
-  if (!WriteRegister(PWR_MGMNT_1_, 0x00)) {
-    return false;
-  }
-  /* Disable gyro measurements */
-  if (!WriteRegister(PWR_MGMNT_2_, DISABLE_GYRO_)) {
-    return false;
-  }
-  /* Set accel bandwidth to 184 Hz */
-  if (!WriteRegister(ACCEL_CONFIG2_, DLPF_BANDWIDTH_184HZ)) {
-    return false;
-  }
-  /* Set interrupt to wake on motion */
-  if (!WriteRegister(INT_ENABLE_, INT_WOM_EN_)) {
-    return false;
-  }
-  /* Enable accel hardware intelligence */
-  if (!WriteRegister(MOT_DETECT_CTRL_, (ACCEL_INTEL_EN_ | ACCEL_INTEL_MODE_))) {
-    return false;
-  }
-  /* Set the wake on motion threshold, LSB is 4 mg */
-  uint8_t wom_threshold = static_cast<uint8_t>(threshold_mg /
-                                               static_cast<int8_t>(4));
-  if (!WriteRegister(WOM_THR_, wom_threshold)) {
-    return false;
-  }
-  /* Set the accel wakeup frequency */
-  if (!WriteRegister(LP_ACCEL_ODR_, wom_rate)) {
-    return false;
-  }
-  /* Switch to low power mode */
-  if (!WriteRegister(PWR_MGMNT_1_, PWR_CYCLE_WOM_)) {
-    return false;
-  }
-  return true;
-}
 void Mpu9250::Reset() {
   spi_clock_ = SPI_CFG_CLOCK_;
   /* Set AK8963 to power down */

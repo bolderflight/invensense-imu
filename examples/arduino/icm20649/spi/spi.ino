@@ -28,11 +28,15 @@
 /* Icm20649 object, SPI bus, CS on pin 10 */
 bfs::Icm20649 imu(&SPI, 10);
 
+void drdy() {
+
+}
+
 void setup() {
   /* Serial to display data */
   Serial.begin(115200);
   while(!Serial) {}
-  Serial.println("BEGINING TEST");
+  Serial.println("BEGINING TEST v2");
   /* Start the SPI bus */
   SPI.begin();
   /* Initialize and configure IMU */
