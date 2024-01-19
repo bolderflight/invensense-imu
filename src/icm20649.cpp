@@ -44,9 +44,12 @@ void Icm20649::Config(SPIClass *spi, const uint8_t cs) {
   imu_.Config(spi, cs);
 }
 bool Icm20649::Begin() {
+  delay(1000);
   imu_.Begin();
   /* 1 MHz for config */
   spi_clock_ = SPI_CFG_CLOCK_;
+  /* I2C IF DIS */
+  WriteRegister(0x10, USER_CTRL);
   /* Set to Bank 0 */
   if(!setBank(0)) {
     Serial.println("1");
@@ -111,7 +114,7 @@ bool Icm20649::Begin() {
     Serial.println("13");
     return false;
   }
-debug();
+// debug();
   return true;
 }
 

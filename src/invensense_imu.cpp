@@ -59,7 +59,7 @@ bool InvensenseImu::WriteRegister(const uint8_t reg, const uint8_t data,
     i2c_->write(data);
     i2c_->endTransmission();
   } else {
-    spi_->beginTransaction(SPISettings(spi_clock, MSBFIRST, SPI_MODE0));
+    spi_->beginTransaction(SPISettings(spi_clock, MSBFIRST, SPI_MODE3));
     #if defined(TEENSYDUINO)
     digitalWriteFast(dev_, LOW);
     #else
@@ -107,7 +107,7 @@ bool InvensenseImu::ReadRegisters(const uint8_t reg, const uint8_t count,
       return false;
     }
   } else {
-    spi_->beginTransaction(SPISettings(spi_clock, MSBFIRST, SPI_MODE0));
+    spi_->beginTransaction(SPISettings(spi_clock, MSBFIRST, SPI_MODE3));
     #if defined(TEENSYDUINO)
     digitalWriteFast(dev_, LOW);
     #else
