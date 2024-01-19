@@ -3,3 +3,6 @@
 
 # ignore VS code
 .vscode
+
+# ignore DS Store
+.DS_Store
