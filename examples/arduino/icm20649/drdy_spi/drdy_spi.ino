@@ -2,7 +2,7 @@
 * Brian R Taylor
 * brian.taylor@bolderflight.com
 * 
-* Copyright (c) 2021 Bolder Flight Systems Inc
+* Copyright (c) 2024 Bolder Flight Systems Inc
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the “Software”), to
@@ -23,10 +23,10 @@
 * IN THE SOFTWARE.
 */
 
-#include "mpu6500.h"
+#include "icm20649.h"
 
-/* Mpu6500 object, SPI bus, CS on pin 10 */
-bfs::Mpu6500 imu(&SPI, 10);
+/* Icm20649 object, SPI bus, CS on pin 10 */
+bfs::Icm20649 imu(&SPI, 10);
 
 /* Data acquisition ISR */
 void imu_isr() {
@@ -64,7 +64,7 @@ void setup() {
   }
   /* Set the sample rate divider */
   if (!imu.ConfigSrd(19)) {
-    Serial.println("Error configured SRD");
+    Serial.println("Error configuring SRD");
     while(1) {}
   }
   /* Enabled data ready interrupt */

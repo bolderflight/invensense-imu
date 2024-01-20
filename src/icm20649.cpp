@@ -46,19 +46,22 @@ void Icm20649::Config(SPIClass *spi, const uint8_t cs) {
   iface_ = SPI;
 }
 bool Icm20649::Begin() {
-  delay(100);
   imu_.Begin();
   if (iface_ == SPI) {
     /* I2C IF DIS */
-    if (!WriteRegister(USER_CTRL_, I2C_IF_DIS_)) {
-      Serial.println("I2C IF DIS FALSE");
-    }
+    WriteRegister(USER_CTRL_, I2C_IF_DIS_);
+  }
+  WriteRegister(PWR_MGMT_1_, H_RESET_);
+  /* Wait for IMU to come back up */
+  delay(100);
+  if (iface_ == SPI) {
+    /* I2C IF DIS */
+    WriteRegister(USER_CTRL_, I2C_IF_DIS_);
   }
   /* Set to Bank 0 */
   if(!SetBank(0)) {
     return false;
   }
-  delay(100);
   /* Select clock source */
   if (!WriteRegister(PWR_MGMT_1_, CLKSEL_AUTO_)) {
     return false;
@@ -368,13 +371,6 @@ bool Icm20649::ConfigTempDlpfBandwidth(const TempDlpfBandwidth dlpf) {
   temp_dlpf_bandwidth_ = temp_requested_dlpf_;
   return true;
 }
-void Icm20649::Reset() {
-  /* Reset the IMU */
-  SetBank(0);
-  WriteRegister(PWR_MGMT_1_, H_RESET_);
-  /* Wait for IMU to come back up */
-  delay(1);
-}
 bool Icm20649::Read() {
   SetBank(0);
   /* Reset the new data flags */
@@ -398,16 +394,16 @@ bool Icm20649::Read() {
   gyro_cnts_[2] =  static_cast<int16_t>(data_buf_[10]) << 8 | data_buf_[11];
   temp_cnts_ =     static_cast<int16_t>(data_buf_[12])  << 8 | data_buf_[13];
   /* Convert to float values and rotate the accel / gyro axis */
-  accel_[0] = static_cast<float>(accel_cnts_[0]) * accel_scale_ * G_MPS2_;
-  accel_[1] = static_cast<float>(accel_cnts_[1]) * accel_scale_ * -1.0f * G_MPS2_;
+  accel_[0] = static_cast<float>(accel_cnts_[1]) * accel_scale_ * G_MPS2_;
+  accel_[1] = static_cast<float>(accel_cnts_[0]) * accel_scale_ * G_MPS2_;
   accel_[2] = static_cast<float>(accel_cnts_[2]) * accel_scale_ * -1.0f * G_MPS2_;
   temp_ = (static_cast<float>(temp_cnts_) - 21.0f) / TEMP_SCALE_ + 21.0f;
-  gyro_[0] = static_cast<float>(gyro_cnts_[0]) * gyro_scale_ * DEG2RAD_;
-  gyro_[1] = static_cast<float>(gyro_cnts_[1]) * gyro_scale_ * -1.0f * DEG2RAD_;
+  gyro_[0] = static_cast<float>(gyro_cnts_[1]) * gyro_scale_ * DEG2RAD_;
+  gyro_[1] = static_cast<float>(gyro_cnts_[0]) * gyro_scale_ * DEG2RAD_;
   gyro_[2] = static_cast<float>(gyro_cnts_[2]) * gyro_scale_ * -1.0f * DEG2RAD_;
   return true;
 }
-bool Icm20649::SetBank(uint8_t bank) {
+bool Icm20649::SetBank(const uint8_t bank) {
 	if(bank != current_bank_) {
     if (WriteRegister(REG_BANK_SEL_, bank << 4)) {
       current_bank_ = bank;

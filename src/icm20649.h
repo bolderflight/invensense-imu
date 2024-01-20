@@ -108,7 +108,6 @@ class Icm20649 {
   inline GyroDlpfBandwidth gyro_dlpf_bandwidth() const {return gyro_dlpf_bandwidth_;}
   bool ConfigTempDlpfBandwidth(const TempDlpfBandwidth dlpf);
   inline TempDlpfBandwidth temp_dlpf_bandwidth() const {return temp_dlpf_bandwidth_;}
-  void Reset();
   bool Read();
   inline bool new_imu_data() const {return new_imu_data_;}
   inline float die_temp_c() const {return temp_;}
@@ -145,38 +144,38 @@ class Icm20649 {
   static constexpr float DEG2RAD_ = 3.14159265358979323846264338327950288f /
                                     180.0f;
   bool new_imu_data_;
-  uint8_t data_buf_[23];
+  uint8_t data_buf_[14];
   int16_t accel_cnts_[3], gyro_cnts_[3], temp_cnts_;
   float accel_[3], gyro_[3];
   float temp_;
   /* Registers */
-  static constexpr uint8_t I2C_IF_DIS_ = 0x10;//
-  static constexpr uint8_t CLKSEL_AUTO_ = 0x01;//
-  static constexpr uint8_t REG_BANK_SEL_ = 0x7F;//
-  static constexpr uint8_t H_RESET_ = 0x80; //
+  static constexpr uint8_t I2C_IF_DIS_ = 0x10;
+  static constexpr uint8_t CLKSEL_AUTO_ = 0x01;
+  static constexpr uint8_t REG_BANK_SEL_ = 0x7F;
+  static constexpr uint8_t H_RESET_ = 0x80;
   static constexpr uint8_t INT_RAW_RDY_EN_ = 0x01;
   static constexpr uint8_t INT_DISABLE_ = 0x00;
-  static constexpr uint8_t RAW_DATA_RDY_INT_ = 0x01;//
+  static constexpr uint8_t RAW_DATA_RDY_INT_ = 0x01;
   /* Bank 0 */
-  static constexpr uint8_t WHO_AM_I_ = 0x00;//
-  static constexpr uint8_t USER_CTRL_ = 0x03;//
-  static constexpr uint8_t PWR_MGMT_1_ = 0x06;//
-  static constexpr uint8_t INT_ENABLE_1_ = 0x11; //
-  static constexpr uint8_t INT_STATUS_1_ = 0x1A;//
-  static constexpr uint8_t ACCEL_XOUT_H = 0x2D;//
-  /* BANK 2 Register Map */
-  static constexpr uint8_t GYRO_SMPLRT_DIV_ = 0x00;//
-  static constexpr uint8_t GYRO_CONFIG_1_ = 0x01;//
-  static constexpr uint8_t ALIGN_ODR_ = 0x01;//
-  static constexpr uint8_t ODR_ALIGN_EN_ = 0x09;//
-  static constexpr uint8_t ACCEL_SMPLRT_DIV_2_ = 0x11;//
-  static constexpr uint8_t ACCEL_CONFIG_ = 0x14;//
+  static constexpr uint8_t WHO_AM_I_ = 0x00;
+  static constexpr uint8_t USER_CTRL_ = 0x03;
+  static constexpr uint8_t PWR_MGMT_1_ = 0x06;
+  static constexpr uint8_t INT_ENABLE_1_ = 0x11;
+  static constexpr uint8_t INT_STATUS_1_ = 0x1A;
+  static constexpr uint8_t ACCEL_XOUT_H = 0x2D;
+  /* Bank 2 */
+  static constexpr uint8_t GYRO_SMPLRT_DIV_ = 0x00;
+  static constexpr uint8_t GYRO_CONFIG_1_ = 0x01;
+  static constexpr uint8_t ALIGN_ODR_ = 0x01;
+  static constexpr uint8_t ODR_ALIGN_EN_ = 0x09;
+  static constexpr uint8_t ACCEL_SMPLRT_DIV_2_ = 0x11;
+  static constexpr uint8_t ACCEL_CONFIG_ = 0x14;
   static constexpr uint8_t TEMP_CONFIG_ = 0x53;
   /* Utility functions */
   bool WriteRegister(const uint8_t reg, const uint8_t data);
   bool ReadRegisters(const uint8_t reg, const uint8_t count,
                      uint8_t * const data);
-  bool SetBank(uint8_t bank);
+  bool SetBank(const uint8_t bank);
 };
 
 }  // namespace bfs

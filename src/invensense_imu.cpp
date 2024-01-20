@@ -2,7 +2,7 @@
 * Brian R Taylor
 * brian.taylor@bolderflight.com
 * 
-* Copyright (c) 2022 Bolder Flight Systems Inc
+* Copyright (c) 2024 Bolder Flight Systems Inc
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the “Software”), to
@@ -41,7 +41,7 @@ void InvensenseImu::Config(SPIClass *spi, const uint8_t cs) {
 
 void InvensenseImu::Begin() {
   /* Wait the minimum startup time for register read / write */
-  delay(100);
+  delay(500);
   if (iface_ == SPI) {
     pinMode(dev_, OUTPUT);
     /* Toggle CS pin to lock in SPI mode */

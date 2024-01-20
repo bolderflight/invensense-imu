@@ -2,7 +2,7 @@
 * Brian R Taylor
 * brian.taylor@bolderflight.com
 * 
-* Copyright (c) 2022 Bolder Flight Systems Inc
+* Copyright (c) 2024 Bolder Flight Systems Inc
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the “Software”), to
@@ -66,25 +66,11 @@ class Mpu6500 {
     GYRO_RANGE_1000DPS = 0x10,
     GYRO_RANGE_2000DPS = 0x18
   };
-  enum WomRate : int8_t {
-    WOM_RATE_0_24HZ = 0x00,
-    WOM_RATE_0_49HZ = 0x01,
-    WOM_RATE_0_98HZ = 0x02,
-    WOM_RATE_1_95HZ = 0x03,
-    WOM_RATE_3_91HZ = 0x04,
-    WOM_RATE_7_81HZ = 0x05,
-    WOM_RATE_15_63HZ = 0x06,
-    WOM_RATE_31_25HZ = 0x07,
-    WOM_RATE_62_50HZ = 0x08,
-    WOM_RATE_125HZ = 0x09,
-    WOM_RATE_250HZ = 0x0A,
-    WOM_RATE_500HZ = 0x0B
-  };
   Mpu6500() {}
   Mpu6500(TwoWire *i2c, const I2cAddr addr) :
-          imu_(i2c, static_cast<uint8_t>(addr)) {}
+          imu_(i2c, static_cast<uint8_t>(addr)), iface_(I2C) {}
   Mpu6500(SPIClass *spi, const uint8_t cs) :
-          imu_(spi, cs) {}
+          imu_(spi, cs), iface_(SPI) {}
   void Config(TwoWire *i2c, const I2cAddr addr);
   void Config(SPIClass *spi, const uint8_t cs);
   bool Begin();
@@ -98,7 +84,6 @@ class Mpu6500 {
   inline uint8_t srd() const {return srd_;}
   bool ConfigDlpfBandwidth(const DlpfBandwidth dlpf);
   inline DlpfBandwidth dlpf_bandwidth() const {return dlpf_bandwidth_;}
-  void Reset();
   bool Read();
   inline bool new_imu_data() const {return new_imu_data_;}
   inline float accel_x_mps2() const {return accel_[0];}
@@ -112,6 +97,11 @@ class Mpu6500 {
  private:
   InvensenseImu imu_;
   int32_t spi_clock_;
+  enum Interface : int8_t {
+    SPI,
+    I2C
+  };
+  Interface iface_;
   /*
   * MPU-6500 supports an SPI clock of 1 MHz for config and 20 MHz for reading
   * data; however, in testing we found that 20 MHz was sometimes too fast and
@@ -154,6 +144,9 @@ class Mpu6500 {
   static constexpr uint8_t INT_RAW_RDY_EN_ = 0x01;
   static constexpr uint8_t INT_STATUS_ = 0x3A;
   static constexpr uint8_t RAW_DATA_RDY_INT_ = 0x01;
+  static constexpr uint8_t I2C_IF_DIS_ = 0x10;
+  static constexpr uint8_t USER_CTRL_ = 0x6A;
+  static constexpr uint8_t H_RESET_ = 0x80;
   /* Utility functions */
   bool WriteRegister(const uint8_t reg, const uint8_t data);
   bool ReadRegisters(const uint8_t reg, const uint8_t count,

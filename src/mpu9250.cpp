@@ -2,7 +2,7 @@
 * Brian R Taylor
 * brian.taylor@bolderflight.com
 * 
-* Copyright (c) 2022 Bolder Flight Systems Inc
+* Copyright (c) 2024 Bolder Flight Systems Inc
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the “Software”), to
@@ -39,14 +39,20 @@ namespace bfs {
 
 void Mpu9250::Config(TwoWire *i2c, const I2cAddr addr) {
   imu_.Config(i2c, static_cast<uint8_t>(addr));
+  iface_ = I2C;
 }
 void Mpu9250::Config(SPIClass *spi, const uint8_t cs) {
   imu_.Config(spi, cs);
+  iface_ = SPI;
 }
 bool Mpu9250::Begin() {
   imu_.Begin();
   /* 1 MHz for config */
   spi_clock_ = SPI_CFG_CLOCK_;
+  if (iface_ == SPI) {
+    /* I2C IF DIS */
+    WriteRegister(USER_CTRL_, I2C_IF_DIS_);
+  }
   /* Select clock source to gyro */
   if (!WriteRegister(PWR_MGMNT_1_, CLKSEL_PLL_)) {
     return false;
@@ -64,9 +70,14 @@ bool Mpu9250::Begin() {
   /* Reset the MPU9250 */
   WriteRegister(PWR_MGMNT_1_, H_RESET_);
   /* Wait for MPU-9250 to come back up */
-  delay(1);
+  delay(100);
+  if (iface_ == SPI) {
+    /* I2C IF DIS */
+    WriteRegister(USER_CTRL_, I2C_IF_DIS_);
+  }
   /* Reset the AK8963 */
   WriteAk8963Register(AK8963_CNTL2_, AK8963_RESET_);
+  delay(100);
   /* Select clock source to gyro */
   if (!WriteRegister(PWR_MGMNT_1_, CLKSEL_PLL_)) {
     return false;
@@ -317,15 +328,6 @@ bool Mpu9250::ConfigDlpfBandwidth(const DlpfBandwidth dlpf) {
   /* Update stored dlpf */
   dlpf_bandwidth_ = requested_dlpf_;
   return true;
-}
-void Mpu9250::Reset() {
-  spi_clock_ = SPI_CFG_CLOCK_;
-  /* Set AK8963 to power down */
-  WriteAk8963Register(AK8963_CNTL1_, AK8963_PWR_DOWN_);
-  /* Reset the MPU9250 */
-  WriteRegister(PWR_MGMNT_1_, H_RESET_);
-  /* Wait for MPU-9250 to come back up */
-  delay(1);
 }
 bool Mpu9250::Read() {
   spi_clock_ = SPI_READ_CLOCK_;

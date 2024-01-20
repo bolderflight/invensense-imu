@@ -2,7 +2,7 @@
 * Brian R Taylor
 * brian.taylor@bolderflight.com
 * 
-* Copyright (c) 2022 Bolder Flight Systems Inc
+* Copyright (c) 2024 Bolder Flight Systems Inc
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the “Software”), to
@@ -68,9 +68,9 @@ class Mpu9250 {
   };
   Mpu9250() {}
   Mpu9250(TwoWire *i2c, const I2cAddr addr) :
-          imu_(i2c, static_cast<uint8_t>(addr)) {}
+          imu_(i2c, static_cast<uint8_t>(addr)), iface_(I2C) {}
   Mpu9250(SPIClass *spi, const uint8_t cs) :
-          imu_(spi, cs) {}
+          imu_(spi, cs), iface_(SPI) {}
   void Config(TwoWire *i2c, const I2cAddr addr);
   void Config(SPIClass *spi, const uint8_t cs);
   bool Begin();
@@ -84,7 +84,6 @@ class Mpu9250 {
   inline uint8_t srd() const {return srd_;}
   bool ConfigDlpfBandwidth(const DlpfBandwidth dlpf);
   inline DlpfBandwidth dlpf_bandwidth() const {return dlpf_bandwidth_;}
-  void Reset();
   bool Read();
   inline bool new_imu_data() const {return new_imu_data_;}
   inline float accel_x_mps2() const {return accel_[0];}
@@ -102,6 +101,11 @@ class Mpu9250 {
  private:
   InvensenseImu imu_;
   int32_t spi_clock_;
+  enum Interface : int8_t {
+    SPI,
+    I2C
+  };
+  Interface iface_;
   /*
   * MPU-9250 supports an SPI clock of 1 MHz for config and 20 MHz for reading
   * data; however, in testing we found that 20 MHz was sometimes too fast and
@@ -151,6 +155,7 @@ class Mpu9250 {
   static constexpr uint8_t INT_RAW_RDY_EN_ = 0x01;
   static constexpr uint8_t INT_STATUS_ = 0x3A;
   static constexpr uint8_t RAW_DATA_RDY_INT_ = 0x01;
+  static constexpr uint8_t I2C_IF_DIS_ = 0x10;
   static constexpr uint8_t USER_CTRL_ = 0x6A;
   static constexpr uint8_t I2C_MST_EN_ = 0x20;
   static constexpr uint8_t I2C_MST_CLK_ = 0x0D;
@@ -162,16 +167,6 @@ class Mpu9250 {
   static constexpr uint8_t I2C_READ_FLAG_ = 0x80;
   static constexpr uint8_t I2C_SLV0_EN_ = 0x80;
   static constexpr uint8_t EXT_SENS_DATA_00_ = 0x49;
-  /* Needed for WOM */
-  static constexpr uint8_t INT_WOM_EN_ = 0x40;
-  static constexpr uint8_t PWR_MGMNT_2_ = 0x6C;
-  static constexpr uint8_t DISABLE_GYRO_ = 0x07;
-  static constexpr uint8_t MOT_DETECT_CTRL_ = 0x69;
-  static constexpr uint8_t ACCEL_INTEL_EN_ = 0x80;
-  static constexpr uint8_t ACCEL_INTEL_MODE_ = 0x40;
-  static constexpr uint8_t LP_ACCEL_ODR_ = 0x1E;
-  static constexpr uint8_t WOM_THR_ = 0x1F;
-  static constexpr uint8_t PWR_CYCLE_WOM_ = 0x20;
   /* AK8963 registers */
   static constexpr uint8_t AK8963_I2C_ADDR_ = 0x0C;
   static constexpr uint8_t AK8963_ST1_ = 0x02;
