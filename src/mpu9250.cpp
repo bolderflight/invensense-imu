@@ -254,16 +254,30 @@ bool Mpu9250::ConfigSrd(const uint8_t srd) {
     return false;
   }
   /* Set the magnetometer sample rate */
-  /* Set AK8963 to power down */
-  WriteAk8963Register(AK8963_CNTL1_, AK8963_PWR_DOWN_);
-  delay(100);  // long wait between AK8963 mode changes
-  /* Set AK8963 to 16 bit resolution, 100 Hz update rate */
-  if (!WriteAk8963Register(AK8963_CNTL1_, AK8963_CNT_MEAS2_)) {
-    return false;
-  }
-  delay(100);  // long wait between AK8963 mode changes
-  if (!ReadAk8963Registers(AK8963_ST1_, sizeof(mag_data_), mag_data_)) {
-    return false;
+  if (srd > 9) {
+    /* Set AK8963 to power down */
+    WriteAk8963Register(AK8963_CNTL1_, AK8963_PWR_DOWN_);
+    delay(100);  // long wait between AK8963 mode changes
+    /* Set AK8963 to 16 bit resolution, 8 Hz update rate */
+    if (!WriteAk8963Register(AK8963_CNTL1_, AK8963_CNT_MEAS1_)) {
+      return false;
+    }
+    delay(100);  // long wait between AK8963 mode changes
+    if (!ReadAk8963Registers(AK8963_ST1_, sizeof(mag_data_), mag_data_)) {
+      return false;
+    }
+  } else {
+    /* Set AK8963 to power down */
+    WriteAk8963Register(AK8963_CNTL1_, AK8963_PWR_DOWN_);
+    delay(100);  // long wait between AK8963 mode changes
+    /* Set AK8963 to 16 bit resolution, 100 Hz update rate */
+    if (!WriteAk8963Register(AK8963_CNTL1_, AK8963_CNT_MEAS2_)) {
+      return false;
+    }
+    delay(100);  // long wait between AK8963 mode changes
+    if (!ReadAk8963Registers(AK8963_ST1_, sizeof(mag_data_), mag_data_)) {
+      return false;
+    }
   }
   /* Set the IMU sample rate */
   if (!WriteRegister(SMPLRT_DIV_, srd)) {
