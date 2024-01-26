@@ -47,86 +47,92 @@ void Icm20948::Config(SPIClass *spi, const uint8_t cs) {
 }
 bool Icm20948::Begin() {
   imu_.Begin();
-  if (iface_ == SPI) {
-    /* I2C IF DIS */
-    WriteRegister(BANK_0_, USER_CTRL_, USER_CTRL_I2C_IF_DIS_);
-  }
-  /* Select clock source */
-  if (!WriteRegister(BANK_0_, PWR_MGMT_1_, PWR_MGMT_1_CLKSEL_AUTO_)) {
-    return false;
-  }
-  /* Enable I2C master mode */
-  if (!WriteRegister(BANK_0_, USER_CTRL_, USER_CTRL_I2C_MST_EN_)) {
-    return false;
-  }
-  /* Set the I2C bus speed to 400 kHz */
-  if (!WriteRegister(BANK_3_, I2C_MST_CTRL_, I2C_MST_CTRL_400_KHZ_CLK_)) {
-    return false;
-  }
-  /* AK09916 Soft Reset */
-  WriteAk09916Register(AK09916_CNTL3_, AK09916_CNTL3_SRST_);
-  /* Reset IMU */
-  WriteRegister(BANK_0_, PWR_MGMT_1_, PWR_MGMT_1_RESET_);
-  /* Wait for IMU to come back up */
   delay(100);
-  if (iface_ == SPI) {
-    /* I2C IF DIS */
-    WriteRegister(BANK_0_, USER_CTRL_, USER_CTRL_I2C_IF_DIS_);
-  }
-  /* Select clock source */
-  if (!WriteRegister(BANK_0_, PWR_MGMT_1_, PWR_MGMT_1_CLKSEL_AUTO_)) {
+  if (!WriteRegister(0, 0x0F, 0x02)) {
     return false;
   }
-  /* Check the WHO AM I byte */
-  if (!ReadRegisters(BANK_0_, WHO_AM_I_, sizeof(who_am_i_), &who_am_i_)) {
-    return false;
-  }
-  if ((who_am_i_ != WHOAMI_ICM20649_)) {
-    return false;
-  }
-  /* Enable I2C master mode */
-  if (!WriteRegister(BANK_0_, USER_CTRL_, USER_CTRL_I2C_MST_EN_)) {
-    return false;
-  }
-  /* Set the I2C bus speed to 400 kHz */
-  if (!WriteRegister(BANK_3_, I2C_MST_CTRL_, I2C_MST_CTRL_400_KHZ_CLK_)) {
-    return false;
-  }
-  /* Check the AK09916 WHOAMI */
-  if (!ReadAk09916Registers(AK09916_WIA2_, sizeof(who_am_i_), &who_am_i_)) {
-    return false;
-  }
-  if (who_am_i_ != WHOAMI_AK09916_) {
-    return false;
-  }
-  /* align odr enable */
-  if (!WriteRegister(BANK_2_, ODR_ALIGN_EN_, ODR_ALIGN_EN_ALIGN_ENABLE_)) {
-    return false;
-  }
-  /* Set the accel range to default */
-  if (!ConfigAccelRange(ACCEL_RANGE_16G)) {
-    return false;
-  }
-  /* Set the gyro range to default*/
-  if (!ConfigGyroRange(GYRO_RANGE_2000DPS)) {
-    return false;
-  }
-  /* Set the AccelDLPF to default */
-  if (!ConfigAccelDlpfBandwidth(ACCEL_DLPF_BANDWIDTH_473HZ)) {
-    return false;
-  }
-  /* Set the Gyro DLPF to default */
-  if (!ConfigGyroDlpfBandwidth(GYRO_DLPF_BANDWIDTH_361HZ)) {
-    return false;
-  }
-  /* Set the Temp DLPF */
-  if (!ConfigTempDlpfBandwidth(TEMP_DLPF_BANDWIDTH_7932HZ)) {
-    return false;
-  }
-  /* Set the SRD to 0 by default */
-  if (!ConfigSrd(0)) {
-    return false;
-  }
+
+
+  // if (iface_ == SPI) {
+  //   /* I2C IF DIS */
+  //   WriteRegister(BANK_0_, USER_CTRL_, USER_CTRL_I2C_IF_DIS_);
+  // }
+  // /* Select clock source */
+  // if (!WriteRegister(BANK_0_, PWR_MGMT_1_, PWR_MGMT_1_CLKSEL_AUTO_)) {
+  //   return false;
+  // }
+  // /* Enable I2C master mode */
+  // if (!WriteRegister(BANK_0_, USER_CTRL_, USER_CTRL_I2C_MST_EN_)) {
+  //   return false;
+  // }
+  // /* Set the I2C bus speed to 400 kHz */
+  // if (!WriteRegister(BANK_3_, I2C_MST_CTRL_, I2C_MST_CTRL_400_KHZ_CLK_)) {
+  //   return false;
+  // }
+  // /* AK09916 Soft Reset */
+  // WriteAk09916Register(AK09916_CNTL3_, AK09916_CNTL3_SRST_);
+  // /* Reset IMU */
+  // WriteRegister(BANK_0_, PWR_MGMT_1_, PWR_MGMT_1_RESET_);
+  // /* Wait for IMU to come back up */
+  // delay(100);
+  // if (iface_ == SPI) {
+  //   /* I2C IF DIS */
+  //   WriteRegister(BANK_0_, USER_CTRL_, USER_CTRL_I2C_IF_DIS_);
+  // }
+  // /* Select clock source */
+  // if (!WriteRegister(BANK_0_, PWR_MGMT_1_, PWR_MGMT_1_CLKSEL_AUTO_)) {
+  //   return false;
+  // }
+  // /* Check the WHO AM I byte */
+  // if (!ReadRegisters(BANK_0_, WHO_AM_I_, sizeof(who_am_i_), &who_am_i_)) {
+  //   return false;
+  // }
+  // if ((who_am_i_ != WHOAMI_ICM20649_)) {
+  //   return false;
+  // }
+  // /* Enable I2C master mode */
+  // if (!WriteRegister(BANK_0_, USER_CTRL_, USER_CTRL_I2C_MST_EN_)) {
+  //   return false;
+  // }
+  // /* Set the I2C bus speed to 400 kHz */
+  // if (!WriteRegister(BANK_3_, I2C_MST_CTRL_, I2C_MST_CTRL_400_KHZ_CLK_)) {
+  //   return false;
+  // }
+  // /* Check the AK09916 WHOAMI */
+  // if (!ReadAk09916Registers(AK09916_WIA2_, sizeof(who_am_i_), &who_am_i_)) {
+  //   return false;
+  // }
+  // if (who_am_i_ != WHOAMI_AK09916_) {
+  //   return false;
+  // }
+  // /* align odr enable */
+  // if (!WriteRegister(BANK_2_, ODR_ALIGN_EN_, ODR_ALIGN_EN_ALIGN_ENABLE_)) {
+  //   return false;
+  // }
+  // /* Set the accel range to default */
+  // if (!ConfigAccelRange(ACCEL_RANGE_16G)) {
+  //   return false;
+  // }
+  // /* Set the gyro range to default*/
+  // if (!ConfigGyroRange(GYRO_RANGE_2000DPS)) {
+  //   return false;
+  // }
+  // /* Set the AccelDLPF to default */
+  // if (!ConfigAccelDlpfBandwidth(ACCEL_DLPF_BANDWIDTH_473HZ)) {
+  //   return false;
+  // }
+  // /* Set the Gyro DLPF to default */
+  // if (!ConfigGyroDlpfBandwidth(GYRO_DLPF_BANDWIDTH_361HZ)) {
+  //   return false;
+  // }
+  // /* Set the Temp DLPF */
+  // if (!ConfigTempDlpfBandwidth(TEMP_DLPF_BANDWIDTH_7932HZ)) {
+  //   return false;
+  // }
+  // /* Set the SRD to 0 by default */
+  // if (!ConfigSrd(0)) {
+  //   return false;
+  // }
   return true;
 }
 bool Icm20948::EnableDrdyInt() {

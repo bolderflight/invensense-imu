@@ -24,9 +24,10 @@
 */
 
 #include "icm20948.h"
+#include "ak09916.h"
 
 /* Icm20649 object */
-bfs::Icm20948 imu;
+bfs::Ak09916 mag(&Wire);
 
 unsigned int t1, t2;
 
@@ -37,27 +38,21 @@ void setup() {
   /* Start the I2C bus */
   Wire.begin();
   Wire.setClock(400000);
-  /* I2C bus,  0x68 address */
-  imu.Config(&Wire, bfs::Icm20948::I2C_ADDR_SEC);
-  /* Initialize and configure IMU */
-  if (!imu.Begin()) {
-    Serial.println("Error initializing communication with IMU");
+  /* Mag */
+  if (!mag.Begin()) {
+    Serial.println("Error initializing communication with MAG");
     while(1) {}
   }
-  /* Set the sample rate divider */
-  if (!imu.ConfigSrd(0)) {
-    Serial.println("Error configuring SRD");
+  if (!mag.ConfigMeasRate(bfs::Ak09916::MEAS_RATE_10HZ)) {
+    Serial.println("Error configuring MAG meas rate");
     while(1) {}
   }
 }
 
 void loop() {
-  /* Check if data read */
-  if (imu.Read()) {
-    if (imu.new_mag_data()) {
-      t1 = millis();
-      Serial.println(t1 - t2);
-      t2 = t1;
-    }
+  if (mag.Read2()) {
+    t1 = millis();
+    Serial.println(t1 - t2);
+    t2 = t1;
   }
 }
