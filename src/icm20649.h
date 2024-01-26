@@ -125,7 +125,7 @@ class Icm20649 {
     I2C
   };
   Interface iface_;
-  static constexpr int32_t SPI_CLOCK_ = 7000000;
+  static constexpr int32_t SPI_CLOCK_ = 5000000;
   uint8_t current_bank_;
   /* Configuration */
   AccelRange accel_range_, requested_accel_range_;
@@ -148,34 +148,37 @@ class Icm20649 {
   int16_t accel_cnts_[3], gyro_cnts_[3], temp_cnts_;
   float accel_[3], gyro_[3];
   float temp_;
-  /* Registers */
-  static constexpr uint8_t I2C_IF_DIS_ = 0x10;
-  static constexpr uint8_t CLKSEL_AUTO_ = 0x01;
-  static constexpr uint8_t REG_BANK_SEL_ = 0x7F;
-  static constexpr uint8_t H_RESET_ = 0x80;
-  static constexpr uint8_t INT_RAW_RDY_EN_ = 0x01;
-  static constexpr uint8_t INT_DISABLE_ = 0x00;
+  /* MASKS */
   static constexpr uint8_t RAW_DATA_RDY_INT_ = 0x01;
   /* Bank 0 */
+  static constexpr uint8_t BANK_0_ = 0;
   static constexpr uint8_t WHO_AM_I_ = 0x00;
   static constexpr uint8_t USER_CTRL_ = 0x03;
+  static constexpr uint8_t USER_CTRL_I2C_IF_DIS_ = 0x10;
   static constexpr uint8_t PWR_MGMT_1_ = 0x06;
+  static constexpr uint8_t PWR_MGMT_1_RESET_ = 0x80;
+  static constexpr uint8_t PWR_MGMT_1_CLKSEL_AUTO_ = 0x01;
   static constexpr uint8_t INT_ENABLE_1_ = 0x11;
+  static constexpr uint8_t INT_ENABLE_1_INT_ENABLE_ = 0x01;
+  static constexpr uint8_t INT_ENABLE_1_INT_DISABLE_ = 0x00;
   static constexpr uint8_t INT_STATUS_1_ = 0x1A;
+  static constexpr uint8_t INT_STATUS_1_RAW_DATA_RDY_INT_ = 0x01;
   static constexpr uint8_t ACCEL_XOUT_H = 0x2D;
+  static constexpr uint8_t REG_BANK_SEL_ = 0x7F;
   /* Bank 2 */
+  static constexpr uint8_t BANK_2_ = 2;
   static constexpr uint8_t GYRO_SMPLRT_DIV_ = 0x00;
   static constexpr uint8_t GYRO_CONFIG_1_ = 0x01;
   static constexpr uint8_t ALIGN_ODR_ = 0x01;
   static constexpr uint8_t ODR_ALIGN_EN_ = 0x09;
+  static constexpr uint8_t ODR_ALIGN_EN_ALIGN_ENABLE_ = 0x01;
   static constexpr uint8_t ACCEL_SMPLRT_DIV_2_ = 0x11;
   static constexpr uint8_t ACCEL_CONFIG_ = 0x14;
   static constexpr uint8_t TEMP_CONFIG_ = 0x53;
   /* Utility functions */
-  bool WriteRegister(const uint8_t reg, const uint8_t data);
-  bool ReadRegisters(const uint8_t reg, const uint8_t count,
+  bool WriteRegister(const uint8_t bank, const uint8_t reg, const uint8_t data);
+  bool ReadRegisters(const uint8_t bank, const uint8_t reg, const uint8_t count,
                      uint8_t * const data);
-  bool SetBank(const uint8_t bank);
 };
 
 }  // namespace bfs

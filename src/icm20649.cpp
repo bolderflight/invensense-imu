@@ -49,33 +49,29 @@ bool Icm20649::Begin() {
   imu_.Begin();
   if (iface_ == SPI) {
     /* I2C IF DIS */
-    WriteRegister(USER_CTRL_, I2C_IF_DIS_);
+    WriteRegister(BANK_0_, USER_CTRL_, USER_CTRL_I2C_IF_DIS_);
   }
-  WriteRegister(PWR_MGMT_1_, H_RESET_);
+  /* Reset IMU */
+  WriteRegister(BANK_0_, PWR_MGMT_1_, PWR_MGMT_1_RESET_);
   /* Wait for IMU to come back up */
   delay(100);
   if (iface_ == SPI) {
     /* I2C IF DIS */
-    WriteRegister(USER_CTRL_, I2C_IF_DIS_);
-  }
-  /* Set to Bank 0 */
-  if(!SetBank(0)) {
-    return false;
+    WriteRegister(BANK_0_, USER_CTRL_, USER_CTRL_I2C_IF_DIS_);
   }
   /* Select clock source */
-  if (!WriteRegister(PWR_MGMT_1_, CLKSEL_AUTO_)) {
+  if (!WriteRegister(BANK_0_, PWR_MGMT_1_, PWR_MGMT_1_CLKSEL_AUTO_)) {
     return false;
   }
   /* Check the WHO AM I byte */
-  if (!ReadRegisters(WHO_AM_I_, sizeof(who_am_i_), &who_am_i_)) {
+  if (!ReadRegisters(BANK_0_, WHO_AM_I_, sizeof(who_am_i_), &who_am_i_)) {
     return false;
   }
   if ((who_am_i_ != WHOAMI_ICM20649_)) {
     return false;
   }
   /* align odr enable */
-  SetBank(2);
-  if (!WriteRegister(ODR_ALIGN_EN_, ALIGN_ODR_)) {
+  if (!WriteRegister(BANK_2_, ODR_ALIGN_EN_, ODR_ALIGN_EN_ALIGN_ENABLE_)) {
     return false;
   }
   /* Set the accel range to 30G by default */
@@ -105,29 +101,18 @@ bool Icm20649::Begin() {
   return true;
 }
 bool Icm20649::EnableDrdyInt() {
-    /* Set to Bank 0 */
-  if(!SetBank(0)) {
-    return false;
-  }
-  if (!WriteRegister(INT_ENABLE_1_, INT_RAW_RDY_EN_)) {
+  if (!WriteRegister(BANK_0_, INT_ENABLE_1_, INT_ENABLE_1_INT_ENABLE_)) {
     return false;
   }
   return true;
 }
 bool Icm20649::DisableDrdyInt() {
-    /* Set to Bank 0 */
-  if(!SetBank(0)) {
-    return false;
-  }
-  if (!WriteRegister(INT_ENABLE_1_, INT_DISABLE_)) {
+  if (!WriteRegister(BANK_0_, INT_ENABLE_1_, INT_ENABLE_1_INT_DISABLE_)) {
     return false;
   }
   return true;
 }
 bool Icm20649::ConfigAccelRange(const AccelRange range) {
-  if(!SetBank(2)) {
-    return false;
-  }
   /* Check input is valid and set requested range and scale */
   switch (range) {
     case ACCEL_RANGE_4G: {
@@ -155,10 +140,10 @@ bool Icm20649::ConfigAccelRange(const AccelRange range) {
     }
   }
   /* Try setting the requested range */
-  ReadRegisters(ACCEL_CONFIG_, 1, data_buf_);
+  ReadRegisters(BANK_2_, ACCEL_CONFIG_, 1, data_buf_);
   data_buf_[0] &= ~(0x06);
   data_buf_[0] |= (requested_accel_range_ << 1);
-  if (!WriteRegister(ACCEL_CONFIG_, data_buf_[0] )) {
+  if (!WriteRegister(BANK_2_, ACCEL_CONFIG_, data_buf_[0] )) {
     return false;
   }
   /* Update stored range and scale */
@@ -167,9 +152,6 @@ bool Icm20649::ConfigAccelRange(const AccelRange range) {
   return true;
 }
 bool Icm20649::ConfigGyroRange(const GyroRange range) {
-  if(!SetBank(2)) {
-    return false;
-  }
   /* Check input is valid and set requested range and scale */
   switch (range) {
     case GYRO_RANGE_500DPS: {
@@ -197,10 +179,10 @@ bool Icm20649::ConfigGyroRange(const GyroRange range) {
     }
   }
   /* Try setting the requested range */
-  ReadRegisters(GYRO_CONFIG_1_, 1, data_buf_);
+  ReadRegisters(BANK_2_, GYRO_CONFIG_1_, 1, data_buf_);
   data_buf_[0] &= ~(0x06);
   data_buf_[0] |= (requested_accel_range_ << 1);
-  if (!WriteRegister(GYRO_CONFIG_1_, data_buf_[0])) {
+  if (!WriteRegister(BANK_2_, GYRO_CONFIG_1_, data_buf_[0])) {
     return false;
   }
   /* Update stored range and scale */
@@ -209,22 +191,16 @@ bool Icm20649::ConfigGyroRange(const GyroRange range) {
   return true;
 }
 bool Icm20649::ConfigSrd(const uint8_t srd) {
-  if(!SetBank(2)) {
+  if (!WriteRegister(BANK_2_, ACCEL_SMPLRT_DIV_2_, srd)) {
     return false;
   }
-  if (!WriteRegister(ACCEL_SMPLRT_DIV_2_, srd)) {
-    return false;
-  }
-  if (!WriteRegister(GYRO_SMPLRT_DIV_, srd)) {
+  if (!WriteRegister(BANK_2_, GYRO_SMPLRT_DIV_, srd)) {
     return false;
   }
   srd_ = srd;
   return true;
 }
 bool Icm20649::ConfigAccelDlpfBandwidth(const AccelDlpfBandwidth dlpf) {
-  if(!SetBank(2)) {
-    return false;
-  }
   /* Check input is valid and set requested dlpf */
   switch (dlpf) {
     case ACCEL_DLPF_BANDWIDTH_246HZ: {
@@ -260,11 +236,11 @@ bool Icm20649::ConfigAccelDlpfBandwidth(const AccelDlpfBandwidth dlpf) {
     }
   }
   /* Try setting the dlpf */
-  ReadRegisters(ACCEL_CONFIG_, 1, data_buf_);
+  ReadRegisters(BANK_2_, ACCEL_CONFIG_, 1, data_buf_);
   data_buf_[0] |= 0x01;
   data_buf_[0] &= 0xC7;
   data_buf_[0] |= (accel_requested_dlpf_ << 3);
-  if (!WriteRegister(ACCEL_CONFIG_, data_buf_[0])) {
+  if (!WriteRegister(BANK_2_, ACCEL_CONFIG_, data_buf_[0])) {
     return false;
   }
   /* Update stored dlpf */
@@ -272,9 +248,6 @@ bool Icm20649::ConfigAccelDlpfBandwidth(const AccelDlpfBandwidth dlpf) {
   return true;
 }
 bool Icm20649::ConfigGyroDlpfBandwidth(const GyroDlpfBandwidth dlpf) {
-  if(!SetBank(2)) {
-    return false;
-  }
   /* Check input is valid and set requested dlpf */
   switch (dlpf) {
     case GYRO_DLPF_BANDWIDTH_196HZ: {
@@ -314,11 +287,11 @@ bool Icm20649::ConfigGyroDlpfBandwidth(const GyroDlpfBandwidth dlpf) {
     }
   }
   /* second change dlpf */
-  ReadRegisters(GYRO_CONFIG_1_, sizeof(data_buf_), data_buf_);
+  ReadRegisters(BANK_2_, GYRO_CONFIG_1_, sizeof(data_buf_), data_buf_);
   data_buf_[0] |= 0x01;
   data_buf_[0] &= 0xC7;
   data_buf_[0] |= (gyro_requested_dlpf_<< 3);
-  if (!WriteRegister(GYRO_CONFIG_1_, data_buf_[0])) {
+  if (!WriteRegister(BANK_2_, GYRO_CONFIG_1_, data_buf_[0])) {
     return false;
   }
   /* Update stored dlpf */
@@ -326,9 +299,6 @@ bool Icm20649::ConfigGyroDlpfBandwidth(const GyroDlpfBandwidth dlpf) {
   return true;
 }
 bool Icm20649::ConfigTempDlpfBandwidth(const TempDlpfBandwidth dlpf) {
-  if(!SetBank(2)) {
-    return false;
-  }
   /* Check input is valid and set requested dlpf */
   switch (dlpf) {
     case TEMP_DLPF_BANDWIDTH_7932HZ: {
@@ -364,7 +334,7 @@ bool Icm20649::ConfigTempDlpfBandwidth(const TempDlpfBandwidth dlpf) {
     }
   }
   /* second change dlpf */
-  if (!WriteRegister(TEMP_CONFIG_, temp_requested_dlpf_)) {
+  if (!WriteRegister(BANK_2_, TEMP_CONFIG_, temp_requested_dlpf_)) {
     return false;
   }
   /* Update stored dlpf */
@@ -372,11 +342,10 @@ bool Icm20649::ConfigTempDlpfBandwidth(const TempDlpfBandwidth dlpf) {
   return true;
 }
 bool Icm20649::Read() {
-  SetBank(0);
   /* Reset the new data flags */
   new_imu_data_ = false;
   /* Read the data registers */
-  if (!ReadRegisters(INT_STATUS_1_, 1, data_buf_)) {
+  if (!ReadRegisters(BANK_0_, INT_STATUS_1_, 1, data_buf_)) {
     return false;
   }
   /* Check if data is ready */
@@ -384,7 +353,7 @@ bool Icm20649::Read() {
   if (!new_imu_data_) {
     return false;
   }
-  ReadRegisters(ACCEL_XOUT_H, 14, data_buf_);
+  ReadRegisters(BANK_0_, ACCEL_XOUT_H, 14, data_buf_);
   /* Unpack the buffer */
   accel_cnts_[0] = static_cast<int16_t>(data_buf_[0])  << 8 | data_buf_[1];
   accel_cnts_[1] = static_cast<int16_t>(data_buf_[2])  << 8 | data_buf_[3];
@@ -403,21 +372,26 @@ bool Icm20649::Read() {
   gyro_[2] = static_cast<float>(gyro_cnts_[2]) * gyro_scale_ * -1.0f * DEG2RAD_;
   return true;
 }
-bool Icm20649::SetBank(const uint8_t bank) {
-	if(bank != current_bank_) {
-    if (WriteRegister(REG_BANK_SEL_, bank << 4)) {
+bool Icm20649::WriteRegister(const uint8_t bank, const uint8_t reg,
+                             const uint8_t data) {
+  if(bank != current_bank_) {
+    if (!imu_.WriteRegister(REG_BANK_SEL_, bank << 4, SPI_CLOCK_)) {
+      return false;
+    } else {
       current_bank_ = bank;
-      return true;
     }
-    return false;
   }
-  return true;
-}
-bool Icm20649::WriteRegister(const uint8_t reg, const uint8_t data) {
   return imu_.WriteRegister(reg, data, SPI_CLOCK_);
 }
-bool Icm20649::ReadRegisters(const uint8_t reg, const uint8_t count,
+bool Icm20649::ReadRegisters(const uint8_t bank, const uint8_t reg, const uint8_t count,
                              uint8_t * const data) {
+  if(bank != current_bank_) {
+    if (!imu_.WriteRegister(REG_BANK_SEL_, bank << 4, SPI_CLOCK_)) {
+      return false;
+    } else {
+      current_bank_ = bank;
+    }
+  }
   return imu_.ReadRegisters(reg, count, SPI_CLOCK_, data);
 }
 
