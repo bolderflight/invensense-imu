@@ -81,6 +81,7 @@ void setup() {
     while(1) {}
   }
   /* Attach data ready interrupt to pin 9 */
+  pinMode(9, INPUT);
   attachInterrupt(9, imu_isr, RISING);
 }
 
