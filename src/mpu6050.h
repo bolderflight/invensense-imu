@@ -29,7 +29,6 @@
 #if defined(ARDUINO)
 #include <Arduino.h>
 #include "Wire.h"
-#include "SPI.h"
 #else
 #include <cstddef>
 #include <cstdint>
