@@ -32,13 +32,11 @@ void InvensenseImu::Config(TwoWire *i2c, const uint8_t addr) {
   dev_ = addr;
   iface_ = I2C;
 }
-
 void InvensenseImu::Config(SPIClass *spi, const uint8_t cs) {
   spi_ = spi;
   dev_ = cs;
   iface_ = SPI;
 }
-
 void InvensenseImu::Begin() {
   /* Wait the minimum startup time for register read / write */
   delay(500);
@@ -51,7 +49,6 @@ void InvensenseImu::Begin() {
     delay(1);
   }
 }
-
 bool InvensenseImu::WriteRegister(const uint8_t reg, const uint8_t data,
                                   const int32_t spi_clock) {
   uint8_t ret_val;
@@ -90,7 +87,6 @@ bool InvensenseImu::WriteRegister(const uint8_t reg, const uint8_t data,
     return false;
   }
 }
-
 bool InvensenseImu::ReadRegisters(const uint8_t reg, const uint8_t count,
                                   const int32_t spi_clock,
                                   uint8_t * const data) {
@@ -130,23 +126,6 @@ bool InvensenseImu::ReadRegisters(const uint8_t reg, const uint8_t count,
     #endif
     spi_->endTransaction();
     return true;
-  }
-}
-
-bool InvensenseImu::WriteRegister(const uint8_t reg, const uint8_t data) {
-  if (iface_ == I2C) {
-    return WriteRegister(reg, data, 0);
-  } else {
-    return false;
-  }
-}
-
-bool InvensenseImu::ReadRegisters(const uint8_t reg, const uint8_t count,
-                                  uint8_t * const data) {
-  if (iface_ == I2C) {
-    return ReadRegisters(reg, count, 0, data);
-  } else {
-    return false;
   }
 }
 

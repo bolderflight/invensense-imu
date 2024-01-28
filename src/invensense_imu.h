@@ -50,13 +50,10 @@ class InvensenseImu {
   void Config(TwoWire *i2c, const uint8_t addr);
   void Config(SPIClass *spi, const uint8_t cs);
   void Begin();
-  bool ReadRegisters(const uint8_t reg, const uint8_t count,
-                     const int32_t spi_clock, uint8_t * const data);
-  bool WriteRegister(const uint8_t reg, const uint8_t data);
   bool WriteRegister(const uint8_t reg, const uint8_t data,
                      const int32_t spi_clock);
   bool ReadRegisters(const uint8_t reg, const uint8_t count,
-                     uint8_t * const data);
+                     const int32_t spi_clock, uint8_t * const data);
 
  private:
   /* Communications interface */

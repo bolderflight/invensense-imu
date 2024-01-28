@@ -65,11 +65,16 @@ class Mpu9150 {
     GYRO_RANGE_1000DPS = 0x10,
     GYRO_RANGE_2000DPS = 0x18
   };
+  enum MagMode {
+    MAG_DISABLED,
+    MAG_PASSTHROUGH
+  };
   Mpu9150() {}
   Mpu9150(TwoWire *i2c, const I2cAddr addr) :
           imu_(i2c, static_cast<uint8_t>(addr)) {}
   void Config(TwoWire *i2c, const I2cAddr addr);
   bool Begin();
+  bool Begin(const MagMode mode);
   bool EnableDrdyInt();
   bool DisableDrdyInt();
   bool ConfigAccelRange(const AccelRange range);
@@ -93,6 +98,7 @@ class Mpu9150 {
  private:
   InvensenseImu imu_;
   /* Configuration */
+  MagMode mag_mode_;
   AccelRange accel_range_, requested_accel_range_;
   GyroRange gyro_range_, requested_gyro_range_;
   DlpfBandwidth dlpf_bandwidth_, requested_dlpf_;

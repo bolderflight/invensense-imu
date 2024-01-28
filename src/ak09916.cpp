@@ -40,6 +40,9 @@ void Ak09916::Config(TwoWire *i2c) {
 }
 bool Ak09916::Begin() {
   delay(100);
+  /* Soft reset */
+  WriteRegister(CNTL3_, CNTL3_SRST_);
+  delay(100);
   /* Check WHO AM I */
   if (!ReadRegisters(WIA2_, 1, buf_)) {
     return false;
@@ -47,9 +50,6 @@ bool Ak09916::Begin() {
   if (buf_[0] != WHOAMI_AK09916_) {
     return false;
   }
-  /* Soft reset */
-  WriteRegister(CNTL3_, CNTL3_SRST_);
-  delay(100);
   /* Configure the measurement rate */
   if (!ConfigMeasRate(MEAS_RATE_100HZ)) {
     return false;
@@ -58,6 +58,11 @@ bool Ak09916::Begin() {
 }
 bool Ak09916::ConfigMeasRate(const MeasRate rate) {
   switch (rate) {
+    case MEAS_RATE_SINGLE: {
+      WriteRegister(CNTL2_, CNTL2_SINGLE_MEAS_);
+      meas_rate_ = rate;
+      return true;
+    }
     case MEAS_RATE_10HZ: {
       WriteRegister(CNTL2_, CNTL2_CONT_MEAS_MODE1_);
       if (!ReadRegisters(CNTL2_, 1, buf_)) {
@@ -66,6 +71,7 @@ bool Ak09916::ConfigMeasRate(const MeasRate rate) {
       if (buf_[0] != CNTL2_CONT_MEAS_MODE1_) {
         return false;
       }
+      meas_rate_ = rate;
       return true;
     }
     case MEAS_RATE_20HZ: {
@@ -76,6 +82,7 @@ bool Ak09916::ConfigMeasRate(const MeasRate rate) {
       if (buf_[0] != CNTL2_CONT_MEAS_MODE2_) {
         return false;
       }
+      meas_rate_ = rate;
       return true;
     }
     case MEAS_RATE_50HZ: {
@@ -86,6 +93,7 @@ bool Ak09916::ConfigMeasRate(const MeasRate rate) {
       if (buf_[0] != CNTL2_CONT_MEAS_MODE3_) {
         return false;
       }
+      meas_rate_ = rate;
       return true;
     }
     case MEAS_RATE_100HZ: {
@@ -96,6 +104,7 @@ bool Ak09916::ConfigMeasRate(const MeasRate rate) {
       if (buf_[0] != CNTL2_CONT_MEAS_MODE4_) {
         return false;
       }
+      meas_rate_ = rate;
       return true;
     }
     default: {
@@ -103,42 +112,25 @@ bool Ak09916::ConfigMeasRate(const MeasRate rate) {
     }
   }
 }
-bool Ak09916::Read1() {
-  if (!ReadRegisters(ST1_, 9, buf_)) {
-    return false;
-  }
-  new_mag_data_ = (buf_[0] & ST1_DRDY_);
-  if (new_mag_data_) {
-    mag_cnts_[0] =   static_cast<int16_t>(buf_[2]) << 8 | buf_[1];
-    mag_cnts_[1] =   static_cast<int16_t>(buf_[4]) << 8 | buf_[3];
-    mag_cnts_[2] =   static_cast<int16_t>(buf_[6]) << 8 | buf_[5];
-    mag_sensor_overflow_ = (buf_[8] & ST2_HOFL_);
-    if (mag_sensor_overflow_) {
-      new_mag_data_ = false;
-      return false;
-    } else {
-      mag_[0] =   -1.0f * (static_cast<float>(mag_cnts_[1]) * MAG_SCALE_);
-      mag_[1] =   static_cast<float>(mag_cnts_[0]) * MAG_SCALE_;
-      mag_[2] =   static_cast<float>(mag_cnts_[2]) * MAG_SCALE_;
-      return true;
-    }
-  }
-  return false;
-}
-bool Ak09916::Read2() {
+bool Ak09916::Read() {
   new_mag_data_ = false;
   if (!ReadRegisters(ST1_, 1, buf_)) {
     return false;
   }
+  /* Check data ready */
   if (buf_[0] & ST1_DRDY_) {
     if (!ReadRegisters(HXL_, 8, buf_)) {
       return false;
     }
+    /* Request another measurement */
+    if (meas_rate_ == MEAS_RATE_SINGLE) {
+      WriteRegister(CNTL2_, CNTL2_SINGLE_MEAS_);
+    }
+    /* Process the current measurement */
     mag_cnts_[0] =   static_cast<int16_t>(buf_[1]) << 8 | buf_[0];
     mag_cnts_[1] =   static_cast<int16_t>(buf_[3]) << 8 | buf_[2];
     mag_cnts_[2] =   static_cast<int16_t>(buf_[5]) << 8 | buf_[4];
-    mag_sensor_overflow_ = (buf_[7] & ST2_HOFL_);
-    if (mag_sensor_overflow_) {
+    if (buf_[7] & ST2_HOFL_) {
       return false;
     }
     mag_[0] =   -1.0f * (static_cast<float>(mag_cnts_[1]) * MAG_SCALE_);

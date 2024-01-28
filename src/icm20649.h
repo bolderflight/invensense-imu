@@ -66,13 +66,11 @@ class Icm20649 {
     ACCEL_DLPF_BANDWIDTH_473HZ = 0x07,
   };
   enum TempDlpfBandwidth : int8_t {
-    TEMP_DLPF_BANDWIDTH_7932HZ = 0x00,
     TEMP_DLPF_BANDWIDTH_217HZ = 0x01,
     TEMP_DLPF_BANDWIDTH_123HZ = 0x02,
     TEMP_DLPF_BANDWIDTH_65HZ = 0x03,
     TEMP_DLPF_BANDWIDTH_34HZ = 0x04,
-    TEMP_DLPF_BANDWIDTH_17HZ = 0x05,
-    TEMP_DLPF_BANDWIDTH_8HZ = 0x06
+    TEMP_DLPF_BANDWIDTH_17HZ = 0x05
   };
   enum AccelRange : int8_t {
     ACCEL_RANGE_4G	= 0x00,
@@ -125,7 +123,7 @@ class Icm20649 {
     I2C
   };
   Interface iface_;
-  static constexpr int32_t SPI_CLOCK_ = 5000000;
+  static constexpr int32_t SPI_CLOCK_ = 7000000;
   uint8_t current_bank_;
   /* Configuration */
   AccelRange accel_range_, requested_accel_range_;

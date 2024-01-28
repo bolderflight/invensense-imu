@@ -23,8 +23,8 @@
 * IN THE SOFTWARE.
 */
 
-#ifndef INVENSENSE_IMU_SRC_AK8975_H_  // NOLINT
-#define INVENSENSE_IMU_SRC_AK8975_H_
+#ifndef INVENSENSE_IMU_SRC_AK8963_H_  // NOLINT
+#define INVENSENSE_IMU_SRC_AK8963_H_
 
 #if defined(ARDUINO)
 #include <Arduino.h>
@@ -37,12 +37,19 @@
 
 namespace bfs {
 
-class Ak8975 {
+class Ak8963 {
  public:
-  Ak8975() {}
-  Ak8975(TwoWire *i2c) : i2c_(i2c) {}
+  enum MeasRate {
+    MEAS_RATE_SINGLE,
+    MEAS_RATE_8HZ,
+    MEAS_RATE_100HZ
+  };
+  Ak8963() {}
+  Ak8963(TwoWire *i2c) : i2c_(i2c) {}
   void Config(TwoWire *i2c);
   bool Begin();
+  bool ConfigMeasRate(const MeasRate rate);
+  MeasRate meas_rate() const {return meas_rate_;}
   bool Read();
   inline bool new_mag_data() const {return new_mag_data_;}
   inline float mag_x_ut() const {return mag_[0];}
@@ -53,8 +60,9 @@ class Ak8975 {
   TwoWire *i2c_;
   static constexpr uint8_t dev_ = 0x0C;
   /* Config */
+  MeasRate meas_rate_;
   float mag_scale_[3];
-  static constexpr uint8_t WHOAMI_AK8975_ = 0x48;
+  static constexpr uint8_t WHOAMI_AK8963_ = 0x48;
   /* Data */
   size_t bytes_rx_;
   bool new_mag_data_;
@@ -63,17 +71,21 @@ class Ak8975 {
   float mag_[3];
   /* Registers */
   static constexpr uint8_t WHOAMI_ = 0x00;
-  static constexpr uint8_t ASA_ = 0x10;
-  static constexpr uint8_t CNTL_ = 0x0A;
-  static constexpr uint8_t PWR_DOWN_ = 0x00;
-  static constexpr uint8_t FUSE_ROM_ = 0x0F;
-  static constexpr uint8_t SINGLE_MEAS_ = 0x01;
-  static constexpr uint8_t STATUS1_ = 0x02;
-  static constexpr uint8_t STATUS1_DRDY_ = 0x01;
+  static constexpr uint8_t ST1_ = 0x02;
+  static constexpr uint8_t ST1_DRDY_ = 0x01;
+  static constexpr uint8_t ST1_DOR_ = 0x02;
   static constexpr uint8_t HXL_ = 0x03;
-  static constexpr uint8_t STATUS2_HOFL_ = 0x08;
-  static constexpr uint8_t STATUS2_DERR_ = 0x04;
-
+  static constexpr uint8_t ST2_HOFL_ = 0x08;
+  static constexpr uint8_t ST2_DERR_ = 0x04;
+  static constexpr uint8_t CNTL1_ = 0x0A;
+  static constexpr uint8_t CNTL1_PWR_DOWN_ = 0x00;
+  static constexpr uint8_t CNTL1_SINGLE_MEAS_ = 0x01;
+  static constexpr uint8_t CNTL1_CONT_MEAS1_ = 0x12;
+  static constexpr uint8_t CNTL1_CONT_MEAS2_ = 0x16;
+  static constexpr uint8_t CNTL1_FUSE_ROM_ = 0x0F;
+  static constexpr uint8_t CNTL2_ = 0x0B;
+  static constexpr uint8_t CNTL2_SRST_ = 0x01;
+  static constexpr uint8_t ASA_ = 0x10;
   /* Utility functions */
   void WriteRegister(const uint8_t reg, const uint8_t data);
   bool ReadRegisters(const uint8_t reg, const uint8_t count,
@@ -82,4 +94,4 @@ class Ak8975 {
 
 }  // namespace bfs
 
-#endif  // INVENSENSE_IMU_SRC_AK8975_H_ NOLINT
+#endif  // INVENSENSE_IMU_SRC_AK8963_H_ NOLINT

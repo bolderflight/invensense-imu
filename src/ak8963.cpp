@@ -23,89 +23,128 @@
 * IN THE SOFTWARE.
 */
 
-#include "ak8975.h"  // NOLINT
+#include "ak8963.h"
 #if defined(ARDUINO)
 #include <Arduino.h>
 #include "Wire.h"
 #else
 #include <cstddef>
 #include <cstdint>
-#include <algorithm>
 #include "core/core.h"
 #endif
 
 namespace bfs {
 
-void Ak8975::Config(TwoWire *i2c) {
+void Ak8963::Config(TwoWire *i2c) {
   i2c_ = i2c;
 }
-bool Ak8975::Begin() {
+bool Ak8963::Begin() {
+  delay(100);
+  /* Soft reset */
+  WriteRegister(CNTL2_, CNTL2_SRST_);
   delay(100);
   /* Check WHO AM I */
   if (!ReadRegisters(WHOAMI_, 1, buf_)) {
     return false;
   }
-  if (buf_[0] != WHOAMI_AK8975_) {
+  if (buf_[0] != WHOAMI_AK8963_) {
     return false;
   }
   /* Power down */
-  WriteRegister(CNTL_, PWR_DOWN_);
+  WriteRegister(CNTL1_, CNTL1_PWR_DOWN_);
   delay(100);
   /* Enter fuse ROM mode */
-  WriteRegister(CNTL_, FUSE_ROM_);
+  WriteRegister(CNTL1_, CNTL1_FUSE_ROM_);
   delay(100);
   /* Get fuse registers */
   if (!ReadRegisters(ASA_, 3, buf_)) {
     return false;
   }
   mag_scale_[0] = ((static_cast<float>(buf_[0]) - 128.0f)
-    / 256.0f + 1.0f) * 1229.0f / 4095.0f;
+    / 256.0f + 1.0f) * 4912.0f / 32760.0f;
   mag_scale_[1] = ((static_cast<float>(buf_[1]) - 128.0f)
-    / 256.0f + 1.0f) * 1229.0f / 4095.0f;
+    / 256.0f + 1.0f) * 4912.0f / 32760.0f;
   mag_scale_[2] = ((static_cast<float>(buf_[2]) - 128.0f)
-    / 256.0f + 1.0f) * 1229.0f / 4095.0f;
-  /* Set power mode */
-  WriteRegister(CNTL_, PWR_DOWN_);
+    / 256.0f + 1.0f) * 4912.0f / 32760.0f;
+  WriteRegister(CNTL1_, CNTL1_PWR_DOWN_);
   delay(100);
-  WriteRegister(CNTL_, SINGLE_MEAS_);
-  delay(100);
+  /* Configure the measurement rate */
+  if (!ConfigMeasRate(MEAS_RATE_100HZ)) {
+    return false;
+  }
   return true;
 }
-bool Ak8975::Read() {
-    new_mag_data_ = false;
-  if (!ReadRegisters(STATUS1_, 1, buf_)) {
+bool Ak8963::ConfigMeasRate(const MeasRate rate) {
+  switch (rate) {
+    case MEAS_RATE_SINGLE: {
+      WriteRegister(CNTL1_, CNTL1_SINGLE_MEAS_);
+      meas_rate_ = rate;
+      return true;
+    }
+    case MEAS_RATE_8HZ: {
+      WriteRegister(CNTL1_, CNTL1_CONT_MEAS1_);
+      if (!ReadRegisters(CNTL1_, 1, buf_)) {
+        return false;
+      }
+      if (buf_[0] != CNTL1_CONT_MEAS1_) {
+        return false;
+      }
+      meas_rate_ = rate;
+      return true;
+    }
+    case MEAS_RATE_100HZ: {
+      WriteRegister(CNTL1_, CNTL1_CONT_MEAS2_);
+      if (!ReadRegisters(CNTL1_, 1, buf_)) {
+        return false;
+      }
+      if (buf_[0] != CNTL1_CONT_MEAS2_) {
+        return false;
+      }
+      meas_rate_ = rate;
+      return true;
+    }
+    default: {
+      return false;
+    }
+  }
+}
+bool Ak8963::Read() {
+  new_mag_data_ = false;
+  if (!ReadRegisters(ST1_, 1, buf_)) {
     return false;
   }
   /* Check data ready */
-  if (buf_[0] & STATUS1_DRDY_) {
+  if (buf_[0] & ST1_DRDY_) {
     if (!ReadRegisters(HXL_, 7, buf_)) {
       return false;
     }
     /* Request another measurement */
-    WriteRegister(CNTL_, SINGLE_MEAS_);
+    if (meas_rate_ == MEAS_RATE_SINGLE) {
+      WriteRegister(CNTL1_, CNTL1_SINGLE_MEAS_);
+    }
     /* Process the current measurement */
     mag_cnts_[0] =   static_cast<int16_t>(buf_[1]) << 8 | buf_[0];
     mag_cnts_[1] =   static_cast<int16_t>(buf_[3]) << 8 | buf_[2];
     mag_cnts_[2] =   static_cast<int16_t>(buf_[5]) << 8 | buf_[4];
-    if ((buf_[6] & STATUS2_DERR_) || (buf_[6] & STATUS2_HOFL_)) {
+    if (buf_[6] & ST2_HOFL_) {
       return false;
     }
-    new_mag_data_ = true;
     mag_[0] =   static_cast<float>(mag_cnts_[0]) * mag_scale_[0];
     mag_[1] =   static_cast<float>(mag_cnts_[1]) * mag_scale_[1];
     mag_[2] =   static_cast<float>(mag_cnts_[2]) * mag_scale_[2];
+    new_mag_data_ = true;
     return true;
   }
   return false;
 }
-void Ak8975::WriteRegister(const uint8_t reg, const uint8_t data) {
+void Ak8963::WriteRegister(const uint8_t reg, const uint8_t data) {
   i2c_->beginTransmission(dev_);
   i2c_->write(reg);
   i2c_->write(data);
   i2c_->endTransmission();
 }
-bool Ak8975::ReadRegisters(const uint8_t reg, const uint8_t count,
-                           uint8_t * const data) {
+bool Ak8963::ReadRegisters(const uint8_t reg, const uint8_t count,
+                            uint8_t * const data) {
   i2c_->beginTransmission(dev_);
   i2c_->write(reg);
   i2c_->endTransmission(false);

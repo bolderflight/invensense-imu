@@ -40,6 +40,10 @@ void Mpu9150::Config(TwoWire *i2c, const I2cAddr addr) {
   imu_.Config(i2c, static_cast<uint8_t>(addr));
 }
 bool Mpu9150::Begin() {
+  return Begin(MAG_PASSTHROUGH);
+}
+bool Mpu9150::Begin(const MagMode mode) {
+  mag_mode_ = mode;
   imu_.Begin();
   /* Reset the IMU */
   WriteRegister(PWR_MGMNT_1_, H_RESET_);
@@ -56,9 +60,11 @@ bool Mpu9150::Begin() {
   if (who_am_i_ != WHOAMI_MPU9150_) {
     return false;
   }
-  /* Enable I2C pass through */
-  if (!WriteRegister(INT_PIN_CFG_, I2C_BYPASS_EN_)) {
-    return false;
+  if (mag_mode_ == MAG_PASSTHROUGH) {
+    /* Enable I2C pass through */
+    if (!WriteRegister(INT_PIN_CFG_, I2C_BYPASS_EN_)) {
+      return false;
+    }
   }
   /* Select clock source to gyro */
   if (!WriteRegister(PWR_MGMNT_1_, CLKSEL_PLL_)) {
@@ -83,8 +89,14 @@ bool Mpu9150::Begin() {
   return true;
 }
 bool Mpu9150::EnableDrdyInt() {
-  if (!WriteRegister(INT_PIN_CFG_, INT_PULSE_50US_ | I2C_BYPASS_EN_)) {
-    return false;
+  if (mag_mode_ == MAG_PASSTHROUGH) {
+    if (!WriteRegister(INT_PIN_CFG_, INT_PULSE_50US_ | I2C_BYPASS_EN_)) {
+      return false;
+    }
+  } else {
+    if (!WriteRegister(INT_PIN_CFG_, INT_PULSE_50US_)) {
+      return false;
+    }
   }
   if (!WriteRegister(INT_ENABLE_, INT_RAW_RDY_EN_)) {
     return false;

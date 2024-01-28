@@ -40,6 +40,7 @@ namespace bfs {
 class Ak09916 {
  public:
   enum MeasRate {
+    MEAS_RATE_SINGLE,
     MEAS_RATE_10HZ,
     MEAS_RATE_20HZ,
     MEAS_RATE_50HZ,
@@ -50,8 +51,8 @@ class Ak09916 {
   void Config(TwoWire *i2c);
   bool Begin();
   bool ConfigMeasRate(const MeasRate rate);
-  bool Read1();
-  bool Read2();
+  MeasRate meas_rate() const {return meas_rate_;}
+  bool Read();
   inline bool new_mag_data() const {return new_mag_data_;}
   inline float mag_x_ut() const {return mag_[0];}
   inline float mag_y_ut() const {return mag_[1];}
@@ -61,13 +62,13 @@ class Ak09916 {
   TwoWire *i2c_;
   static constexpr uint8_t dev_ = 0x0C;
   /* Config */
+  MeasRate meas_rate_;
   static constexpr float MAG_SCALE_ = 4912.0f / 32752.0f;
   static constexpr uint8_t WHOAMI_AK09916_ = 0x09;
   /* Data */
   size_t bytes_rx_;
   bool new_mag_data_;
-  bool mag_sensor_overflow_;
-  uint8_t buf_[9];
+  uint8_t buf_[8];
   int16_t mag_cnts_[3];
   float mag_[3];
   /* Registers */

@@ -91,7 +91,7 @@ bool Icm20649::Begin() {
     return false;
   }
   /* Set the Temp DLPF */
-  if (!ConfigTempDlpfBandwidth(TEMP_DLPF_BANDWIDTH_7932HZ)) {
+  if (!ConfigTempDlpfBandwidth(TEMP_DLPF_BANDWIDTH_217HZ)) {
     return false;
   }
   /* Set the SRD to 0 by default */
@@ -301,10 +301,6 @@ bool Icm20649::ConfigGyroDlpfBandwidth(const GyroDlpfBandwidth dlpf) {
 bool Icm20649::ConfigTempDlpfBandwidth(const TempDlpfBandwidth dlpf) {
   /* Check input is valid and set requested dlpf */
   switch (dlpf) {
-    case TEMP_DLPF_BANDWIDTH_7932HZ: {
-      temp_requested_dlpf_ = dlpf;
-      break;
-    }
     case TEMP_DLPF_BANDWIDTH_217HZ: {
       temp_requested_dlpf_ = dlpf;
       break;
@@ -322,10 +318,6 @@ bool Icm20649::ConfigTempDlpfBandwidth(const TempDlpfBandwidth dlpf) {
       break;
     }
     case TEMP_DLPF_BANDWIDTH_17HZ: {
-      temp_requested_dlpf_ = dlpf;
-      break;
-    }
-    case TEMP_DLPF_BANDWIDTH_8HZ: {
       temp_requested_dlpf_ = dlpf;
       break;
     }
