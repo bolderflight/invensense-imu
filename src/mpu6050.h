@@ -72,6 +72,9 @@ class Mpu6050 {
   bool Begin();
   bool EnableDrdyInt();
   bool DisableDrdyInt();
+  bool EnableFifo();
+  bool DisableFifo();
+  void ResetFifo();
   bool ConfigAccelRange(const AccelRange range);
   inline AccelRange accel_range() const {return accel_range_;}
   bool ConfigGyroRange(const GyroRange range);
@@ -81,6 +84,10 @@ class Mpu6050 {
   bool ConfigDlpfBandwidth(const DlpfBandwidth dlpf);
   inline DlpfBandwidth dlpf_bandwidth() const {return dlpf_bandwidth_;}
   bool Read();
+  int16_t ReadFifo(uint8_t * const data, const size_t len);
+  int16_t ProcessFifoData(uint8_t * const data, const size_t len,
+                          float * const gx, float * const gy, float * const gz,
+                          float * const ax, float * const ay, float * const az);
   inline bool new_imu_data() const {return new_imu_data_;}
   inline float accel_x_mps2() const {return accel_[0];}
   inline float accel_y_mps2() const {return accel_[1];}
@@ -130,6 +137,21 @@ class Mpu6050 {
   static constexpr uint8_t I2C_IF_DIS_ = 0x10;
   static constexpr uint8_t USER_CTRL_ = 0x6A;
   static constexpr uint8_t H_RESET_ = 0x80;
+  /* FIFO processing */
+  bool fifo_overflowed_;
+  size_t bytes_to_read_;
+  uint16_t fifo_count_;
+  /* FIFO */
+  static constexpr uint8_t USER_CTRL_FIFO_EN_ = 0x40;
+  static constexpr uint8_t USER_CTRL_FIFO_DISABLE_ = 0x00;
+  static constexpr uint8_t USER_CTRL_FIFO_RESET_ = 0x04;
+  static constexpr uint8_t FIFO_OFLOW_INT_ = 0x10;
+  static constexpr uint8_t FIFO_EN_ = 0x23;
+  static constexpr uint8_t FIF_EN_DISABLE_ALL_ = 0x00;
+  static constexpr uint8_t FIFO_EN_GYRO_ = 0x70;
+  static constexpr uint8_t FIFO_EN_ACCEL_ = 0x08;
+  static constexpr uint8_t FIFO_COUNT_H_ = 0x72;
+  static constexpr uint8_t FIFO_R_W_ = 0x74;
   /* Utility functions */
   bool WriteRegister(const uint8_t reg, const uint8_t data);
   bool ReadRegisters(const uint8_t reg, const uint8_t count,

@@ -89,6 +89,27 @@ bool Mpu6050::DisableDrdyInt() {
   }
   return true;
 }
+bool Mpu6050::EnableFifo() {
+  if (!WriteRegister(USER_CTRL_, USER_CTRL_FIFO_EN_)) {
+    return false;
+  }
+  if (!WriteRegister(FIFO_EN_, FIFO_EN_GYRO_ | FIFO_EN_ACCEL_)) {
+    return false;
+  }
+  return true;
+}
+bool Mpu6050::DisableFifo() {
+  if (!WriteRegister(USER_CTRL_, USER_CTRL_FIFO_DISABLE_)) {
+    return false;
+  }
+  if (!WriteRegister(FIFO_EN_, FIF_EN_DISABLE_ALL_)) {
+    return false;
+  }
+  return true;
+}
+void Mpu6050::ResetFifo() {
+  WriteRegister(USER_CTRL_, USER_CTRL_FIFO_RESET_);
+}
 bool Mpu6050::ConfigAccelRange(const AccelRange range) {
   /* Check input is valid and set requested range and scale */
   switch (range) {
@@ -241,6 +262,61 @@ bool Mpu6050::Read() {
   gyro_[1] = static_cast<float>(gyro_cnts_[0]) * gyro_scale_ * DEG2RAD_;
   gyro_[2] = static_cast<float>(gyro_cnts_[2]) * gyro_scale_ * -1.0f * DEG2RAD_;
   return true;
+}
+int16_t Mpu6050::ReadFifo(uint8_t * const data, const size_t len) {
+  if (!data) {
+    return -1;
+  }
+  /* Read the FIFO interrupt */
+  if (!ReadRegisters(INT_STATUS_, 1, data_buf_)) {
+    return -1;
+  }
+  /* Check for fifo overflow */
+  fifo_overflowed_ = (data_buf_[0] & FIFO_OFLOW_INT_);
+  /* FIFO Count */
+  if (!ReadRegisters(FIFO_COUNT_H_, 2, data_buf_)) {
+    return -1;
+  }
+  fifo_count_ = static_cast<int16_t>(data_buf_[0]) << 8 | data_buf_[1];
+  if (fifo_count_ > 0) {
+    if (len < fifo_count_) {
+      bytes_to_read_ = len;
+    } else {
+      bytes_to_read_ = fifo_count_;
+    }
+    if (!ReadRegisters(FIFO_R_W_, bytes_to_read_, data)) {
+      return -1;
+    }
+    return bytes_to_read_;
+  } else {
+    return 0;
+  }
+}
+int16_t Mpu6050::ProcessFifoData(uint8_t * const data, const size_t len,
+                                 float * const gx, float * const gy, float * const gz,
+                                 float * const ax, float * const ay, float * const az) {
+  if ((!data) || (!gx) || (!gy) || (!gz) || (!ax) || (!ay) || (!az)) {
+    return -1;
+  }
+  size_t j = 0;
+  for (size_t i = 0; i < len; i = i + 12) {
+    /* Unpack the buffer */
+    accel_cnts_[0] = static_cast<int16_t>(data[i + 0])  << 8 | data[i + 1];
+    accel_cnts_[1] = static_cast<int16_t>(data[i + 2])  << 8 | data[i + 3];
+    accel_cnts_[2] = static_cast<int16_t>(data[i + 4])  << 8 | data[i + 5];
+    gyro_cnts_[0] =  static_cast<int16_t>(data[i + 6])  << 8 | data[i + 7];
+    gyro_cnts_[1] =  static_cast<int16_t>(data[i + 8]) << 8 | data[i + 9];
+    gyro_cnts_[2] =  static_cast<int16_t>(data[i + 10]) << 8 | data[i + 11];
+    /* Convert to float values and rotate the accel / gyro axis */
+    ax[j] = static_cast<float>(accel_cnts_[1]) * accel_scale_ * G_MPS2_;
+    ay[j] = static_cast<float>(accel_cnts_[0]) * accel_scale_ * G_MPS2_;
+    az[j] = static_cast<float>(accel_cnts_[2]) * accel_scale_ * -1.0f * G_MPS2_;
+    gx[j] = static_cast<float>(gyro_cnts_[1]) * gyro_scale_ * DEG2RAD_;
+    gy[j] = static_cast<float>(gyro_cnts_[0]) * gyro_scale_ * DEG2RAD_;
+    gz[j] = static_cast<float>(gyro_cnts_[2]) * gyro_scale_ * -1.0f * DEG2RAD_;
+    j++;
+  }
+  return j;
 }
 bool Mpu6050::WriteRegister(const uint8_t reg, const uint8_t data) {
   return imu_.WriteRegister(reg, data, 0);
