@@ -110,9 +110,13 @@ class Mpu9250 {
   bool EnableWom(int16_t threshold_mg, const WomRate wom_rate);
   bool Read();
   int16_t ReadFifo(uint8_t * const data, const size_t len);
+  // int16_t ProcessFifoData(uint8_t * const data, const size_t len,
+  //                         float * const gx, float * const gy, float * const gz,
+  //                         float * const ax, float * const ay, float * const az);
   int16_t ProcessFifoData(uint8_t * const data, const size_t len,
                           float * const gx, float * const gy, float * const gz,
-                          float * const ax, float * const ay, float * const az);
+                          float * const ax, float * const ay, float * const az,
+                          float * const hx, float * const hy, float * const hz);
   inline bool new_imu_data() const {return new_imu_data_;}
   inline float accel_x_mps2() const {return accel_[0];}
   inline float accel_y_mps2() const {return accel_[1];}
@@ -235,6 +239,7 @@ class Mpu9250 {
   static constexpr uint8_t FIF_EN_DISABLE_ALL_ = 0x00;
   static constexpr uint8_t FIFO_EN_GYRO_ = 0x70;
   static constexpr uint8_t FIFO_EN_ACCEL_ = 0x08;
+  static constexpr uint8_t FIFO_EN_MAG_ = 0x01;
   static constexpr uint8_t FIFO_COUNT_H_ = 0x72;
   static constexpr uint8_t FIFO_R_W_ = 0x74;
   /* Utility functions */

@@ -202,13 +202,16 @@ bool Mpu9250::EnableFifo() {
     if (!WriteRegister(USER_CTRL_, USER_CTRL_FIFO_EN_ | I2C_MST_EN_)) {
       return false;
     }
+    if (!WriteRegister(FIFO_EN_, FIFO_EN_GYRO_ | FIFO_EN_ACCEL_ | FIFO_EN_MAG_)) {
+      return false;
+    }
   } else {
     if (!WriteRegister(USER_CTRL_, USER_CTRL_FIFO_EN_)) {
       return false;
     }
-  }
-  if (!WriteRegister(FIFO_EN_, FIFO_EN_GYRO_ | FIFO_EN_ACCEL_)) {
-    return false;
+    if (!WriteRegister(FIFO_EN_, FIFO_EN_GYRO_ | FIFO_EN_ACCEL_)) {
+      return false;
+    }
   }
   return true;
 }
@@ -530,27 +533,55 @@ int16_t Mpu9250::ReadFifo(uint8_t * const data, const size_t len) {
 }
 int16_t Mpu9250::ProcessFifoData(uint8_t * const data, const size_t len,
                                  float * const gx, float * const gy, float * const gz,
-                                 float * const ax, float * const ay, float * const az) {
-  if ((!data) || (!gx) || (!gy) || (!gz) || (!ax) || (!ay) || (!az)) {
+                                 float * const ax, float * const ay, float * const az,
+                                 float * const hx, float * const hy, float * const hz) {
+  if ((!data) || (!gx) || (!gy) || (!gz) || (!ax) || (!ay) || (!az) ||
+      (!hx) || (!hy) || (!hz)) {
     return -1;
   }
   size_t j = 0;
-  for (size_t i = 0; i < len; i = i + 12) {
-    /* Unpack the buffer */
-    accel_cnts_[0] = static_cast<int16_t>(data[i + 0])  << 8 | data[i + 1];
-    accel_cnts_[1] = static_cast<int16_t>(data[i + 2])  << 8 | data[i + 3];
-    accel_cnts_[2] = static_cast<int16_t>(data[i + 4])  << 8 | data[i + 5];
-    gyro_cnts_[0] =  static_cast<int16_t>(data[i + 6])  << 8 | data[i + 7];
-    gyro_cnts_[1] =  static_cast<int16_t>(data[i + 8]) << 8 | data[i + 9];
-    gyro_cnts_[2] =  static_cast<int16_t>(data[i + 10]) << 8 | data[i + 11];
-    /* Convert to float values and rotate the accel / gyro axis */
-    ax[j] = static_cast<float>(accel_cnts_[1]) * accel_scale_ * G_MPS2_;
-    ay[j] = static_cast<float>(accel_cnts_[0]) * accel_scale_ * G_MPS2_;
-    az[j] = static_cast<float>(accel_cnts_[2]) * accel_scale_ * -1.0f * G_MPS2_;
-    gx[j] = static_cast<float>(gyro_cnts_[1]) * gyro_scale_ * DEG2RAD_;
-    gy[j] = static_cast<float>(gyro_cnts_[0]) * gyro_scale_ * DEG2RAD_;
-    gz[j] = static_cast<float>(gyro_cnts_[2]) * gyro_scale_ * -1.0f * DEG2RAD_;
-    j++;
+  if (mag_mode_ == MAG_ENABLED) {
+    for (size_t i = 0; i < len; i = i + 20) {
+      /* Unpack the buffer */
+      accel_cnts_[0] = static_cast<int16_t>(data[i + 0])  << 8 | data[i + 1];
+      accel_cnts_[1] = static_cast<int16_t>(data[i + 2])  << 8 | data[i + 3];
+      accel_cnts_[2] = static_cast<int16_t>(data[i + 4])  << 8 | data[i + 5];
+      gyro_cnts_[0] =  static_cast<int16_t>(data[i + 6])  << 8 | data[i + 7];
+      gyro_cnts_[1] =  static_cast<int16_t>(data[i + 8]) << 8 | data[i + 9];
+      gyro_cnts_[2] =  static_cast<int16_t>(data[i + 10]) << 8 | data[i + 11];
+      mag_cnts_[0] =   static_cast<int16_t>(data_buf_[14]) << 8 | data_buf_[13];
+      mag_cnts_[1] =   static_cast<int16_t>(data_buf_[16]) << 8 | data_buf_[15];
+      mag_cnts_[2] =   static_cast<int16_t>(data_buf_[18]) << 8 | data_buf_[17];
+      /* Convert to float values and rotate the accel / gyro axis */
+      ax[j] = static_cast<float>(accel_cnts_[1]) * accel_scale_ * G_MPS2_;
+      ay[j] = static_cast<float>(accel_cnts_[0]) * accel_scale_ * G_MPS2_;
+      az[j] = static_cast<float>(accel_cnts_[2]) * accel_scale_ * -1.0f * G_MPS2_;
+      gx[j] = static_cast<float>(gyro_cnts_[1]) * gyro_scale_ * DEG2RAD_;
+      gy[j] = static_cast<float>(gyro_cnts_[0]) * gyro_scale_ * DEG2RAD_;
+      gz[j] = static_cast<float>(gyro_cnts_[2]) * gyro_scale_ * -1.0f * DEG2RAD_;
+      hx[j] =   static_cast<float>(mag_cnts_[0]) * mag_scale_[0];
+      hy[j] =   static_cast<float>(mag_cnts_[1]) * mag_scale_[1];
+      hz[j] =   static_cast<float>(mag_cnts_[2]) * mag_scale_[2];
+      j++;
+    }
+  } else {
+    for (size_t i = 0; i < len; i = i + 12) {
+      /* Unpack the buffer */
+      accel_cnts_[0] = static_cast<int16_t>(data[i + 0])  << 8 | data[i + 1];
+      accel_cnts_[1] = static_cast<int16_t>(data[i + 2])  << 8 | data[i + 3];
+      accel_cnts_[2] = static_cast<int16_t>(data[i + 4])  << 8 | data[i + 5];
+      gyro_cnts_[0] =  static_cast<int16_t>(data[i + 6])  << 8 | data[i + 7];
+      gyro_cnts_[1] =  static_cast<int16_t>(data[i + 8]) << 8 | data[i + 9];
+      gyro_cnts_[2] =  static_cast<int16_t>(data[i + 10]) << 8 | data[i + 11];
+      /* Convert to float values and rotate the accel / gyro axis */
+      ax[j] = static_cast<float>(accel_cnts_[1]) * accel_scale_ * G_MPS2_;
+      ay[j] = static_cast<float>(accel_cnts_[0]) * accel_scale_ * G_MPS2_;
+      az[j] = static_cast<float>(accel_cnts_[2]) * accel_scale_ * -1.0f * G_MPS2_;
+      gx[j] = static_cast<float>(gyro_cnts_[1]) * gyro_scale_ * DEG2RAD_;
+      gy[j] = static_cast<float>(gyro_cnts_[0]) * gyro_scale_ * DEG2RAD_;
+      gz[j] = static_cast<float>(gyro_cnts_[2]) * gyro_scale_ * -1.0f * DEG2RAD_;
+      j++;
+    }
   }
   return j;
 }
