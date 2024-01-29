@@ -523,7 +523,7 @@ int16_t Mpu9250::ReadFifo(uint8_t * const data, const size_t len) {
     } else {
       bytes_to_read_ = fifo_count_;
     }
-    if (!ReadRegisters(FIFO_R_W_, bytes_to_read_, data)) {
+    if (!ReadFifo(FIFO_R_W_, bytes_to_read_, data)) {
       return -1;
     }
     return bytes_to_read_;
@@ -533,55 +533,68 @@ int16_t Mpu9250::ReadFifo(uint8_t * const data, const size_t len) {
 }
 int16_t Mpu9250::ProcessFifoData(uint8_t * const data, const size_t len,
                                  float * const gx, float * const gy, float * const gz,
-                                 float * const ax, float * const ay, float * const az,
-                                 float * const hx, float * const hy, float * const hz) {
-  if ((!data) || (!gx) || (!gy) || (!gz) || (!ax) || (!ay) || (!az) ||
-      (!hx) || (!hy) || (!hz)) {
+                                 float * const ax, float * const ay, float * const az) {
+  if ((!data) || (!gx) || (!gy) || (!gz) || (!ax) || (!ay) || (!az)) {
     return -1;
   }
   size_t j = 0;
-  if (mag_mode_ == MAG_ENABLED) {
-    for (size_t i = 0; i < len; i = i + 20) {
-      /* Unpack the buffer */
-      accel_cnts_[0] = static_cast<int16_t>(data[i + 0])  << 8 | data[i + 1];
-      accel_cnts_[1] = static_cast<int16_t>(data[i + 2])  << 8 | data[i + 3];
-      accel_cnts_[2] = static_cast<int16_t>(data[i + 4])  << 8 | data[i + 5];
-      gyro_cnts_[0] =  static_cast<int16_t>(data[i + 6])  << 8 | data[i + 7];
-      gyro_cnts_[1] =  static_cast<int16_t>(data[i + 8]) << 8 | data[i + 9];
-      gyro_cnts_[2] =  static_cast<int16_t>(data[i + 10]) << 8 | data[i + 11];
-      mag_cnts_[0] =   static_cast<int16_t>(data_buf_[14]) << 8 | data_buf_[13];
-      mag_cnts_[1] =   static_cast<int16_t>(data_buf_[16]) << 8 | data_buf_[15];
-      mag_cnts_[2] =   static_cast<int16_t>(data_buf_[18]) << 8 | data_buf_[17];
-      /* Convert to float values and rotate the accel / gyro axis */
-      ax[j] = static_cast<float>(accel_cnts_[1]) * accel_scale_ * G_MPS2_;
-      ay[j] = static_cast<float>(accel_cnts_[0]) * accel_scale_ * G_MPS2_;
-      az[j] = static_cast<float>(accel_cnts_[2]) * accel_scale_ * -1.0f * G_MPS2_;
-      gx[j] = static_cast<float>(gyro_cnts_[1]) * gyro_scale_ * DEG2RAD_;
-      gy[j] = static_cast<float>(gyro_cnts_[0]) * gyro_scale_ * DEG2RAD_;
-      gz[j] = static_cast<float>(gyro_cnts_[2]) * gyro_scale_ * -1.0f * DEG2RAD_;
-      hx[j] =   static_cast<float>(mag_cnts_[0]) * mag_scale_[0];
-      hy[j] =   static_cast<float>(mag_cnts_[1]) * mag_scale_[1];
-      hz[j] =   static_cast<float>(mag_cnts_[2]) * mag_scale_[2];
-      j++;
+  for (size_t i = 0; i < len; i = i + 12) {
+    /* Unpack the buffer */
+    accel_cnts_[0] = static_cast<int16_t>(data[i + 0])  << 8 | data[i + 1];
+    accel_cnts_[1] = static_cast<int16_t>(data[i + 2])  << 8 | data[i + 3];
+    accel_cnts_[2] = static_cast<int16_t>(data[i + 4])  << 8 | data[i + 5];
+    gyro_cnts_[0] =  static_cast<int16_t>(data[i + 6])  << 8 | data[i + 7];
+    gyro_cnts_[1] =  static_cast<int16_t>(data[i + 8]) << 8 | data[i + 9];
+    gyro_cnts_[2] =  static_cast<int16_t>(data[i + 10]) << 8 | data[i + 11];
+    /* Convert to float values and rotate the accel / gyro axis */
+    ax[j] = static_cast<float>(accel_cnts_[1]) * accel_scale_ * G_MPS2_;
+    ay[j] = static_cast<float>(accel_cnts_[0]) * accel_scale_ * G_MPS2_;
+    az[j] = static_cast<float>(accel_cnts_[2]) * accel_scale_ * -1.0f * G_MPS2_;
+    gx[j] = static_cast<float>(gyro_cnts_[1]) * gyro_scale_ * DEG2RAD_;
+    gy[j] = static_cast<float>(gyro_cnts_[0]) * gyro_scale_ * DEG2RAD_;
+    gz[j] = static_cast<float>(gyro_cnts_[2]) * gyro_scale_ * -1.0f * DEG2RAD_;
+    j++;
+  }
+  return j;
+}
+int16_t Mpu9250::ProcessFifoData(uint8_t * const data, const size_t len,
+                                 float * const gx, float * const gy, float * const gz,
+                                 float * const ax, float * const ay, float * const az,
+                                 bool * const mag_drdy,
+                                 float * const hx, float * const hy, float * const hz) {
+  if ((!data) || (!gx) || (!gy) || (!gz) || (!ax) || (!ay) || (!az) ||
+      (!mag_drdy) || (!hx) || (!hy) || (!hz)) {
+    return -1;
+  }
+  size_t j = 0;
+  for (size_t i = 0; i < len; i = i + 20) {
+    /* Unpack the buffer */
+    accel_cnts_[0] = static_cast<int16_t>(data[i + 0])  << 8 | data[i + 1];
+    accel_cnts_[1] = static_cast<int16_t>(data[i + 2])  << 8 | data[i + 3];
+    accel_cnts_[2] = static_cast<int16_t>(data[i + 4])  << 8 | data[i + 5];
+    gyro_cnts_[0] =  static_cast<int16_t>(data[i + 6])  << 8 | data[i + 7];
+    gyro_cnts_[1] =  static_cast<int16_t>(data[i + 8]) << 8 | data[i + 9];
+    gyro_cnts_[2] =  static_cast<int16_t>(data[i + 10]) << 8 | data[i + 11];
+    new_mag_data_ = (data[i + 12] & AK8963_DATA_RDY_INT_);
+    mag_cnts_[0] =   static_cast<int16_t>(data[i+ 14]) << 8 | data[i + 13];
+    mag_cnts_[1] =   static_cast<int16_t>(data[i+ 16]) << 8 | data[i + 15];
+    mag_cnts_[2] =   static_cast<int16_t>(data[i+ 18]) << 8 | data[i + 17];
+    mag_sensor_overflow_ = (data[i + 19] & AK8963_HOFL_);
+    if (mag_sensor_overflow_) {
+      new_mag_data_ = false;
     }
-  } else {
-    for (size_t i = 0; i < len; i = i + 12) {
-      /* Unpack the buffer */
-      accel_cnts_[0] = static_cast<int16_t>(data[i + 0])  << 8 | data[i + 1];
-      accel_cnts_[1] = static_cast<int16_t>(data[i + 2])  << 8 | data[i + 3];
-      accel_cnts_[2] = static_cast<int16_t>(data[i + 4])  << 8 | data[i + 5];
-      gyro_cnts_[0] =  static_cast<int16_t>(data[i + 6])  << 8 | data[i + 7];
-      gyro_cnts_[1] =  static_cast<int16_t>(data[i + 8]) << 8 | data[i + 9];
-      gyro_cnts_[2] =  static_cast<int16_t>(data[i + 10]) << 8 | data[i + 11];
-      /* Convert to float values and rotate the accel / gyro axis */
-      ax[j] = static_cast<float>(accel_cnts_[1]) * accel_scale_ * G_MPS2_;
-      ay[j] = static_cast<float>(accel_cnts_[0]) * accel_scale_ * G_MPS2_;
-      az[j] = static_cast<float>(accel_cnts_[2]) * accel_scale_ * -1.0f * G_MPS2_;
-      gx[j] = static_cast<float>(gyro_cnts_[1]) * gyro_scale_ * DEG2RAD_;
-      gy[j] = static_cast<float>(gyro_cnts_[0]) * gyro_scale_ * DEG2RAD_;
-      gz[j] = static_cast<float>(gyro_cnts_[2]) * gyro_scale_ * -1.0f * DEG2RAD_;
-      j++;
-    }
+    /* Convert to float values and rotate the accel / gyro axis */
+    ax[j] = static_cast<float>(accel_cnts_[1]) * accel_scale_ * G_MPS2_;
+    ay[j] = static_cast<float>(accel_cnts_[0]) * accel_scale_ * G_MPS2_;
+    az[j] = static_cast<float>(accel_cnts_[2]) * accel_scale_ * -1.0f * G_MPS2_;
+    gx[j] = static_cast<float>(gyro_cnts_[1]) * gyro_scale_ * DEG2RAD_;
+    gy[j] = static_cast<float>(gyro_cnts_[0]) * gyro_scale_ * DEG2RAD_;
+    gz[j] = static_cast<float>(gyro_cnts_[2]) * gyro_scale_ * -1.0f * DEG2RAD_;
+    mag_drdy[j] = new_mag_data_;
+    hx[j] =   static_cast<float>(mag_cnts_[0]) * mag_scale_[0];
+    hy[j] =   static_cast<float>(mag_cnts_[1]) * mag_scale_[1];
+    hz[j] =   static_cast<float>(mag_cnts_[2]) * mag_scale_[2];
+    j++;
   }
   return j;
 }
@@ -591,6 +604,10 @@ bool Mpu9250::WriteRegister(const uint8_t reg, const uint8_t data) {
 bool Mpu9250::ReadRegisters(const uint8_t reg, const uint8_t count,
                             uint8_t * const data) {
   return imu_.ReadRegisters(reg, count, spi_clock_, data);
+}
+bool Mpu9250::ReadFifo(const uint8_t reg, const uint8_t count,
+                       uint8_t * const data) {
+  return imu_.ReadFifo(reg, count, spi_clock_, data);
 }
 bool Mpu9250::WriteAk8963Register(const uint8_t reg, const uint8_t data) {
   uint8_t ret_val;

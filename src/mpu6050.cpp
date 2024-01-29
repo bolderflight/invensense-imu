@@ -284,7 +284,7 @@ int16_t Mpu6050::ReadFifo(uint8_t * const data, const size_t len) {
     } else {
       bytes_to_read_ = fifo_count_;
     }
-    if (!ReadRegisters(FIFO_R_W_, bytes_to_read_, data)) {
+    if (!ReadFifo(FIFO_R_W_, bytes_to_read_, data)) {
       return -1;
     }
     return bytes_to_read_;
@@ -324,6 +324,10 @@ bool Mpu6050::WriteRegister(const uint8_t reg, const uint8_t data) {
 bool Mpu6050::ReadRegisters(const uint8_t reg, const uint8_t count,
                             uint8_t * const data) {
   return imu_.ReadRegisters(reg, count, 0, data);
+}
+bool Mpu6050::ReadFifo(const uint8_t reg, const uint8_t count,
+                       uint8_t * const data) {
+  return imu_.ReadFifo(reg, count, 0, data);
 }
 
 }  // namespace bfs

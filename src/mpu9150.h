@@ -173,6 +173,7 @@ class Mpu9150 {
   bool WriteRegister(const uint8_t reg, const uint8_t data);
   bool ReadRegisters(const uint8_t reg, const uint8_t count,
                      uint8_t * const data);
+  bool ReadFifo(const uint8_t reg, const uint8_t count, uint8_t * const data);
 };
 
 }  // namespace bfs

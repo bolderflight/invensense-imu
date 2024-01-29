@@ -54,6 +54,8 @@ class InvensenseImu {
                      const int32_t spi_clock);
   bool ReadRegisters(const uint8_t reg, const uint8_t count,
                      const int32_t spi_clock, uint8_t * const data);
+  bool ReadFifo(const uint8_t reg, const uint8_t count,
+                const int32_t spi_clock, uint8_t * const data);
 
  private:
   /* Communications interface */

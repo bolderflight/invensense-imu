@@ -128,5 +128,56 @@ bool InvensenseImu::ReadRegisters(const uint8_t reg, const uint8_t count,
     return true;
   }
 }
+bool InvensenseImu::ReadFifo(const uint8_t reg, const uint8_t count,
+                             const int32_t spi_clock,
+                             uint8_t * const data) {
+  if (!data) {return false;}
+  if (iface_ == I2C) {
+    i2c_->beginTransmission(dev_);
+    i2c_->write(reg);
+    i2c_->endTransmission(false);
+    bytes_rx_ = i2c_->requestFrom(static_cast<uint8_t>(dev_), count);
+    if (bytes_rx_ == count) {
+      for (size_t i = 0; i < count; i++) {
+        data[i] = i2c_->read();
+      }
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    spi_->beginTransaction(SPISettings(spi_clock, MSBFIRST, SPI_MODE3));
+    #if defined(TEENSYDUINO)
+    digitalWriteFast(dev_, LOW);
+    #else
+    digitalWrite(dev_, LOW);
+    #endif
+    #if defined(__IMXRT1062__)
+      delayNanoseconds(125);
+    #endif
+    spi_->transfer(reg | SPI_READ_);
+    #if defined(__IMXRT1062__)
+      delayNanoseconds(125);
+    #endif
+    #if defined(__IMXRT1062__)
+    for (uint8_t i = 0; i < count; i++) {
+      data[i] = spi_->transfer(0x00);
+      delayNanoseconds(125);
+    }
+    #else
+    spi_->transfer(data, count);
+    #endif
+    #if defined(TEENSYDUINO)
+    digitalWriteFast(dev_, HIGH);
+    #else
+    digitalWrite(dev_, HIGH);
+    #endif
+    #if defined(__IMXRT1062__)
+      delayNanoseconds(125);
+    #endif
+    spi_->endTransaction();
+    return true;
+  }
+}
 
 }  // namespace bfs

@@ -110,12 +110,13 @@ class Mpu9250 {
   bool EnableWom(int16_t threshold_mg, const WomRate wom_rate);
   bool Read();
   int16_t ReadFifo(uint8_t * const data, const size_t len);
-  // int16_t ProcessFifoData(uint8_t * const data, const size_t len,
-  //                         float * const gx, float * const gy, float * const gz,
-  //                         float * const ax, float * const ay, float * const az);
+  int16_t ProcessFifoData(uint8_t * const data, const size_t len,
+                          float * const gx, float * const gy, float * const gz,
+                          float * const ax, float * const ay, float * const az);
   int16_t ProcessFifoData(uint8_t * const data, const size_t len,
                           float * const gx, float * const gy, float * const gz,
                           float * const ax, float * const ay, float * const az,
+                          bool * const mag_drdy,
                           float * const hx, float * const hy, float * const hz);
   inline bool new_imu_data() const {return new_imu_data_;}
   inline float accel_x_mps2() const {return accel_[0];}
@@ -246,6 +247,7 @@ class Mpu9250 {
   bool WriteRegister(const uint8_t reg, const uint8_t data);
   bool ReadRegisters(const uint8_t reg, const uint8_t count,
                      uint8_t * const data);
+  bool ReadFifo(const uint8_t reg, const uint8_t count, uint8_t * const data);
   bool WriteAk8963Register(const uint8_t reg, const uint8_t data);
   bool ReadAk8963Registers(const uint8_t reg, const uint8_t count,
                            uint8_t * const data);
