@@ -23,10 +23,10 @@
 * IN THE SOFTWARE.
 */
 
-#include "mpu6500.h"
+#include "mpu9150.h"
 
-/* Mpu6500 object */
-bfs::Mpu6500 imu;
+/* Mpu9150 object */
+bfs::Mpu9150 imu(&Wire, bfs::Mpu9150::I2C_ADDR_PRIM);
 
 void setup() {
   /* Serial to display data */
@@ -37,8 +37,6 @@ void setup() {
   /* Start the I2C bus */
   Wire.begin();
   Wire.setClock(400000);
-  /* I2C bus,  0x68 address */
-  imu.Config(&Wire, bfs::Mpu6500::I2C_ADDR_PRIM);
   /* Initialize and configure IMU */
   if (!imu.Begin()) {
     Serial.println("Error initializing communication with IMU");
@@ -49,26 +47,31 @@ void setup() {
     Serial.println("Error configuring SRD");
     while(1) {}
   }
-}
-
-void loop() {
-  /* Check if data read */
-  if (imu.Read()) {
-    Serial.print(imu.new_imu_data());
+  /* Enable FIFO */
+  if (!imu.EnableFifo()) {
+    Serial.println("Error enabling FIFO");
+    while(1) {}
+  }
+  /* Delay and read FIFO */
+  uint8_t buf[1024];
+  float gx[128], gy[128], gz[128], ax[128], ay[128], az[128];
+  delay(100);
+  int16_t bytes_read = imu.ReadFifo(buf, sizeof(buf));  // should be 5 samples of the IMU
+  int16_t num_records = imu.ProcessFifoData(buf, bytes_read, gx, gy, gz, ax, ay, az);
+  for (size_t i = 0; i < num_records; i++) {
+    Serial.print(ax[i]);
     Serial.print("\t");
-    Serial.print(imu.accel_x_mps2());
+    Serial.print(ay[i]);
     Serial.print("\t");
-    Serial.print(imu.accel_y_mps2());
+    Serial.print(az[i]);
     Serial.print("\t");
-    Serial.print(imu.accel_z_mps2());
+    Serial.print(gx[i]);
     Serial.print("\t");
-    Serial.print(imu.gyro_x_radps());
+    Serial.print(gy[i]);
     Serial.print("\t");
-    Serial.print(imu.gyro_y_radps());
-    Serial.print("\t");
-    Serial.print(imu.gyro_z_radps());
-    Serial.print("\t");
-    Serial.print(imu.die_temp_c());
+    Serial.print(gz[i]);
     Serial.print("\n");
   }
 }
+
+void loop() {}

@@ -25,7 +25,7 @@
 
 #include "mpu9150.h"
 
-/* Mpu9150 object, SPI bus, CS on pin 10 */
+/* Mpu9150 object */
 bfs::Mpu9150 imu(&Wire, bfs::Mpu9150::I2C_ADDR_PRIM);
 
 /* Data acquisition ISR */
@@ -33,8 +33,6 @@ void imu_isr() {
   /* Check if data read */
   if (imu.Read()) {
     Serial.print(imu.new_imu_data());
-    Serial.print("\t");
-    Serial.print(imu.new_mag_data());
     Serial.print("\t");
     Serial.print(imu.accel_x_mps2());
     Serial.print("\t");
@@ -47,12 +45,6 @@ void imu_isr() {
     Serial.print(imu.gyro_y_radps());
     Serial.print("\t");
     Serial.print(imu.gyro_z_radps());
-    Serial.print("\t");
-    Serial.print(imu.mag_x_ut());
-    Serial.print("\t");
-    Serial.print(imu.mag_y_ut());
-    Serial.print("\t");
-    Serial.print(imu.mag_z_ut());
     Serial.print("\t");
     Serial.print(imu.die_temp_c());
     Serial.print("\n");

@@ -32,8 +32,8 @@ void setup() {
   /* Serial to display data */
   Serial.begin(115200);
   while(!Serial) {}
-  delay(2000);
-  Serial.println("STARTING TEST");
+  delay(1000);
+  Serial.println("Starting example");
   /* Start the SPI bus */
   SPI.begin();
   /* Initialize and configure IMU */
@@ -55,7 +55,7 @@ void setup() {
   uint8_t buf[1024];
   float gx[128], gy[128], gz[128], ax[128], ay[128], az[128];
   delay(100);
-  int16_t bytes_read = imu.ReadFifo(buf, sizeof(buf));
+  int16_t bytes_read = imu.ReadFifo(buf, sizeof(buf));  // should be 5 samples of the IMU
   int16_t num_records = imu.ProcessFifoData(buf, bytes_read, gx, gy, gz, ax, ay, az);
   for (size_t i = 0; i < num_records; i++) {
     Serial.print(ax[i]);

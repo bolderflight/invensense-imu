@@ -24,9 +24,12 @@
 */
 
 #include "mpu9250.h"
+#include "ak8963.h"
 
 /* Mpu9250 object */
 bfs::Mpu9250 imu(&Wire, bfs::Mpu9250::I2C_ADDR_PRIM);
+/* Mag */
+bfs::Ak8963 mag(&Wire);
 
 void setup() {
   /* Serial to display data */
@@ -36,43 +39,30 @@ void setup() {
   Wire.begin();
   Wire.setClock(400000);
   /* Initialize and configure IMU */
-  if (!imu.Begin()) {
+  if (!imu.Begin(bfs::Mpu9250::MAG_PASSTHROUGH)) {
     Serial.println("Error initializing communication with IMU");
     while(1) {}
   }
-  /* Set the sample rate divider */
-  if (!imu.ConfigSrd(19)) {
-    Serial.println("Error configuring SRD");
+  /* Initialize the mag */
+  if (!mag.Begin()) {
+    Serial.println("Error initializing communication with mag");
+    while(1) {}
+  }
+  /* Set mag measurement rate */
+  if (!mag.ConfigMeasRate(bfs::Ak8963::MEAS_RATE_100HZ)) {
+    Serial.println("Error configuring mag measurement rate");
     while(1) {}
   }
 }
 
 void loop() {
   /* Check if data read */
-  if (imu.Read()) {
-    Serial.print(imu.new_imu_data());
+  if (mag.Read()) {
+    Serial.print(mag.mag_x_ut());
     Serial.print("\t");
-    Serial.print(imu.new_mag_data());
+    Serial.print(mag.mag_y_ut());
     Serial.print("\t");
-    Serial.print(imu.accel_x_mps2());
-    Serial.print("\t");
-    Serial.print(imu.accel_y_mps2());
-    Serial.print("\t");
-    Serial.print(imu.accel_z_mps2());
-    Serial.print("\t");
-    Serial.print(imu.gyro_x_radps());
-    Serial.print("\t");
-    Serial.print(imu.gyro_y_radps());
-    Serial.print("\t");
-    Serial.print(imu.gyro_z_radps());
-    Serial.print("\t");
-    Serial.print(imu.mag_x_ut());
-    Serial.print("\t");
-    Serial.print(imu.mag_y_ut());
-    Serial.print("\t");
-    Serial.print(imu.mag_z_ut());
-    Serial.print("\t");
-    Serial.print(imu.die_temp_c());
+    Serial.print(mag.mag_z_ut());
     Serial.print("\n");
   }
 }

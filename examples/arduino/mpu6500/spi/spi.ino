@@ -32,11 +32,28 @@ void setup() {
   /* Serial to display data */
   Serial.begin(115200);
   while(!Serial) {}
+  delay(1000);
+  Serial.println("Starting example");
   /* Start the SPI bus */
   SPI.begin();
   /* Initialize and configure IMU */
   if (!imu.Begin()) {
     Serial.println("Error initializing communication with IMU");
+    while(1) {}
+  }
+  /* Config accel range */
+  if (!imu.ConfigAccelRange(bfs::Mpu6500::ACCEL_RANGE_4G)) {
+    Serial.println("Error configuring accel range");
+    while(1) {}
+  }
+  /* Config gyro range */
+  if (!imu.ConfigGyroRange(bfs::Mpu6500::GYRO_RANGE_500DPS)) {
+    Serial.println("Error configuring gyro range");
+    while(1) {}
+  }
+  /* Config DLPF */
+  if (!imu.ConfigDlpfBandwidth(bfs::Mpu6500::DLPF_BANDWIDTH_20HZ)) {
+    Serial.println("Error configuring DLPF");
     while(1) {}
   }
   /* Set the sample rate divider */

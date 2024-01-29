@@ -32,6 +32,8 @@ void setup() {
   /* Serial to display data */
   Serial.begin(115200);
   while(!Serial) {}
+  delay(1000);
+  Serial.println("Starting example");
   /* Start the I2C bus */
   Wire.begin();
   Wire.setClock(400000);
