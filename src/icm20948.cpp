@@ -125,6 +125,24 @@ bool Icm20948::DisableDrdyInt() {
   }
   return true;
 }
+bool Icm20948::EnableFifo() {
+  if (!WriteRegister(BANK_0_, USER_CTRL_, USER_CTRL_FIFO_EN_)) {
+    return false;
+  }
+  if (!WriteRegister(BANK_0_, FIFO_EN_2_, FIFO_EN_2_GYRO_EN_ | FIFO_EN_2_ACCEL_EN_)) {
+    return false;
+  }
+  return true;
+}
+bool Icm20948::DisableFifo() {
+  if (!WriteRegister(BANK_0_, USER_CTRL_, USER_CTRL_FIFO_DISABLE_)) {
+    return false;
+  }
+  if (!WriteRegister(BANK_0_, FIFO_EN_2_, FIFO_EN_2_DISABLE_ALL_)) {
+    return false;
+  }
+  return true;
+}
 bool Icm20948::ConfigAccelRange(const AccelRange range) {
   /* Check input is valid and set requested range and scale */
   switch (range) {
@@ -377,6 +395,61 @@ bool Icm20948::Read() {
   gyro_[2] = static_cast<float>(gyro_cnts_[2]) * gyro_scale_ * -1.0f * DEG2RAD_;
   return true;
 }
+int16_t Icm20948::ReadFifo(uint8_t * const data, const size_t len) {
+  if (!data) {
+    return -1;
+  }
+  /* Read the FIFO interrupt */
+  if (!ReadRegisters(BANK_0_, INT_STATUS_2_, 1, data_buf_)) {
+    return -1;
+  }
+  /* Check for fifo overflow */
+  fifo_overflowed_ = (data_buf_[0] & FIFO_OFLOW_INT_);
+  /* FIFO Count */
+  if (!ReadRegisters(BANK_0_, FIFO_COUNT_H_, 2, data_buf_)) {
+    return -1;
+  }
+  fifo_count_ = static_cast<int16_t>(data_buf_[0]) << 8 | data_buf_[1];
+  if (fifo_count_ > 0) {
+    if (len < fifo_count_) {
+      bytes_to_read_ = len;
+    } else {
+      bytes_to_read_ = fifo_count_;
+    }
+    if (!ReadFifo(BANK_0_, FIFO_R_W_, bytes_to_read_, data)) {
+      return -1;
+    }
+    return bytes_to_read_;
+  } else {
+    return 0;
+  }
+}
+int16_t Icm20948::ProcessFifoData(uint8_t * const data, const size_t len,
+                                  float * const gx, float * const gy, float * const gz,
+                                  float * const ax, float * const ay, float * const az) {
+  if ((!data) || (!gx) || (!gy) || (!gz) || (!ax) || (!ay) || (!az)) {
+    return -1;
+  }
+  size_t j = 0;
+  for (size_t i = 0; i < len; i = i + 12) {
+    /* Unpack the buffer */
+    accel_cnts_[0] = static_cast<int16_t>(data[i + 0])  << 8 | data[i + 1];
+    accel_cnts_[1] = static_cast<int16_t>(data[i + 2])  << 8 | data[i + 3];
+    accel_cnts_[2] = static_cast<int16_t>(data[i + 4])  << 8 | data[i + 5];
+    gyro_cnts_[0] =  static_cast<int16_t>(data[i + 6])  << 8 | data[i + 7];
+    gyro_cnts_[1] =  static_cast<int16_t>(data[i + 8]) << 8 | data[i + 9];
+    gyro_cnts_[2] =  static_cast<int16_t>(data[i + 10]) << 8 | data[i + 11];
+    /* Convert to float values and rotate the accel / gyro axis */
+    ax[j] = static_cast<float>(accel_cnts_[1]) * accel_scale_ * G_MPS2_;
+    ay[j] = static_cast<float>(accel_cnts_[0]) * accel_scale_ * G_MPS2_;
+    az[j] = static_cast<float>(accel_cnts_[2]) * accel_scale_ * -1.0f * G_MPS2_;
+    gx[j] = static_cast<float>(gyro_cnts_[1]) * gyro_scale_ * DEG2RAD_;
+    gy[j] = static_cast<float>(gyro_cnts_[0]) * gyro_scale_ * DEG2RAD_;
+    gz[j] = static_cast<float>(gyro_cnts_[2]) * gyro_scale_ * -1.0f * DEG2RAD_;
+    j++;
+  }
+  return j;
+}
 bool Icm20948::WriteRegister(const uint8_t bank, const uint8_t reg,
                              const uint8_t data) {
   if(bank != current_bank_) {
@@ -398,6 +471,17 @@ bool Icm20948::ReadRegisters(const uint8_t bank, const uint8_t reg, const uint8_
     }
   }
   return imu_.ReadRegisters(reg, count, SPI_CLOCK_, data);
+}
+bool Icm20948::ReadFifo(const uint8_t bank, const uint8_t reg, const uint8_t count,
+                        uint8_t * const data) {
+  if(bank != current_bank_) {
+    if (!imu_.WriteRegister(REG_BANK_SEL_, bank << 4, SPI_CLOCK_)) {
+      return false;
+    } else {
+      current_bank_ = bank;
+    }
+  }
+  return imu_.ReadFifo(reg, count, SPI_CLOCK_, data);
 }
 
 }  // namespace bfs

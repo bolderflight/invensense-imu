@@ -231,14 +231,6 @@ bool Mpu9250::DisableFifo() {
   }
   return true;
 }
-void Mpu9250::ResetFifo() {
-  spi_clock_ = SPI_CFG_CLOCK_;
-  if (mag_mode_ == MAG_ENABLED) {
-    WriteRegister(USER_CTRL_, USER_CTRL_FIFO_RESET_ | I2C_MST_EN_);
-  } else {
-    WriteRegister(USER_CTRL_, USER_CTRL_FIFO_RESET_);
-  }
-}
 bool Mpu9250::ConfigAccelRange(const AccelRange range) {
   spi_clock_ = SPI_CFG_CLOCK_;
   /* Check input is valid and set requested range and scale */

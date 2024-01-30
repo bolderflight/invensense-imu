@@ -94,6 +94,8 @@ class Icm20649 {
   bool Begin();
   bool EnableDrdyInt();
   bool DisableDrdyInt();
+  bool EnableFifo();
+  bool DisableFifo();
   bool ConfigAccelRange(const AccelRange range);
   inline AccelRange accel_range() const {return accel_range_;}
   bool ConfigGyroRange(const GyroRange range);
@@ -107,6 +109,10 @@ class Icm20649 {
   bool ConfigTempDlpfBandwidth(const TempDlpfBandwidth dlpf);
   inline TempDlpfBandwidth temp_dlpf_bandwidth() const {return temp_dlpf_bandwidth_;}
   bool Read();
+  int16_t ReadFifo(uint8_t * const data, const size_t len);
+  int16_t ProcessFifoData(uint8_t * const data, const size_t len,
+                          float * const gx, float * const gy, float * const gz,
+                          float * const ax, float * const ay, float * const az);
   inline bool new_imu_data() const {return new_imu_data_;}
   inline float die_temp_c() const {return temp_;}
   inline float accel_x_mps2() const {return accel_[0];}
@@ -173,10 +179,26 @@ class Icm20649 {
   static constexpr uint8_t ACCEL_SMPLRT_DIV_2_ = 0x11;
   static constexpr uint8_t ACCEL_CONFIG_ = 0x14;
   static constexpr uint8_t TEMP_CONFIG_ = 0x53;
+  /* FIFO processing */
+  bool fifo_overflowed_;
+  size_t bytes_to_read_;
+  uint16_t fifo_count_;
+  /* FIFO */
+  static constexpr uint8_t INT_STATUS_2_ = 0x1B;
+  static constexpr uint8_t FIFO_OFLOW_INT_ = 0x01;
+  static constexpr uint8_t USER_CTRL_FIFO_EN_ = 0x40;
+  static constexpr uint8_t USER_CTRL_FIFO_DISABLE_ = 0x00;
+  static constexpr uint8_t FIFO_EN_2_ = 0x67;
+  static constexpr uint8_t FIFO_EN_2_ACCEL_EN_ = 0x10;
+  static constexpr uint8_t FIFO_EN_2_GYRO_EN_ = 0x0E;
+  static constexpr uint8_t FIFO_EN_2_DISABLE_ALL_ = 0x00;
+  static constexpr uint8_t FIFO_COUNT_H_ = 0x70;
+  static constexpr uint8_t FIFO_R_W_ = 0x72;
   /* Utility functions */
   bool WriteRegister(const uint8_t bank, const uint8_t reg, const uint8_t data);
   bool ReadRegisters(const uint8_t bank, const uint8_t reg, const uint8_t count,
                      uint8_t * const data);
+  bool ReadFifo(const uint8_t bank, const uint8_t reg, const uint8_t count, uint8_t * const data);
 };
 
 }  // namespace bfs

@@ -127,10 +127,6 @@ bool Mpu6500::DisableFifo() {
   }
   return true;
 }
-void Mpu6500::ResetFifo() {
-  spi_clock_ = SPI_CFG_CLOCK_;
-  WriteRegister(USER_CTRL_, USER_CTRL_FIFO_RESET_);
-}
 bool Mpu6500::ConfigAccelRange(const AccelRange range) {
   spi_clock_ = SPI_CFG_CLOCK_;
   /* Check input is valid and set requested range and scale */

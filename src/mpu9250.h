@@ -98,7 +98,6 @@ class Mpu9250 {
   bool DisableDrdyInt();
   bool EnableFifo();
   bool DisableFifo();
-  void ResetFifo();
   bool ConfigAccelRange(const AccelRange range);
   inline AccelRange accel_range() const {return accel_range_;}
   bool ConfigGyroRange(const GyroRange range);

@@ -78,7 +78,6 @@ class Mpu6500 {
   bool DisableDrdyInt();
   bool EnableFifo();
   bool DisableFifo();
-  void ResetFifo();
   bool fifo_overflowed() {return fifo_overflowed_;}
   bool ConfigAccelRange(const AccelRange range);
   inline AccelRange accel_range() const {return accel_range_;}

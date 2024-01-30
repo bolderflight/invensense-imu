@@ -107,9 +107,6 @@ bool Mpu6050::DisableFifo() {
   }
   return true;
 }
-void Mpu6050::ResetFifo() {
-  WriteRegister(USER_CTRL_, USER_CTRL_FIFO_RESET_);
-}
 bool Mpu6050::ConfigAccelRange(const AccelRange range) {
   /* Check input is valid and set requested range and scale */
   switch (range) {
