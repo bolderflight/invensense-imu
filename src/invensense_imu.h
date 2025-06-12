@@ -43,10 +43,10 @@ class InvensenseImu {
   InvensenseImu() {}
   InvensenseImu(TwoWire *i2c, const uint8_t addr) : i2c_(i2c),
                                                     dev_(addr),
-                                                    iface_(I2C) {}
+                                                    iface_(I2C_IFACE) {}
   InvensenseImu(SPIClass *spi, const uint8_t cs) : spi_(spi),
                                                    dev_(cs),
-                                                   iface_(SPI) {}
+                                                   iface_(SPI_IFACE) {}
   void Config(TwoWire *i2c, const uint8_t addr);
   void Config(SPIClass *spi, const uint8_t cs);
   void Begin();
@@ -61,8 +61,8 @@ class InvensenseImu {
  private:
   /* Communications interface */
   enum Interface : int8_t {
-    SPI,
-    I2C
+    SPI_IFACE,
+    I2C_IFACE
   };
   TwoWire *i2c_;
   SPIClass *spi_;
