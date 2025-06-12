@@ -30,17 +30,17 @@ namespace bfs {
 void InvensenseImu::Config(TwoWire *i2c, const uint8_t addr) {
   i2c_ = i2c;
   dev_ = addr;
-  iface_ = I2C;
+  iface_ = I2C_IFACE;
 }
 
 void InvensenseImu::Config(SPIClass *spi, const uint8_t cs) {
   spi_ = spi;
   dev_ = cs;
-  iface_ = SPI;
+  iface_ = SPI_IFACE;
 }
 
 void InvensenseImu::Begin() {
-  if (iface_ == SPI) {
+  if (iface_ == SPI_IFACE) {
     pinMode(dev_, OUTPUT);
     /* Toggle CS pin to lock in SPI mode */
     digitalWrite(dev_, LOW);
@@ -53,7 +53,7 @@ void InvensenseImu::Begin() {
 bool InvensenseImu::WriteRegister(const uint8_t reg, const uint8_t data,
                                   const int32_t spi_clock) {
   uint8_t ret_val;
-  if (iface_ == I2C) {
+  if (iface_ == I2C_IFACE) {
     i2c_->beginTransmission(dev_);
     i2c_->write(reg);
     i2c_->write(data);
@@ -93,7 +93,7 @@ bool InvensenseImu::ReadRegisters(const uint8_t reg, const uint8_t count,
                                   const int32_t spi_clock,
                                   uint8_t * const data) {
   if (!data) {return false;}
-  if (iface_ == I2C) {
+  if (iface_ == I2C_IFACE) {
     i2c_->beginTransmission(dev_);
     i2c_->write(reg);
     i2c_->endTransmission(false);
@@ -132,7 +132,7 @@ bool InvensenseImu::ReadRegisters(const uint8_t reg, const uint8_t count,
 }
 
 bool InvensenseImu::WriteRegister(const uint8_t reg, const uint8_t data) {
-  if (iface_ == I2C) {
+  if (iface_ == I2C_IFACE) {
     return WriteRegister(reg, data, 0);
   } else {
     return false;
@@ -141,7 +141,7 @@ bool InvensenseImu::WriteRegister(const uint8_t reg, const uint8_t data) {
 
 bool InvensenseImu::ReadRegisters(const uint8_t reg, const uint8_t count,
                                   uint8_t * const data) {
-  if (iface_ == I2C) {
+  if (iface_ == I2C_IFACE) {
     return ReadRegisters(reg, count, 0, data);
   } else {
     return false;
