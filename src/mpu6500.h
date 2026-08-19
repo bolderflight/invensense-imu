@@ -98,6 +98,7 @@ class Mpu6500 {
   inline uint8_t srd() const {return srd_;}
   bool ConfigDlpfBandwidth(const DlpfBandwidth dlpf);
   inline DlpfBandwidth dlpf_bandwidth() const {return dlpf_bandwidth_;}
+  bool EnableWom(int16_t threshold_mg, const WomRate wom_rate);
   bool Read();
   inline bool new_imu_data() const {return new_imu_data_;}
   inline float accel_x_mps2() const {return accel_[0];}
@@ -139,6 +140,8 @@ class Mpu6500 {
   float temp_;
   /* Registers */
   static constexpr uint8_t PWR_MGMNT_1_ = 0x6B;
+  static constexpr uint8_t H_RESET_ = 0x80;
+  static constexpr uint8_t CLKSEL_INTERNAL_ = 0x00;
   static constexpr uint8_t CLKSEL_PLL_ = 0x01;
   static constexpr uint8_t WHOAMI_ = 0x75;
   static constexpr uint8_t ACCEL_CONFIG_ = 0x1C;
@@ -153,6 +156,16 @@ class Mpu6500 {
   static constexpr uint8_t INT_RAW_RDY_EN_ = 0x01;
   static constexpr uint8_t INT_STATUS_ = 0x3A;
   static constexpr uint8_t RAW_DATA_RDY_INT_ = 0x01;
+  /* Needed for WOM */
+  static constexpr uint8_t PWR_MGMNT_2_ = 0x6C;
+  static constexpr uint8_t DISABLE_GYRO_ = 0x07;
+  static constexpr uint8_t INT_WOM_EN_ = 0x40;
+  static constexpr uint8_t MOT_DETECT_CTRL_ = 0x69;
+  static constexpr uint8_t ACCEL_INTEL_EN_ = 0x80;
+  static constexpr uint8_t ACCEL_INTEL_MODE_ = 0x40;
+  static constexpr uint8_t LP_ACCEL_ODR_ = 0x1E;
+  static constexpr uint8_t WOM_THR_ = 0x1F;
+  static constexpr uint8_t PWR_CYCLE_WOM_ = 0x20;
   /* Utility functions */
   bool WriteRegister(const uint8_t reg, const uint8_t data);
   bool ReadRegisters(const uint8_t reg, const uint8_t count,
