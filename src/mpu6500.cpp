@@ -221,59 +221,49 @@ bool Mpu6500::ConfigDlpfBandwidth(const DlpfBandwidth dlpf) {
 }
 bool Mpu6500::EnableWom(int16_t threshold_mg, const WomRate wom_rate) {
   /* Check threshold in limits, 4 - 1020 mg */
-  if (threshold_mg < 4 || threshold_mg > 1020) {return false;}
-
+  if (threshold_mg < 4 || threshold_mg > 1020) {
+    return false;
+  }
   /* Set configuration spi clock */
   spi_clock_ = SPI_CFG_CLOCK_;
-
   /* Reset the MPU6500 */
   WriteRegister(PWR_MGMNT_1_, H_RESET_);
-
   /* Wait for MPU6500 to come back up */
   delay(1);
   /* Wake up using the internal clock */
   if (!WriteRegister(PWR_MGMNT_1_, CLKSEL_INTERNAL_)) {
-    return false; 
+    return false;
   }
-
   /* Disable Gyro measurements */
   if (!WriteRegister(PWR_MGMNT_2_, DISABLE_GYRO_)) {
-    return false; 
-  } 
-  
+    return false;
+  }
   /* Set accel bandwidth to 184 Hz */
   if (!WriteRegister(ACCEL_CONFIG2_, DLPF_BANDWIDTH_184HZ)) {
-    return false; 
+    return false;
   }
-
   /* Enable interrupt to wake on motion */
   if (!WriteRegister(INT_ENABLE_, INT_WOM_EN_)) {
-    return false; 
-  } 
-  
-  /* Enable accel hardware intelligence and compare mode */
-  if (!WriteRegister(MOT_DETECT_CTRL_,
-                     ACCEL_INTEL_EN_ | ACCEL_INTEL_MODE_)) {
-    return false; 
+    return false;
   }
-
+  /* Enable accel hardware intelligence and compare mode */
+  if (!WriteRegister(MOT_DETECT_CTRL_, ACCEL_INTEL_EN_ | ACCEL_INTEL_MODE_)) {
+    return false;
+  }
   /* Set the wake on motion threshold, LSB is 4 mg */
-  uint8_t wom_threshold = static_cast<uint8_t>(threshold_mg / 
+  uint8_t wom_threshold = static_cast<uint8_t>(threshold_mg /
                                                 static_cast<int8_t>(4));
   if (!WriteRegister(WOM_THR_, wom_threshold)) {
-    return false; 
-  } 
-  
+    return false;
+  }
   /* Set the accel wakeup frequency */
   if (!WriteRegister(LP_ACCEL_ODR_, wom_rate)) {
-   return false; 
-  } 
-  
+    return false;
+  }
   /* Switch to low power cycle mode */
   if (!WriteRegister(PWR_MGMNT_1_, PWR_CYCLE_WOM_)) {
-    return false; 
+    return false;
   }
-
   return true;
 }
 bool Mpu6500::Read() {
